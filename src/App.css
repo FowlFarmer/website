@@ -1,0 +1,229 @@
+/*
+ * Global styles for the portfolio gallery.
+ *
+ * The colour palette and layout are inspired by the original Weebly
+ * gallery page but simplified for clarity and maintainability.  You can
+ * adjust these variables to quickly tweak the look and feel of the site.
+ */
+
+:root {
+  --primary-colour: #ffffff; /* dark blue for headers and buttons */
+  --secondary-colour: #ffffff;
+  --background-colour: #ffffff;
+  --card-background: #ffffff;
+  --card-shadow: rgba(0, 0, 0, 0.1);
+  --button-colour: #000000;
+  --button-text-colour: #ffffff;
+}
+
+body {
+  margin: 0;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background-color: var(--background-colour);
+  color: #333;
+  line-height: 1.6;
+}
+
+
+
+
+/* 
+yeet
+*/
+.rounded-button {
+  background-color: #2563eb;       /* nice blue */
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;             /* rounded corners */
+  box-shadow: 0 4px 6px 4px rgba(0,0,0,0.3); /* subtle shadow */
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.rounded-button:hover {
+  background-color: #1d4ed8;       /* slightly darker blue on hover */
+  transform: translateY(-2px);     /* subtle lift */
+  box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+}
+
+.rounded-button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.scrollFadeBg {
+  position: fixed;       /* cover the viewport behind your content */
+  inset: 0;
+  z-index: -1;           /* sits behind page content */
+  pointer-events: none;  /* don't block clicks */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: opacity 0.12s linear; /* smoothen small jumps */
+}
+
+.p-6 {
+  text-align: center;
+}
+
+.self {
+  text-align: center;
+  padding: rem;
+}
+
+.self img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.navbar {
+  background-color: var(--primary-colour);
+  color: #fff;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.navbar-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.navbar-links a {
+  color: #000000;
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity 0.2s ease;
+}
+
+.navbar-links a:hover {
+  opacity: 0.8;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Gallery grid */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+/* Project card styles */
+.project-card {
+  background-color: var(--card-background);
+  border-radius: 8px;
+  box-shadow: 0 2px 6px var(--card-shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease;
+}
+
+.project-card:hover {
+  transform: translateY(-2px);
+}
+
+.project-image-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 aspect ratio */
+  overflow: hidden;
+}
+
+.project-image-wrapper img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-controls {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.image-controls button {
+  background-color: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: #fff;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.image-controls button:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.project-content {
+  padding: 1rem 1.25rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.project-content h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+  color: var(--primary-colour);
+}
+
+.project-content h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--secondary-colour);
+  margin-bottom: 0.5rem;
+}
+
+.project-content p {
+  flex: 1;
+  margin: 0 0 1rem;
+}
+
+.project-content a.button {
+  align-self: flex-start;
+  text-decoration: none;
+  background-color: var(--button-colour);
+  color: var(--button-text-colour);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.project-content a.button:hover {
+  background-color: #1b2e54;
+}
