@@ -32,9 +32,7 @@ body {
 yeet
 */
 
-.mainBlob {
-  color: white;
-}
+
 
 .navbar-styles {
   position: fixed;
@@ -49,6 +47,7 @@ yeet
   border-radius: 12px;       /* makes corners rounded */
   box-shadow: 0 3px 4px 3px rgba(0,0,0,0.05);
   text-align: left;
+  transition: all 0.3s ease-in-out;
 }
 
 .rounded-button {
@@ -115,11 +114,12 @@ border: 2px solid rgba(255,255,255,0.06);
 border-radius: 12px;
 box-shadow: 0 3px 4px 3px rgba(0,0,0,0.05); /* subtle shadow */
 cursor: pointer;
-transition: all 0.2s ease-in-out;
+transition: all 0.2s ease-in-out, opacity 0.5s ease-in-out;
 color: white;
 font-family: Helvetica;
 font-weight: 100;
 text-align: left;
+text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* default shadow */
 }
 
 .glass-effect:hover {

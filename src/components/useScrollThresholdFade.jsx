@@ -17,7 +17,7 @@ export default function useScrollThresholdFade(minPx = 0, maxPx = Infinity, fade
 
   // Return style object so you can just spread it
   return {
-    opacity,
-    transition: `opacity ${fadeDuration}ms ease-in-out`
+    opacity
+    // transition: `opacity ${fadeDuration}ms ease-in-out`
   };
 }

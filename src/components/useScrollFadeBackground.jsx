@@ -37,5 +37,5 @@ export default function useScrollFade({
     return () => window.removeEventListener("scroll", onScroll);
   }, [fadeInStart, fadeInEnd, fadeOutStart, fadeOutEnd]);
 
-  return opacity;
+  return { opacity };
 }
