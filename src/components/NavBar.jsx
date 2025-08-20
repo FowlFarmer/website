@@ -1,26 +1,21 @@
-import React from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import React from "react";
+import useScrollThresholdFade from "./useScrollThresholdFade";
 
-/**
- * Navigation bar component.
- *
- * This component renders a simple header with a site title on the left
- * and navigation links on the right.  The active link is highlighted
- * using NavLink from react‑router‑dom.
- */
-export default function NavBar() {
+export default function Navbar() {
+  const nav_opacity = useScrollThresholdFade(10, Infinity, 300);
   return (
-    <header className="navbar">
-      <h1 className="navbar-title">Theodore's Portfolio</h1>
-      <nav className="navbar-links">
-        <NavLink
-          to="/gallery"
-          className={({ isActive }) => (isActive ? 'active' : '')}
-        >
-          Gallery
-        </NavLink>
-        {/* Additional links can be added here */}
-      </nav>
-    </header>
+    <nav className="navbar">
+      <div className="navbar-styles" style={nav_opacity}>
+        <img
+          src="src/assets/calligraphy_logo.png"
+          alt="MySite Logo"
+          style={{
+            height: "100%",
+            width: "auto",
+            // borderRadius: "0px"
+          }}
+        />
+      </div>
+    </nav>
   );
 }

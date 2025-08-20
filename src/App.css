@@ -1,3 +1,5 @@
+
+
 /*
  * Global styles for the portfolio gallery.
  *
@@ -7,9 +9,9 @@
  */
 
 :root {
-  --primary-colour: #ffffff; /* dark blue for headers and buttons */
+  --primary-colour: ##f1f0ef; /* dark blue for headers and buttons */
   --secondary-colour: #ffffff;
-  --background-colour: #ffffff;
+  --background-colour: #f1f0ef;
   --card-background: #ffffff;
   --card-shadow: rgba(0, 0, 0, 0.1);
   --button-colour: #000000;
@@ -20,7 +22,6 @@ body {
   margin: 0;
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   background-color: var(--background-colour);
-  color: #333;
   line-height: 1.6;
 }
 
@@ -30,28 +31,48 @@ body {
 /* 
 yeet
 */
-.rounded-button {
-  background-color: #2563eb;       /* nice blue */
+
+.mainBlob {
   color: white;
+}
+
+.navbar-styles {
+  position: fixed;
+  top: 10px;
+  left: 0;
+  right: 0;
+  width: 96.5%;
+  padding: 0.5rem;
+  height: 20px; /* fixed height for the navbar */
+  margin: 0 auto;
+  background-color: #fff;
+  border-radius: 12px;       /* makes corners rounded */
+  box-shadow: 0 3px 4px 3px rgba(0,0,0,0.05);
+  text-align: left;
+}
+
+.rounded-button {
+  background-color: #fcfcfc;       /* nice blue */
+  color: black;
   font-weight: 600;
   font-size: 16px;
   padding: 12px 24px;
   border: none;
   border-radius: 12px;             /* rounded corners */
-  box-shadow: 0 4px 6px 4px rgba(0,0,0,0.3); /* subtle shadow */
+  box-shadow: 0 3px 4px 3px rgba(0,0,0,0.05); /* subtle shadow */
   cursor: pointer;
   transition: all 0.2s ease-in-out;
 }
 
 .rounded-button:hover {
-  background-color: #1d4ed8;       /* slightly darker blue on hover */
-  transform: translateY(-2px);     /* subtle lift */
-  box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+  background-color: #fcfcfc;       /* slightly darker blue on hover */
+  transform: scale(1.01);     /* subtle lift */
+  box-shadow: 0 3px 5px 4px rgba(0,0,0,0.06); /* subtle shadow */
 }
 
 .rounded-button:active {
   transform: translateY(0);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 4px 4px rgba(0,0,0,0.07); /* subtle shadow */
 }
 
 .scrollFadeBg {
@@ -85,6 +106,25 @@ yeet
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+.glass-effect {
+backdrop-filter: blur(5px);
+background: rgba(255,255,255,0.03);
+border: 2px solid rgba(255,255,255,0.06);
+border-radius: 12px;
+box-shadow: 0 3px 4px 3px rgba(0,0,0,0.05); /* subtle shadow */
+cursor: pointer;
+transition: all 0.2s ease-in-out;
+color: white;
+font-family: Helvetica;
+font-weight: 100;
+text-align: left;
+}
+
+.glass-effect:hover {
+  transform: scale(1.01);     /* subtle lift */
+  box-shadow: 0 3px 5px 4px rgba(0,0,0,0.06); /* subtle shadow */
 }
 
 .navbar {
