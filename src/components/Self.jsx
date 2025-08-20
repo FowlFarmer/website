@@ -1,7 +1,12 @@
 import React from 'react';
-import useScrollFade from './useScrollFadeBackground.jsx';
-import useScrollThresholdFade from './useScrollThresholdFade.jsx';
-import TextFader from './TextFader.jsx';
+import useScrollFade from './tools/useScrollFadeBackground.jsx';
+import useScrollThresholdFade from './tools/useScrollThresholdFade.jsx';
+import TextFader from './tools/TextFader.jsx';
+import ScrollBackground from './tools/ScrollBackground.jsx';
+
+import bg1 from '../assets/first_bg.gif';
+import bg2 from '../assets/dbh_bg.jpg';
+import bg3 from '../assets/mc_shipbuilding_bg.png';
 
 export default function Self() {
     const first_blob_opacity = useScrollThresholdFade(-1, 300, 300);
@@ -13,30 +18,13 @@ export default function Self() {
     //     fadeOutStart: 500,
     //     fadeOutEnd: 800,
     // });
-    const first_bg_opacity = useScrollFade({
-        fadeInStart: -1,
-        fadeInEnd: -1,
-        fadeOutStart: 200,
-        fadeOutEnd: 400,
-    });
-    const dbh_bg_opacity = useScrollFade({
-        fadeInStart: 250,
-        fadeInEnd: 450,
-        fadeOutStart: 800,
-        fadeOutEnd: 900,
-    });
-    const mc_shipbuilding_bg_opacity = useScrollFade({
-        fadeInStart: 600,
-        fadeInEnd: 1000,
-        fadeOutStart: 1200,
-        fadeOutEnd: 1600,
-    });
+
     return (
         <div className="self" style={{justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
 
 
             {/* Backgrounds */}
-            <div
+            {/* <div
                 className="scrollFadeBg"
                 style={{ backgroundImage: `url(${"src/assets/first_bg.gif"})`, ...first_bg_opacity }}
             />
@@ -47,7 +35,19 @@ export default function Self() {
             <div
                 className="scrollFadeBg"
                 style={{ backgroundImage: `url(${"src/assets/mc_shipbuilding_bg.png"})`, ...mc_shipbuilding_bg_opacity }}
+            /> */}
+            <ScrollBackground
+            // className="scrollFadeBg"
+            transitionDuration={0.3}
+            images={[ 
+                bg1,
+                bg2,
+                bg3
+            ]}
+            breakpoints={[300, 800]}
             />
+
+
             <div className="mainBlob glass-effect" style={{ width: "60%", padding: "20px", marginTop: "200px", ...first_blob_opacity }}>
                 <div style={{ justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
                     <img style={{filter: "invert(100%)"}} src="src/assets/calligraphy_logo.png" alt="Profile" />

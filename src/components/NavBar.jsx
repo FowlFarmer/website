@@ -1,5 +1,5 @@
 import React from "react";
-import useScrollThresholdFade from "./useScrollThresholdFade";
+import useScrollThresholdFade from "./tools/useScrollThresholdFade";
 
 export default function Navbar() {
   const nav_opacity = useScrollThresholdFade(10, Infinity, 300);
