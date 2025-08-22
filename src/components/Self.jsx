@@ -10,7 +10,7 @@ import bg3 from '../assets/mc_shipbuilding_bg.png';
 
 export default function Self() {
     const first_blob_opacity = useScrollThresholdFade(-1, 300, 300);
-    const dbh_blob_opacity = useScrollThresholdFade(200, 800, 300);
+    const dbh_blob_opacity = useScrollThresholdFade(80, 800, 300);
 
     // const aboutme_opacity = useScrollFade({
     //     fadeInStart: 100,

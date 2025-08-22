@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import FadeProps from '../tools/FadeProps.jsx';
 
 /**
  * ProjectCard component
@@ -13,6 +14,7 @@ import React, { useState } from 'react';
  *     `src/data/projects.js` for the schema.
  */
 export default function ProjectCard({ project }) {
+  const fadeProps = FadeProps(100);
   const { title, subtitle, description, images = [], link } = project;
   // State to track which image is currently shown when multiple images exist.
   const [imageIndex, setImageIndex] = useState(0);
@@ -33,7 +35,7 @@ export default function ProjectCard({ project }) {
   };
 
   return (
-    <div className="project-card">
+    <div className="project-card" {...fadeProps} >
       <div className="project-image-wrapper">
         {currentImage ? (
           <img src={currentImage} alt={title} />

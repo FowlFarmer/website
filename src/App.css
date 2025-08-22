@@ -28,6 +28,34 @@ body {
 
 
 
+
+/* Outer container clips overflow */
+.hcyclebar {
+  overflow: hidden;
+  width: 100%; /* or fixed width */
+  position: relative;
+}
+
+.hcyclebar-track {
+  display: flex;
+  flex-direction: row;
+  will-change: transform;
+  transition: transform 0.4s ease;
+}
+
+.hcyclebar-track.is-animating {
+  transition: transform 0.4s ease;
+}
+
+.hcyclebar-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
+
+
 /* 
 yeet
 */
@@ -91,7 +119,7 @@ yeet
 
 .self {
   text-align: center;
-  padding: rem;
+  /* padding: rem; */
 }
 
 .self img {
@@ -101,10 +129,14 @@ yeet
 }
 
 
-.app-container {
+/* .app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+} */
+
+.project-card {
+  width: 90%;
 }
 
 .glass-effect {
@@ -160,17 +192,12 @@ text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* default shadow */
 }
 
 .main-content {
-  flex: 1;
+  display: flex;
   padding: 2rem 1rem;
   max-width: 1200px;
+  justify-content: center;
+  justify-items: center;
   margin: 0 auto;
-}
-
-/* Gallery grid */
-.gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 2rem;
 }
 
 /* Project card styles */

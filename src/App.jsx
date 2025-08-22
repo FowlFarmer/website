@@ -10,12 +10,12 @@ import Self from './components/self.jsx';
 export default function App() {
   return (
     <Router>
-      <div className="app-container">
+      <div className="app-container" id="popup-root">
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Navigate to="/gallery" replace />} />
-            <Route path="/gallery" element={<Gallery />} />
             <Route path="/self" element={<Self />} />
+            <Route path="/gallery" element={<Gallery />} />
             {/* Placeholder routes for future expansion */}
             <Route path="*" element={<Gallery />} />
           </Routes>
