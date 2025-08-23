@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import NavBar from './components/NavBar.jsx';
 import Gallery from './components/Gallery.jsx';
-import Self from './components/self.jsx';
+import Self from './components/Self.jsx';
 // The top‑level application component.  It sets up routing and the
 // navigation bar.  Currently there's only a single route for the
 // gallery, but additional pages could be added later.
