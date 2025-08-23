@@ -13,7 +13,7 @@ export default function App() {
       <div className="app-container" id="popup-root">
         <main className="main-content">
           <Routes>
-            <Route path="/" element={<Navigate to="/gallery" replace />} />
+            <Route path="/" element={<Navigate to="/self" replace />} />
             <Route path="/self" element={<Self />} />
             <Route path="/gallery" element={<Gallery />} />
             {/* Placeholder routes for future expansion */}
