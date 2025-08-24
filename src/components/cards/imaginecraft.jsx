@@ -1,38 +1,98 @@
-import React from 'react';
+import React from "react";
+import { Link } from "react-router-dom";
 
-
-export default function GuardianAngel() {
+/**
+ * ImaginecraftCard
+ * - Mirrors your GuardianAngel card layout
+ * - Left: images + CTA button
+ * - Right: description content from your Weebly page
+ *
+ * Props (optional):
+ *   primaryImg   - string path/URL to main screenshot
+ *   secondaryImg - string path/URL to second shot
+ *   githubUrl    - external link to repo/readme (defaults to your Weebly gallery section)
+ */
+export default function ImaginecraftCard({
+  primaryImg = "/imaginecraft_1.png",
+  secondaryImg = "/imaginecraft_2.png",
+  githubUrl = "https://github.com/FowlFarmer/AutoSpriteTransform",
+}) {
   return (
-
-      <div className="glass-effect" style={{
+    <div
+      className="glass-effect"
+      style={{
         marginTop: "40px",
         width: "90%",
-        // aspectRatio: "16/10",
         position: "relative",
         overflow: "hidden",
-        alignContent: "flex-start",
-        textAlign: "center"
-      }}>
-        <p style={{textAlign: "left", marginTop: "20px", marginLeft: "20px", fontWeight: "bold"}}>Featured Hackathon Project</p>
-        <div style={{ display: "flex", gap: "0px", marginTop: "-20px" }}>
-        <div className="flex items-start justify-start" style={{ flex: 1, display: "flex-", padding: "20px"}}>
-            <div style={{ flex: 1, alignItems: "flex-start"}}>
-            <img style={{borderRadius: "10px"}} src="/ga_1.jpg" alt="Guardian Angel Thumbnail" />
-            <img style={{borderRadius: "10px", marginTop: "25px"}} src="/ga_2.png" alt="Guardian Angel Thumbnail" />
-            <p style={{marginTop: "25px"}}>Cal Hacks 11 | October 2024 | Downtown SF @ The Metreon</p>
-            <p style={{margin: "0px"}}>Hosted by Google and The University of California, Berkeley</p>
-            <button className="rounded-button" style={{margin: "20px"}} onClick={() => console.log('Button clicked!')}>Find on Devpost</button>
-            </div>
+        textAlign: "center",
+        backgroundColor: "white",
+        color: "black",
+        textAlign: "left",
+        textShadow: "0px 1px 2px rgba(0, 0, 0, 0)"
+      }}
+    >
+      <p
+        style={{
+          textAlign: "left",
+          marginTop: "20px",
+          marginLeft: "20px",
+          fontWeight: "bold",
+        }}
+      >
+        Featured Project — Imaginecraft
+      </p>
+        <img
+            style={{ borderRadius: "10px", width: "100%"}}
+            src={primaryImg}
+            alt="Imaginecraft screenshot"
+        />
+        <div style={{padding: "20px"}}>
+        <p>Imaginecraft is my work-in-progress Minecraft mod that bridges AI and MCP (model context protocol) with gaming. This new type of intersection of AI and gaming leverages direct generated javascript code injection at runtime with KubeJS, allowing players to actualize their creativity more intimately than ever before in the history of gaming.</p>
+        <p>Users can imagine their own spell incantations and, through NLP, they can be actualized into real effects in the Minecraft world complete with particle and sound effects.</p>
+        <p>Users can forge never-before-seen weapons from their imagination. They can ask the "gamemaker" for items that do not yet exist in the world, i.e. lightsabers, Harry Potter wands, guns, etc. and they will materialize in the user's hands with new game logic and sound and sprite resource pack injection through an image diffusion pipeline.</p>
         </div>
-        <div style={{ flex: 1, padding: "20px", alignContent: "center", textAlign: "left" }}>
-            <p style={{marginTop: "0px"}}>Guardian Angel was born from the need for reliable emergency assistance in an unpredictable world. Our experiences with the elderly, such as our grandparents, who may fall when we’re not around, and the challenges we may face in vulnerable situations motivated us to create a tool that automatically reaches out for help when it’s needed most. We aim to empower individuals to feel safe and secure, knowing that assistance is just a call away, even in their most vulnerable moments.</p>
-            <p>Core to Guardian Angel is an LLM and text-to-speech pipeline that provides real-time, situation-critical responses to 911 dispatchers. The app will handle the conversation with dispatchers for you when you are unable to. The app automatically detects distress signals — such as falls or other emergencies —and relays essential information like biometric data, medical history, real-time situation and location, enhancing efficiency and improving success in time-sensitive situations where rapid, accurate responses are crucial.</p>
-            <p>We developed Guardian Angel using React Native with Expo Go in TypeScript and Python, optimized for rapid prototyping. The FastAPI backend processed endpoints with Google Gemini for voice transcription and Deepgram for audio processing, and accessed accelerometer data and location through geolocating and reverse geocoding.</p>
-            <p style={{fontWeight: "bold"}}>This project is the winner for the Google prize track for Most Impactful App, competing against 165 other projects.</p>
+      <div style={{ display: "flex", gap: 0, marginTop: "-20px" }}>
+        {/* Left column: images + CTA */}
+        <div
+          className="flex items-start justify-start"
+          style={{ flex: 0.5, padding: "20px" }}
+        >
+          <div style={{ flex: 1, alignItems: "flex-start", textAlign: "center" }}>
+
+            <img
+              style={{
+                borderRadius: "10px",
+                marginTop: "25px",
+                width: "100%",
+                height: "auto",
+              }}
+              src={secondaryImg}
+              alt="Imaginecraft screenshot 2"
+            />
+            <div style={{ marginTop: "20px" }} />
+            {/* CTA: open external link in new tab */}
+            <a
+              href={githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <button className="rounded-button" onClick={() => console.log('Button clicked!')}>Analyze Results on GitHub</button>
+            </a>
+
+            {/* Optional internal link example */}
+          </div>
         </div>
+
+        {/* Right column: text */}
+        <div style={{ flex: 1, padding: "20px", textAlign: "left" }}>
+
+            <p>AutoSpriteTransform is a machine learning model I developed to solve a "super niche" problem: the automatic rotation and scaling of generated weapon sprites such that they'd be ready for Minecraft resource pack injection. The core challenge was training a model to correctly predict the orientation of symmetrical objects, which can confuse standard loss functions.</p>
+            <p>To overcome the issue of "midpoint averaging" where the model would predict a neutral angle instead of the correct bimodal targets (e.g., 0 or 180 degrees), I experimented with custom periodic loss functions as well as gaussian bumps, different model architectures and training methods. These custom functions were crucial in forcing the model to make definitive predictions, evolving performance from stagnant to incredibly promising. The model's architecture was optimized by increasing convolutional layers to enhance feature extraction. The final model was evaluated using a mAP@N (mean average precision within N degrees) metric.</p>
+            <p>The project also involved a robust data generation pipeline, which utilized a large language model to create a diverse list of sci-fi weapons. These were then used to generate and label a high-quality dataset of images with a Diffusion model.</p>
+        
         </div>
       </div>
-
-
+    </div>
   );
 }

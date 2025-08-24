@@ -1,9 +1,6 @@
 import React from 'react';
 import { Link } from "react-router-dom";
 
-
-import projects from '../data/projects.js';
-import ProjectCard from './displays/ProjectCard.jsx';
 import ScrollBackground from './tools/ScrollBackground.jsx';
 // Background images moved to public/ — reference them by public path
 const bg1 = '/calhacks_bg.webp';
@@ -13,6 +10,8 @@ const bg4 = '/office_bg.jpg';
 
 import GuardianAngel from './cards/ga.jsx';
 import Shoebill from './cards/shoebill.jsx';
+import ImaginecraftCard from './cards/imaginecraft.jsx';
+
 
 import HorizontalCycleBar from './tools/itemscycle.jsx';
 import useScrollFade from './tools/useScrollFadeBackground.jsx';
@@ -68,6 +67,7 @@ export default function Gallery() {
         ]}
         breakpoints={[300, 800]}
         />
+      <ImaginecraftCard />
 
       <GuardianAngel />
       <div className="glass-effect" style={{
