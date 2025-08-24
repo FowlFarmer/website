@@ -2,10 +2,11 @@ import React from 'react';
 import projects from '../data/projects.js';
 import ProjectCard from './displays/ProjectCard.jsx';
 import ScrollBackground from './tools/ScrollBackground.jsx';
-import bg1 from '../assets/calhacks_bg.webp';
-import bg2 from '../assets/dbh_bg.jpg';
-import bg3 from '../assets/mc_shipbuilding_bg.png';
-import bg4 from '../assets/office_bg.jpg';
+// Background images moved to public/ — reference them by public path
+const bg1 = '/calhacks_bg.webp';
+const bg2 = '/dbh_bg.jpg';
+const bg3 = '/mc_shipbuilding_bg.png';
+const bg4 = '/office_bg.jpg';
 
 import GuardianAngel from './cards/ga.jsx';
 import Shoebill from './cards/shoebill.jsx';
@@ -29,28 +30,28 @@ export default function Gallery() {
       const dbh_blob_opacity = useScrollThresholdFade(80, 800, 300);
       const items = [
         <div>
-          <HoverPopupWrapper popupContent={<div><GuardianAngel /></div>}>
-            <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='src/assets/hack_logo_prescriptify.png'></img>
+            <HoverPopupWrapper popupContent={<div><GuardianAngel /></div>}>
+            <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_prescriptify.png' alt="prescriptify" />
           </HoverPopupWrapper>
         </div>,
         <div>
-          <HoverPopupWrapper popupContent={<div><GuardianAngel /></div>}>
-            <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='src/assets/hack_logo_freezeframe.png'></img>
+            <HoverPopupWrapper popupContent={<div><GuardianAngel /></div>}>
+            <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_freezeframe.png' alt="freezeframe" />
           </HoverPopupWrapper>
         </div>,
         <div>
-          <HoverPopupWrapper popupContent={<div><GuardianAngel /></div>}>
-            <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='src/assets/hack_logo_bugshot.png'></img>
+            <HoverPopupWrapper popupContent={<div><GuardianAngel /></div>}>
+            <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_bugshot.png' alt="bugshot" />
           </HoverPopupWrapper>
         </div>,
         <div>
-          <HoverPopupWrapper popupContent={<div><GuardianAngel /></div>}>
-            <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='src/assets/hack_logo_preservia.png'></img>
+            <HoverPopupWrapper popupContent={<div><GuardianAngel /></div>}>
+            <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_preservia.png' alt="preservia" />
           </HoverPopupWrapper>
         </div>,
         <div>
-          <HoverPopupWrapper popupContent={<div><Shoebill /></div>}>
-            <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='src/assets/hack_logo_shoebill.jpg'></img>
+            <HoverPopupWrapper popupContent={<div><Shoebill /></div>}>
+            <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_shoebill.jpg' alt="shoebill" />
           </HoverPopupWrapper>
         </div>,
       ];

@@ -4,9 +4,10 @@ import useScrollThresholdFade from './tools/useScrollThresholdFade.jsx';
 import TextFader from './tools/TextFader.jsx';
 import ScrollBackground from './tools/ScrollBackground.jsx';
 
-import bg1 from '../assets/first_bg.gif';
-import bg2 from '../assets/dbh_bg.jpg';
-import bg3 from '../assets/mc_shipbuilding_bg.png';
+// Backgrounds moved to public/ — reference via public path
+const bg1 = '/first_bg.gif';
+const bg2 = '/dbh_bg.jpg';
+const bg3 = '/mc_shipbuilding_bg.png';
 
 export default function Self() {
     const first_blob_opacity = useScrollThresholdFade(-1, 300, 300);
@@ -26,15 +27,15 @@ export default function Self() {
             {/* Backgrounds */}
             {/* <div
                 className="scrollFadeBg"
-                style={{ backgroundImage: `url(${"src/assets/first_bg.gif"})`, ...first_bg_opacity }}
+                style={{ backgroundImage: `url(${"/first_bg.gif"})`, ...first_bg_opacity }}
             />
             <div
                 className="scrollFadeBg"
-                style={{ backgroundImage: `url(${"src/assets/dbh_bg.jpg"})`, ...dbh_bg_opacity }}
+                style={{ backgroundImage: `url(${"/dbh_bg.jpg"})`, ...dbh_bg_opacity }}
             />
             <div
                 className="scrollFadeBg"
-                style={{ backgroundImage: `url(${"src/assets/mc_shipbuilding_bg.png"})`, ...mc_shipbuilding_bg_opacity }}
+                style={{ backgroundImage: `url(${"/mc_shipbuilding_bg.png"})`, ...mc_shipbuilding_bg_opacity }}
             /> */}
             <ScrollBackground
             // className="scrollFadeBg"
@@ -50,7 +51,7 @@ export default function Self() {
 
             <div className="mainBlob glass-effect" style={{ width: "60%", padding: "20px", marginTop: "200px", ...first_blob_opacity }}>
                 <div style={{ justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <img style={{filter: "invert(100%)"}} src="src/assets/calligraphy_logo.png" alt="Profile" />
+                    <img style={{filter: "invert(100%)"}} src="/calligraphy_logo.png" alt="Profile" />
                     <span>Hi, I'm Theodore</span>
                     <p style={{ textAlign: "center" }}>I code, make cool projects, and nerd out about random things.</p>
                     <button className="rounded-button" onClick={() => console.log('Button clicked!')}>Feel free to look at my work</button>

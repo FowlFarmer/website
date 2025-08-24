@@ -17,8 +17,8 @@ export default function GuardianAngel() {
         <div style={{ display: "flex", gap: "20px" }}>
         <div className="flex items-start justify-start" style={{ flex: 1, display: "flex-", padding: "20px"}}>
             <div style={{ flex: 1, alignItems: "flex-start"}}>
-            <img style={{borderRadius: "10px"}} src="src/assets/ga_1.jpg" alt="Guardian Angel Thumbnail" />
-            <img style={{borderRadius: "10px"}} src="src/assets/ga_2.png" alt="Guardian Angel Thumbnail" />
+            <img style={{borderRadius: "10px"}} src="/ga_1.jpg" alt="Guardian Angel Thumbnail" />
+            <img style={{borderRadius: "10px"}} src="/ga_2.png" alt="Guardian Angel Thumbnail" />
             <p>Cal Hacks 11 | October 2024 | Downtown SF @ The Metreon</p>
             <p style={{margin: "-10px"}}>Hosted by Google and The University of California, Berkeley</p>
             <button className="rounded-button" style={{margin: "20px"}} onClick={() => console.log('Button clicked!')}>Find on Devpost</button>

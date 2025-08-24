@@ -17,8 +17,8 @@ export default function Shoebill() {
         textAlign: "center"
       }}>
         <div className="glass-effect" style={{display: "flex", gap: "20px", backgroundColor: "white", height: "50px"}}>
-            <img style={{borderRadius: "10px"}} src="src/assets/shoebill_logo.png" alt="shoebill" />
-            <img style={{borderRadius: "10px"}} src="src/assets/calhacks_logo.png" alt="calhacks" />
+            <img style={{borderRadius: "10px"}} src="/shoebill_logo.png" alt="shoebill" />
+            <img style={{borderRadius: "10px"}} src="/calhacks_logo.png" alt="calhacks" />
             <p>Cal Hacks 10 | University of California, Berkeley</p>
           </div>
         <div style={{ display: "flex", gap: "20px" }}>
@@ -39,7 +39,7 @@ export default function Shoebill() {
             </div>
         </div>
         <div style={{ flex: 1, padding: "20px", alignContent: "center" }}>
-            <img src="src/assets/shoebill_figma.png"/ >
+            <img src="/shoebill_figma.png"/ >
         </div>
         </div>
       </div>

@@ -7,7 +7,7 @@ export default function Navbar() {
     <nav className="navbar">
       <div className="navbar-styles" style={nav_opacity}>
         <img
-          src="src/assets/calligraphy_logo.png"
+          src="/calligraphy_logo.png"
           alt="MySite Logo"
           style={{
             height: "100%",
