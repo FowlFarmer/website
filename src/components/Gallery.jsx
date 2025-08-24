@@ -1,4 +1,7 @@
 import React from 'react';
+import { Link } from "react-router-dom";
+
+
 import projects from '../data/projects.js';
 import ProjectCard from './displays/ProjectCard.jsx';
 import ScrollBackground from './tools/ScrollBackground.jsx';
@@ -15,8 +18,6 @@ import HorizontalCycleBar from './tools/itemscycle.jsx';
 import useScrollFade from './tools/useScrollFadeBackground.jsx';
 import useScrollThresholdFade from './tools/useScrollThresholdFade.jsx';
 import TextFader from './tools/TextFader.jsx';
-import HoverPopupWrapper from './tools/hoverPopup.jsx';
-
 
 /**
  * Gallery component
@@ -30,29 +31,29 @@ export default function Gallery() {
       const dbh_blob_opacity = useScrollThresholdFade(80, 800, 300);
       const items = [
         <div>
-            <HoverPopupWrapper popupContent={<div><GuardianAngel /></div>}>
-            <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_prescriptify.png' alt="prescriptify" />
-          </HoverPopupWrapper>
+            <a href="https://dorahacks.io/buidl/21694" rel="noopener noreferrer" target="_blank">
+              <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_prescriptify.png' alt="prescriptify" />
+            </a>
         </div>,
         <div>
-            <HoverPopupWrapper popupContent={<div><GuardianAngel /></div>}>
-            <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_freezeframe.png' alt="freezeframe" />
-          </HoverPopupWrapper>
+            <a href="https://dorahacks.io/buidl/21694" rel="noopener noreferrer" target="_blank">
+              <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_freezeframe.png' alt="freezeframe" />
+            </a>
         </div>,
         <div>
-            <HoverPopupWrapper popupContent={<div><GuardianAngel /></div>}>
-            <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_bugshot.png' alt="bugshot" />
-          </HoverPopupWrapper>
+            <a href="https://dorahacks.io/buidl/21694" rel="noopener noreferrer" target="_blank">
+              <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_bugshot.png' alt="bugshot" />
+            </a>
         </div>,
         <div>
-            <HoverPopupWrapper popupContent={<div><GuardianAngel /></div>}>
-            <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_preservia.png' alt="preservia" />
-          </HoverPopupWrapper>
+            <a href="https://dorahacks.io/buidl/21694" rel="noopener noreferrer" target="_blank">
+              <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_preservia.png' alt="preservia" />
+            </a>
         </div>,
         <div>
-            <HoverPopupWrapper popupContent={<div><Shoebill /></div>}>
-            <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_shoebill.jpg' alt="shoebill" />
-          </HoverPopupWrapper>
+            <a href="https://dorahacks.io/buidl/21694" rel="noopener noreferrer" target="_blank">
+              <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_shoebill.jpg' alt="shoebill" />
+            </a>
         </div>,
       ];
   return (
@@ -79,7 +80,7 @@ export default function Gallery() {
         textAlign: "center",
         padding: "20px"
       }}>
-        <p style={{lineHeight: "0", textAlign: "left"}}>Other Hackathon Projects</p>
+        <p style={{lineHeight: "0", textAlign: "left", fontWeight: "bold"}}>Other Hackathon Projects</p>
         <HorizontalCycleBar
           items={items}
           intervalMs={3000}     // wait 3s between steps
@@ -91,3 +92,4 @@ export default function Gallery() {
 
   );
 }
+      

@@ -17,37 +17,51 @@ export default function ScrollBreakpointBackground({
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      let index = 0;
+    const onScroll = () => {
+      const y = window.scrollY;
+      let idx = 0;
       for (let i = 0; i < breakpoints.length; i++) {
-        if (scrollY >= breakpoints[i]) index = i + 1;
-        else break;
+        if (y >= breakpoints[i]) idx = i + 1; else break;
       }
-      if (index !== activeIndex) setActiveIndex(index);
+      if (idx !== setActiveIndex.current) setActiveIndex(idx);
     };
-
-    window.addEventListener("scroll", handleScroll);
-    handleScroll(); // initialize
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [breakpoints, activeIndex]);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [breakpoints]);
 
   return (
-    <div >
+    // fixed stack ABOVE the body, BELOW your content
+    <div
+      aria-hidden
+      style={{
+        position: "fixed",
+        inset: 0,
+        pointerEvents: "none",
+        zIndex: 0,                   // <- not negative
+      }}
+    >
+      {/* solid fallback color visible during fades/load */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundColor: "black", // or pink/whatever
+        }}
+      />
+
       {images.map((src, i) => (
         <div
           key={i}
           style={{
-            position: "fixed",
-            backgroundSize: "cover",
+            position: "absolute",
+            inset: 0,
             backgroundImage: `url(${src})`,
-            opacity: i === activeIndex ? 1 : 0,
-            transition: `opacity ${transitionDuration}s ease-in-out`,
-            pointerEvents: "none", // allow scrolling
-            zIndex: -1, // behind content
+            backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
-            inset: 0,
+            opacity: i === activeIndex ? 1 : 0,
+            transition: `opacity ${transitionDuration}s ease-in-out`,
           }}
         />
       ))}

@@ -3,6 +3,7 @@ import useScrollFade from './tools/useScrollFadeBackground.jsx';
 import useScrollThresholdFade from './tools/useScrollThresholdFade.jsx';
 import TextFader from './tools/TextFader.jsx';
 import ScrollBackground from './tools/ScrollBackground.jsx';
+import { Link } from 'react-router-dom';
 
 // Backgrounds moved to public/ — reference via public path
 const bg1 = '/first_bg.gif';
@@ -23,23 +24,9 @@ export default function Self() {
     return (
         <div className="self" style={{justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
 
-
-            {/* Backgrounds */}
-            {/* <div
-                className="scrollFadeBg"
-                style={{ backgroundImage: `url(${"/first_bg.gif"})`, ...first_bg_opacity }}
-            />
-            <div
-                className="scrollFadeBg"
-                style={{ backgroundImage: `url(${"/dbh_bg.jpg"})`, ...dbh_bg_opacity }}
-            />
-            <div
-                className="scrollFadeBg"
-                style={{ backgroundImage: `url(${"/mc_shipbuilding_bg.png"})`, ...mc_shipbuilding_bg_opacity }}
-            /> */}
             <ScrollBackground
             // className="scrollFadeBg"
-            transitionDuration={0.3}
+            transitionDuration={0.6}
             images={[ 
                 bg1,
                 bg2,
@@ -49,18 +36,20 @@ export default function Self() {
             />
 
 
-            <div className="mainBlob glass-effect" style={{ width: "60%", padding: "20px", marginTop: "200px", ...first_blob_opacity }}>
+            <div className="mainBlob glass-effect" style={{ width: "60%", padding: "20px", marginTop: "100px", ...first_blob_opacity }}>
                 <div style={{ justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
                     <img style={{filter: "invert(100%)"}} src="/calligraphy_logo.png" alt="Profile" />
                     <span>Hi, I'm Theodore</span>
                     <p style={{ textAlign: "center" }}>I code, make cool projects, and nerd out about random things.</p>
-                    <button className="rounded-button" onClick={() => console.log('Button clicked!')}>Feel free to look at my work</button>
+                    <Link to="/gallery">
+                        <button className="rounded-button" onClick={() => console.log('Button clicked!')}>Feel free to look at my work</button>
+                    </Link>
                     <p style={{ textAlign: "center" }}>Or scroll down to have a peek into who I am :) </p>
                 </div>
             </div>
 
             <div className="glass-effect" style={{
-                marginTop: "40px",
+                marginTop: "180px",
                 width: "90%",
                 height: "400px",
                 position: "relative",

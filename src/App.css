@@ -11,7 +11,7 @@
 :root {
   --primary-colour: ##f1f0ef; /* dark blue for headers and buttons */
   --secondary-colour: #ffffff;
-  --background-colour: #f1f0ef;
+  --background-colour: #000000;
   --card-background: #ffffff;
   --card-shadow: rgba(0, 0, 0, 0.1);
   --button-colour: #000000;
@@ -60,6 +60,13 @@ body {
 yeet
 */
 
+.navbar-logo {
+  transition: all 0.3s ease-in-out;
+}
+
+.navbar-logo:hover {
+  transform: scale(1.1);     /* subtle lift */
+}
 
 
 .navbar-styles {
@@ -140,11 +147,11 @@ yeet
 }
 
 .glass-effect {
-backdrop-filter: blur(5px);
-background: rgba(255,255,255,0.03);
+backdrop-filter: blur(7px);
+background: rgba(255,255,255,0.06);
 border: 2px solid rgba(255,255,255,0.06);
 border-radius: 12px;
-box-shadow: 0 3px 4px 3px rgba(0,0,0,0.05); /* subtle shadow */
+box-shadow: 0 3px 4px 3px rgba(150,150,150,0.05); /* subtle shadow */
 cursor: pointer;
 transition: all 0.2s ease-in-out, opacity 0.5s ease-in-out;
 color: white;
