@@ -1,9 +1,9 @@
 import React from 'react';
-import useScrollFade from './tools/useScrollFadeBackground.jsx';
 import useScrollThresholdFade from './tools/useScrollThresholdFade.jsx';
-import TextFader from './tools/TextFader.jsx';
 import ScrollBackground from './tools/ScrollBackground.jsx';
+import DBHCard from './cards/dbh.jsx';   
 import { Link } from 'react-router-dom';
+
 
 // Backgrounds moved to public/ — reference via public path
 const bg1 = '/first_bg.gif';
@@ -12,29 +12,15 @@ const bg3 = '/mc_shipbuilding_bg.png';
 
 export default function Self() {
     const first_blob_opacity = useScrollThresholdFade(-1, 300, 300);
-    const dbh_blob_opacity = useScrollThresholdFade(80, 800, 300);
-
-    // const aboutme_opacity = useScrollFade({
-    //     fadeInStart: 100,
-    //     fadeInEnd: 400,
-    //     fadeOutStart: 500,
-    //     fadeOutEnd: 800,
-    // });
 
     return (
         <div className="self" style={{justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
 
             <ScrollBackground
-            // className="scrollFadeBg"
-            transitionDuration={0.6}
-            images={[ 
-                bg1,
-                bg2,
-                bg3
-            ]}
-            breakpoints={[300, 800]}
+                transitionDuration={0.6}
+                images={[bg1, bg2, bg3]}
+                breakpoints={[300, 800]}
             />
-
 
             <div className="mainBlob glass-effect" style={{ width: "60%", padding: "20px", marginTop: "100px", ...first_blob_opacity }}>
                 <div style={{ justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -48,40 +34,8 @@ export default function Self() {
                 </div>
             </div>
 
-            <div className="glass-effect" style={{
-                marginTop: "180px",
-                width: "90%",
-                height: "400px",
-                position: "relative",
-                overflow: "hidden",
-                alignContent: "center",
-                ...dbh_blob_opacity
-            }}>
-                <div style={{ display: "flex", gap: "20px" }}>
-                <div className="flex items-start justify-start" style={{ flex: 1, display: "flex-", padding: "20px"}}>
-                    <div style={{ flex: 1, alignItems: "flex-start"}}>
-                    <h2>Cover // Detroit: Become Human Opening Theme</h2>
-                    <TextFader
-                    texts={["Detroit: Become Human is not just a game: it's an incredibly touching story that offers a peek into a potential future world where Artificial Intelligence could be considered a new form of life.", "​With the rapid advances of AI, Robotics, and Neural Interfaces, we should take some time to reflect on our creations and what they mean to us. Are they a tool for us - something that can help improve our lives - or are they an evil?"]}
-                    interval={6000}
-                    fadeDuration={0.3}
-                    height={"150px"}
-                    />
-                    </div>
-                </div>
-                <div style={{ flex: 1, padding: "20px", alignContent: "center" }}>
-                    <iframe
-                        src="https://www.youtube.com/embed/c0F4bFpVJVI"
-                        title="YouTube video"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className="glass-effect"
-                        style={{ width: "100%", aspectRatio: "16/9" }}
-                    ></iframe>
-                </div>
-                </div>
-            </div>
+            {/* Replaced inlined Detroit Become Human card with component */}
+            <DBHCard />
 
             <div style={{marginTop: "100000px"}} />
 

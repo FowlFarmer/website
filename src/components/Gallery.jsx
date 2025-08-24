@@ -9,9 +9,9 @@ const bg3 = '/mc_shipbuilding_bg.png';
 const bg4 = '/office_bg.jpg';
 
 import GuardianAngel from './cards/ga.jsx';
-import Shoebill from './cards/shoebill.jsx';
 import ImaginecraftCard from './cards/imaginecraft.jsx';
-
+import Gerb2Card from './cards/gerb2.jsx';
+import SmallProjectsCard from './cards/smallProjects.jsx';
 
 import HorizontalCycleBar from './tools/itemscycle.jsx';
 import useScrollFade from './tools/useScrollFadeBackground.jsx';
@@ -30,12 +30,12 @@ export default function Gallery() {
       const dbh_blob_opacity = useScrollThresholdFade(80, 800, 300);
       const items = [
         <div>
-            <a href="https://dorahacks.io/buidl/21694" rel="noopener noreferrer" target="_blank">
+            <a href="https://devpost.com/software/scriptshield" rel="noopener noreferrer" target="_blank">
               <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_prescriptify.png' alt="prescriptify" />
             </a>
         </div>,
         <div>
-            <a href="https://dorahacks.io/buidl/21694" rel="noopener noreferrer" target="_blank">
+            <a href="https://devpost.com/software/time-capsule-qfsd9j" rel="noopener noreferrer" target="_blank">
               <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_freezeframe.png' alt="freezeframe" />
             </a>
         </div>,
@@ -45,12 +45,12 @@ export default function Gallery() {
             </a>
         </div>,
         <div>
-            <a href="https://dorahacks.io/buidl/21694" rel="noopener noreferrer" target="_blank">
+            <a href="https://devpost.com/software/expierly" rel="noopener noreferrer" target="_blank">
               <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_preservia.png' alt="preservia" />
             </a>
         </div>,
         <div>
-            <a href="https://dorahacks.io/buidl/21694" rel="noopener noreferrer" target="_blank">
+            <a href="https://devpost.com/software/discovervoice" rel="noopener noreferrer" target="_blank">
               <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_shoebill.jpg' alt="shoebill" />
             </a>
         </div>,
@@ -68,7 +68,8 @@ export default function Gallery() {
         breakpoints={[300, 800]}
         />
       <ImaginecraftCard />
-
+      <Gerb2Card />
+      <SmallProjectsCard />
       <GuardianAngel />
       <div className="glass-effect" style={{
         marginTop: "40px",
