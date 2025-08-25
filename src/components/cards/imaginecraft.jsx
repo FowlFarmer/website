@@ -29,14 +29,16 @@ export default function ImaginecraftCard({
         backgroundColor: "white",
         color: "black",
         textAlign: "left",
-        textShadow: "0px 1px 2px rgba(0, 0, 0, 0)"
+        textShadow: "0px 1px 2px rgba(0, 0, 0, 0)",
+        padding: "0px 20px 0px",
+        boxSizing: "border-box",
       }}
     >
       <p
         style={{
           textAlign: "left",
-          marginTop: "20px",
-          marginLeft: "20px",
+        //   marginTop: "20px",
+        //   marginLeft: "20px",
           fontWeight: "bold",
         }}
       >
@@ -47,7 +49,7 @@ export default function ImaginecraftCard({
             src={primaryImg}
             alt="Imaginecraft screenshot"
         />
-        <div style={{padding: "20px"}}>
+        <div >
         <p>Imaginecraft is my work-in-progress Minecraft mod that bridges AI and MCP (model context protocol) with gaming. This new type of intersection of AI and gaming leverages direct generated javascript code injection at runtime with KubeJS, allowing players to actualize their creativity more intimately than ever before in the history of gaming.</p>
         <p>Users can imagine their own spell incantations and, through NLP, they can be actualized into real effects in the Minecraft world complete with particle and sound effects.</p>
         <p>Users can forge never-before-seen weapons from their imagination. They can ask the "gamemaker" for items that do not yet exist in the world, i.e. lightsabers, Harry Potter wands, guns, etc. and they will materialize in the user's hands with new game logic and sound and sprite resource pack injection through an image diffusion pipeline.</p>
@@ -56,7 +58,7 @@ export default function ImaginecraftCard({
         {/* Left column: images + CTA */}
         <div
           className="flex items-start justify-start"
-          style={{ flex: 0.5, padding: "20px" }}
+          style={{ flex: 0.5}}
         >
           <div style={{ flex: 1, alignItems: "flex-start", textAlign: "center" }}>
 

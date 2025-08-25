@@ -156,10 +156,15 @@ yeet
 
 .zoom {
   transition: all 0.5s ease-in-out;
+  height: 270px;
+  overflow: hidden;
+  border-radius: 12px;
 }
 
 .zoom:hover {
-  transform: scale(1.5);
+  height: 400px;
+  transform: translateY(-100px);
+  overflow: visible;
 }
 
 .glass-effect {

@@ -23,7 +23,6 @@ export default function SmallProjectsCard() {
       <img src="/bedmaker_5.png" />
     </div>
   ]
-  const _bedmaker_heights = [200, 200, 200, 200];
 
   const _items = [
 
@@ -76,9 +75,9 @@ export default function SmallProjectsCard() {
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '10px', marginTop: "-10px" }}>
           <p>The idea of this device is simple: it consists of four nodes, one at each corner of a bed. Each node houses a motor that, through gear ratios to increase torque, spins a spool attached to a cord connected to a blanket corner. With the push of a button, the blanket is pulled taut and the bed is made. When finished, the motors reverse, unspooling the cords so you can snuggle up with your blanket in any cozy position you like.</p>
-          <p>(Without unspooling, the blanket would remain locked in its tight, organized—but uncomfortable—position during sleep.)</p>
+          <p>(Without unspooling, the blanket would remain locked in its tight, organized but uncomfortable position during sleep.)</p>
           <p>I faced more challenges than expected while building this. Most notably, I underestimated how little torque stepper motors provide. My preliminary calculations for normal forces and friction assumed ideal conditions. Even though I left margin when selecting motors, the additional force required to pull a blanket with just a small pillow on top proved enough to make the system unreliable, requiring higher gear ratios and voltage input changes.</p>
-          <p>​​Built with C++, C, Blender, Prusa, STM32, HAL Library, and Cube IDE.</p>
+          <p><strong>​​Built with C++, C, Blender, Prusa, STM32, HAL Library, and Cube IDE.</strong></p>
         </div>
         <div style={{ flex: 0.5}}>
           <img
@@ -112,58 +111,22 @@ export default function SmallProjectsCard() {
 
    <div>
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '20px' }}>
-      <h2 style={{ marginTop: '0px', marginLeft: '10px' }}>Small Coursework Projects</h2>
+      <h2 style={{ marginTop: '0px', marginLeft: '10px' }}>​Ethereum Health Records: Ethical Analysis Paper</h2>
       <div style={{ display: 'flex', gap: '20px', flex: 1, alignItems: 'stretch' }}>
 
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '10px', marginTop: "-10px" }}>
-          <h3>Mo Money</h3>
-          <p>A Linked List-based implementation which computes ETF Capital Gains and Losses using Adjusted Cost Base. Utilizes dynamic memory allocation and tested with no memory leaks. Completed with C++ on VScode.</p>
-        </div>
-        <div style={{ flex: 0.2}}>
-          <a
-            href="/momoney.zip"
-            download
-          >
-            <button className="rounded-button" onClick={() => console.log('Button clicked!')}>Download</button>
-          </a>
-        </div>
-        </div>
-
-          <hr />
-
-        <div style={{ display: 'flex', gap: '20px', flex: 1, alignItems: 'stretch' }}>
-
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '10px', marginTop: "-10px", textAlign: "right" }}>
-            <h3>​Ethereum Health Records: Ethical Analysis Paper</h3>
+          <div style={{ flex: 1, textAlign: "right", alignItems: "center" }}>
             <p>The rapid pace of blockchain's maturation as a technology has profound impacts on many non-financial sectors.</p>
             <p>In this paper, I analyzed the specific case of the ethics within Ethereum 's impact on electronic health records.</p>
           </div>
-          <div className="zoom" style={{ flex: 0.1}}>
-              <InlinePdfViewer pdfUrl="/ethereum.pdf" />
+          <div className="zoom" style={{ flex: 1.2}}>
+              <InlinePdf src="/ethereum.pdf"/>
           </div>
         </div>
-
-                <div style={{ display: 'flex', gap: '20px', flex: 1, alignItems: 'stretch' }}>
-
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '10px', marginTop: "-10px" }}>
-            <h3>Geesespotter</h3>
-            <p>A Southwestern Ontario spinoff of the classic Minesweeper game, tracking the positions of angry Canadian geese using their droppings. Completed with C++ on VScode.</p>
-          </div>
-          <div style={{ flex: 0.2}}>
-            <a
-              href="/geesespotter.zip"
-              download
-            >
-              <button className="rounded-button" onClick={() => console.log('Button clicked!')}>Download</button>
-            </a>
-          </div>
-        </div>
-
       </div>
     </div>,
 
   ]
-  const _heights = [650, 580, 600];
+  const _heights = [650, 580, 400];
   return (
     <div
       className="glass-effect"
@@ -178,7 +141,7 @@ export default function SmallProjectsCard() {
       }}
     >
       <AnyFader
-        interval={[10000, 10000, 7000]}
+        interval={[5000, 5000, 3500]}
         height={400}
         items={_items}
         heights={_heights}
