@@ -146,6 +146,22 @@ yeet
   width: 90%;
 }
 
+.big-zoom {
+  transition: all 0.5s ease-in-out;
+}
+
+.big-zoom:hover {
+  transform: scale(2) translateY(-50px) translateX(75px);     /* subtle lift */
+}
+
+.zoom {
+  transition: all 0.5s ease-in-out;
+}
+
+.zoom:hover {
+  transform: scale(1.5);
+}
+
 .glass-effect {
 backdrop-filter: blur(7px);
 background: rgba(255,255,255,0.06);
