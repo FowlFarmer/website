@@ -139,7 +139,7 @@ export default function SmallProjectsCard() {
             <p>In this paper, I analyzed the specific case of the ethics within Ethereum 's impact on electronic health records.</p>
           </div>
           <div className="zoom" style={{ flex: 0.1}}>
-              <InlinePdfViewer pdfUrl="/ethereum_health_records.pdf" />
+              <InlinePdfViewer pdfUrl="/ethereum.pdf" />
           </div>
         </div>
 
