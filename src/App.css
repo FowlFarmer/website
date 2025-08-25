@@ -60,6 +60,16 @@ body {
 yeet
 */
 
+.labpic {
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* .labpic2 {
+  width: 100%;
+  height: 10px;
+} */
+
 .navbar-logo {
   transition: all 0.3s ease-in-out;
 }

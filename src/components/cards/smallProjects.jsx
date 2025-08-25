@@ -142,7 +142,7 @@ export default function SmallProjectsCard() {
     >
       <AnyFader
         interval={[5000, 5000, 3500]}
-        height={400}
+        // height={400}
         items={_items}
         heights={_heights}
       />

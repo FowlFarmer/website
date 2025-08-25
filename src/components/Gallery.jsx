@@ -8,6 +8,7 @@ const bg2 = '/dbh_bg.jpg';
 const bg3 = '/mc_shipbuilding_bg.png';
 const bg4 = '/office_bg.jpg';
 
+import LabCard from './cards/lab.jsx';
 import GuardianAngel from './cards/ga.jsx';
 import ImaginecraftCard from './cards/imaginecraft.jsx';
 import Gerb2Card from './cards/gerb2.jsx';
@@ -89,6 +90,8 @@ export default function Gallery() {
           visibleCount={4}
         />
       </div>
+
+      <LabCard />
     </div>
 
   );
