@@ -27,12 +27,15 @@ export default function ImaginecraftCard({
         position: "relative",
         overflow: "hidden",
         textAlign: "center",
-        backgroundColor: "white",
-        color: "black",
+        // backgroundColor: "white",
+        // color: "black",
         textAlign: "left",
         textShadow: "0px 1px 2px rgba(0, 0, 0, 0)",
         padding: "0px 20px 0px",
         boxSizing: "border-box",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center"
       }}
     >
       <p
@@ -46,7 +49,7 @@ export default function ImaginecraftCard({
         Featured Project — Imaginecraft
       </p>
         <img
-            style={{ borderRadius: "10px", width: "100%"}}
+            style={{ borderRadius: "10px", margin: "0 auto" }}
             src={primaryImg}
             alt="Imaginecraft screenshot"
         />
@@ -55,7 +58,7 @@ export default function ImaginecraftCard({
         <p>Users can imagine their own spell incantations and, through NLP, they can be actualized into real effects in the Minecraft world complete with particle and sound effects.</p>
         <p>Users can forge never-before-seen weapons from their imagination. They can ask the "gamemaker" for items that do not yet exist in the world, i.e. lightsabers, Harry Potter wands, guns, etc. and they will materialize in the user's hands with new game logic and sound and sprite resource pack injection through an image diffusion pipeline.</p>
         </div>
-        <hr />
+        {/* <hr /> */}
       <div style={{ display: "flex", gap: 0, marginTop: "-20px", flexWrap: "wrap", justifyContent: "center" }}>
         {/* Left column: images + CTA */}
         <div
@@ -65,7 +68,7 @@ export default function ImaginecraftCard({
             <img
               style={{
                 borderRadius: "10px",
-                marginTop: "25px",
+                marginTop: "45px",
                 width: "100%",
                 height: "auto",
               }}

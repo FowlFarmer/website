@@ -36,6 +36,7 @@ export default function CosplayCard() {
         </div>
         <div className="flex items-start justify-start" style={{ textAlign: "center", flex: "1 1 100px", margin: "0px 10px"}}>
             <p>tl/dr: big anime/manga fan, went to some cons, and found out cosplay is super fun.</p>
+            <p>I also enjoy modelling, 3D printing and crafting my own cosplay props.</p>
         </div>
         {/* </div> */}
 
