@@ -17,8 +17,8 @@ export default function DBHCard() {
         ...dbh_blob_opacity
       }}
     >
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
-        <div className="flex items-start justify-start" style={{ flex: "0.8 0.8 450px", padding: "20px" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px", padding: "20px" }}>
+        <div className="flex items-start justify-start" style={{ flex: "0.8 0.8 450px"}}>
           <div style={{ flex: 1, alignItems: "flex-start" }}>
             <h2>Cover // Detroit: Become Human Opening Theme</h2>
             <TextFader
@@ -32,7 +32,7 @@ export default function DBHCard() {
             />
           </div>
         </div>
-        <div style={{ flex: "1 1 450px", padding: "20px", alignContent: "center" }}>
+        <div style={{ flex: "1 1 450px", alignContent: "center" }}>
           <iframe
             src="https://www.youtube.com/embed/c0F4bFpVJVI"
             title="YouTube video"
