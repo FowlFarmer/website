@@ -29,15 +29,15 @@ export default function CosplayCard() {
         
       }}
     >
-      <div style={{ display: "flex", flexWrap: "wrap", width: "80%", gap: "20px", alignContent: "flex-start",
-        justifyContent: "center", }}>
-        <div className="flex items-start justify-start" style={{ textAlign: "right", flex: "1 1 100px", padding: "20px" }}>
+      {/* <div style={{ display: "flex", flexWrap: "wrap", width: "80%", gap: "20px", alignContent: "flex-start", */}
+        {/* justifyContent: "center", }}> */}
+        <div className="flex items-start justify-start" style={{ textAlign: "center", flex: "1 1 100px"}}>
             <h2>Cosplay Gallery</h2>
         </div>
-        <div className="flex items-start justify-start" style={{ textAlign: "left", flex: "1 1 100px", padding: "20px" }}>
+        <div className="flex items-start justify-start" style={{ textAlign: "center", flex: "1 1 100px", margin: "0px 10px"}}>
             <p>tl/dr: big anime/manga fan, went to some cons, and found out cosplay is super fun.</p>
         </div>
-        </div>
+        {/* </div> */}
 
         
         <div style={{display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", padding: "20px"}}>

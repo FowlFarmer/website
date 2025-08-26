@@ -152,7 +152,7 @@ export default function SmallProjectsCard() {
       }}
     >
       <AnyFader
-        interval={[5000, 5000, 3500]}
+        interval={[8000, 8000, 5000]}
         items={_items}
       />
     </div>

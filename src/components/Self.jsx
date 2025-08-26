@@ -5,11 +5,13 @@ import DBHCard from './cards/dbh.jsx';
 import { Link } from 'react-router-dom';
 
 import CosplayCard from './cards/cosplay.jsx';
+import Shipbuilding from './cards/ships.jsx';
 
 // Backgrounds moved to public/ — reference via public path
 const bg1 = '/first_bg.gif';
 const bg2 = '/dbh_bg.jpg';
-// const bg3 = '/mc_shipbuilding_bg.png';
+const bg3 = '/shrine_bg.jpg';
+const bg4 = '/mc_shipbuilding_bg.png';
 
 export default function Self() {
     const first_blob_opacity = useScrollThresholdFade(-1, 300, 300);
@@ -19,8 +21,8 @@ export default function Self() {
 
             <ScrollBackground
                 transitionDuration={0.6}
-                images={[bg1, bg2]}
-                breakpointIds={["DetroitBecomeHuman"]}
+                images={[bg1, bg2, bg3, bg4]}
+                breakpointIds={["DetroitBecomeHuman", "Cosplay", "Shipbuilding"]}
             />
 
             <div className="mainBlob glass-effect" style={{ width: "60%", padding: "20px", marginTop: "100px", ...first_blob_opacity }}>
@@ -38,7 +40,10 @@ export default function Self() {
             <div id="DetroitBecomeHuman"/>
             {/* Replaced inlined Detroit Become Human card with component */}
             <DBHCard />
+            <div id="Cosplay"/>
             <CosplayCard />
+            <div id="Shipbuilding"/>
+            <Shipbuilding />
             <div style={{marginTop: "100000px"}} />
 
         </div>

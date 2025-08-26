@@ -33,6 +33,71 @@ body {
 
 
 /* ------- */
+/* flex container for left text + right CTA */
+.hero-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;          /* spacing between text and button */
+  padding: 1.5rem 2rem;
+}
+
+/* left block with stacked text */
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* main headline */
+.hero-title {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* vertical bar between title + subtitle */
+.hero-pipe {
+  margin: 0 0.5rem;
+}
+
+/* subtitle text */
+.hero-subtitle {
+  font-weight: 400;
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+/* “views/downloads” line */
+.hero-lede {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+/* “schematic files” line */
+.hero-small {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* call-to-action button (basic version, no glass) */
+.hero-cta {
+  display: inline-block;
+  padding: 0.8rem 1.2rem;
+  border: 2px solid currentColor;
+  border-radius: 8px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+
+
+
+
 
 .cosplay-item {
   aspect-ratio: 4/3;
@@ -238,7 +303,7 @@ color: white;
 font-family: Helvetica;
 font-weight: 100;
 text-align: left;
-text-shadow: 2px 2px 5px rgba(0,0,0,0.8); /* default shadow */
+text-shadow: 2px 2px 5px rgba(0,0,0,0.5); /* default shadow */
 }
 
 .glass-effect:hover {
