@@ -11,15 +11,14 @@ export default function DBHCard() {
       style={{
         marginTop: "180px",
         width: "90%",
-        height: "400px",
         position: "relative",
         overflow: "hidden",
         alignContent: "center",
         ...dbh_blob_opacity
       }}
     >
-      <div style={{ display: "flex", gap: "20px" }}>
-        <div className="flex items-start justify-start" style={{ flex: 1, padding: "20px" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+        <div className="flex items-start justify-start" style={{ flex: "0.8 0.8 450px", padding: "20px" }}>
           <div style={{ flex: 1, alignItems: "flex-start" }}>
             <h2>Cover // Detroit: Become Human Opening Theme</h2>
             <TextFader
@@ -33,7 +32,7 @@ export default function DBHCard() {
             />
           </div>
         </div>
-        <div style={{ flex: 1, padding: "20px", alignContent: "center" }}>
+        <div style={{ flex: "1 1 450px", padding: "20px", alignContent: "center" }}>
           <iframe
             src="https://www.youtube.com/embed/c0F4bFpVJVI"
             title="YouTube video"
@@ -41,7 +40,7 @@ export default function DBHCard() {
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
             className="glass-effect"
-            style={{ width: "100%", aspectRatio: "16/9" }}
+            style={{ aspectRatio: "16/9" }}
           ></iframe>
         </div>
       </div>
