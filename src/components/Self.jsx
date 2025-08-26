@@ -19,11 +19,11 @@ export default function Self() {
     return (
         <div className="self" style={{justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
 
-            <ScrollBackground
+            {/* <ScrollBackground
                 transitionDuration={0.6}
                 images={[bg1, bg2, bg3, bg4]}
                 breakpointIds={["DetroitBecomeHuman", "Cosplay", "Shipbuilding"]}
-            />
+            /> */}
 
             <div className="mainBlob glass-effect" style={{ width: "60%", padding: "20px", marginTop: "100px", ...first_blob_opacity }}>
                 <div style={{ justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>

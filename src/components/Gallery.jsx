@@ -55,7 +55,7 @@ export default function Gallery() {
       ];
   return (
      <div className="self" style={{width: "100%", justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
-       <ScrollBackground
+       {/* <ScrollBackground
         // className="scrollFadeBg"
         transitionDuration={0.6}
         images={[
@@ -71,7 +71,7 @@ export default function Gallery() {
           "Hackathons",
           "Lab",
         ]}
-        />
+        /> */}
 
       {/* <Test /> */}
       <div id="Imaginecraft"/>
