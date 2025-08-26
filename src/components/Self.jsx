@@ -4,6 +4,7 @@ import ScrollBackground from './tools/ScrollBackground.jsx';
 import DBHCard from './cards/dbh.jsx';   
 import { Link } from 'react-router-dom';
 
+import CosplayCard from './cards/cosplay.jsx';
 
 // Backgrounds moved to public/ — reference via public path
 const bg1 = '/first_bg.gif';
@@ -37,7 +38,7 @@ export default function Self() {
             <div id="DetroitBecomeHuman"/>
             {/* Replaced inlined Detroit Become Human card with component */}
             <DBHCard />
-
+            <CosplayCard />
             <div style={{marginTop: "100000px"}} />
 
         </div>

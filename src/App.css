@@ -34,6 +34,15 @@ body {
 
 /* ------- */
 
+.cosplay-item {
+  aspect-ratio: 4/3;
+  object-fit: cover;  /* crop while covering container */
+  object-position: center; /* crop around center */
+  display: block;
+  /* padding: 8px;
+  max-width: 20%; */
+}
+
 
 /* Outer container clips overflow */
 .hcyclebarcentered {

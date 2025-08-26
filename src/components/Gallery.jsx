@@ -101,6 +101,18 @@ export default function Gallery() {
       </div>
       <div id="Lab"/>
       <LabCard/>
+      <div
+            className="glass-effect"
+            style={{
+              marginTop: "100px",
+              // width: "40%",
+              position: "relative",
+              overflow: "hidden",
+              textAlign: "center"
+            }}
+          >
+        <p style={{ lineHeight: "0px" }}>There's an older website that contains some deprecated stuff. You can find it <a href="https://portfoliotheodore.weebly.com" target="_blank" rel="noopener noreferrer">here</a>.</p>
+      </div>
     </div>
 
   );
