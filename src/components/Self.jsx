@@ -43,8 +43,8 @@ export default function Self() {
             <div id="Cosplay"/>
             <CosplayCard />
             <div id="Shipbuilding"/>
-            <Shipbuilding />
-            <div style={{marginTop: "100000px"}} />
+            {/* <Shipbuilding /> */}
+            {/* <div style={{marginTop: "100000px"}} /> */}
 
         </div>
     );

@@ -107,7 +107,7 @@ export default function Gallery() {
               marginTop: "100px",
               // width: "40%",
               position: "relative",
-              overflow: "hidden",
+              // overflow: "hidden",
               textAlign: "center"
             }}
           >
