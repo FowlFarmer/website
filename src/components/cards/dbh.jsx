@@ -40,7 +40,7 @@ export default function DBHCard() {
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
             className="glass-effect"
-            style={{ aspectRatio: "16/9" }}
+            style={{ aspectRatio: "16/9", minWidth: "0px" }}
           ></iframe>
         </div>
       </div>
