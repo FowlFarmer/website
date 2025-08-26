@@ -54,14 +54,13 @@ export default function ImaginecraftCard({
         <p>Users can imagine their own spell incantations and, through NLP, they can be actualized into real effects in the Minecraft world complete with particle and sound effects.</p>
         <p>Users can forge never-before-seen weapons from their imagination. They can ask the "gamemaker" for items that do not yet exist in the world, i.e. lightsabers, Harry Potter wands, guns, etc. and they will materialize in the user's hands with new game logic and sound and sprite resource pack injection through an image diffusion pipeline.</p>
         </div>
-      <div style={{ display: "flex", gap: 0, marginTop: "-20px" }}>
+        <hr />
+      <div style={{ display: "flex", gap: 0, marginTop: "-20px", flexWrap: "wrap", justifyContent: "center" }}>
         {/* Left column: images + CTA */}
         <div
-          className="flex items-start justify-start"
-          style={{ flex: 0.5}}
+          className="flex items-center justify-center"
+          style={{ flex: "0.5 0.5 240px", textAlign: "center", justifyContent: "center", alignItems: "center"}}
         >
-          <div style={{ flex: 1, alignItems: "flex-start", textAlign: "center" }}>
-
             <img
               style={{
                 borderRadius: "10px",
@@ -83,11 +82,10 @@ export default function ImaginecraftCard({
             </a>
 
             {/* Optional internal link example */}
-          </div>
         </div>
 
         {/* Right column: text */}
-        <div style={{ flex: 1, padding: "20px", textAlign: "left" }}>
+        <div style={{ flex: "1 1 480px", padding: "20px", textAlign: "left" }}>
 
             <p><strong>AutoSpriteTransform</strong> is a machine learning model I developed to solve a "super niche" problem: the automatic rotation and scaling of generated weapon sprites such that they'd be ready for Minecraft resource pack injection. The core challenge was training a model to correctly predict the orientation of symmetrical objects, which can confuse standard loss functions.</p>
             <p>To overcome the issue of "midpoint averaging" where the model would predict a neutral angle instead of the correct bimodal targets (e.g., 0 or 180 degrees), I experimented with <strong>custom periodic loss functions</strong> as well as gaussian bumps, different model architectures and training methods. These custom functions were crucial in forcing the model to make definitive predictions, evolving performance from <strong>stagnant to incredibly promising</strong>. The model's architecture was optimized by increasing convolutional layers to enhance feature extraction. The final model was evaluated using a <strong>mAP@N</strong> (mean average precision within N degrees) metric.</p>

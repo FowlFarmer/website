@@ -11,17 +11,16 @@ export default function Gerb2Card() {
       style={{
         marginTop: "40px",
         width: "90%",
-        height: "400px",
+        // height: "400px",
         position: "relative",
-        overflow: "hidden",
+        // overflow: "hidden",
         alignContent: "center",
         // ...dbh_blob_opacity
       }}
     >
-      <div style={{ display: "flex", gap: "20px" }}>
-        <div className="flex items-start justify-start" style={{ flex: 1, padding: "20px" }}>
-          <div style={{ flex: 1, alignItems: "flex-start", marginLeft: "20px" }}>
-            <h2>Gerb II: Electric Boogaloo (A simulated differential drive robot)</h2>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px"}}>
+        <div style={{ flex: "1 1 360px", padding: "20px", alignContent: "flex-start" }}>
+            <h2 style={{marginTop: "0px"}}>Gerb II: Electric Boogaloo (A simulated differential drive robot)</h2>
             <TextFader
               texts={[
                 "Gerb is a fully autonomous differential drive robot in Foxglove sim. The system processes LIDAR data into local and global maps, enabling obstacle avoidance and smooth trajectory execution, and is a fully containerized monorepo infra with Docker for consistent deployment.",
@@ -32,9 +31,8 @@ export default function Gerb2Card() {
               fadeDuration={0.3}
               height={"150px"}
             />
-          </div>
         </div>
-        <div style={{ flex: 1, padding: "20px", alignContent: "center", textAlign: "center" }}>
+        <div style={{ flex: "1 1 360px", padding: "20px", alignContent: "center", textAlign: "center" }}>
           <iframe
             src="https://www.youtube.com/embed/LWBjHgwYJAU"
             title="YouTube video"

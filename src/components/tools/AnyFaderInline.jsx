@@ -1,34 +1,24 @@
-// AnyFader.jsx
-import React, { useEffect, useState, useMemo, useRef } from "react";
+// AnyFader.jsx — flow-based + smooth height tween + absolute bottom progress bar
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-/**
- * AnyFader
- * - `interval`: number | number[]   // per-switch delay(s) in ms
- *   If array: delay before switching from item i -> i+1 is interval[i % interval.length]
- */
 export default function AnyFaderInline({
   items = [],
-  interval = 3000,                  // number OR number[]
-  fadeDuration = 0.8,               // seconds
-  defaultHeight = "1.5rem",
-  heights,
+  interval = 3000,           // number OR number[]
+  fadeDuration = 0.35,       // seconds
   className = "",
-  glassClassName = "",
-  contentClassName = "",
   startIndex = 0,
   onIndexChange,
-  heightTransitionMs = 400,
 }) {
   const [index, setIndex] = useState(startIndex);
-  const [paused, setPaused] = useState(false);
+  const [hoverPaused, setHoverPaused] = useState(false);
+  const [inView, setInView] = useState(true); // assume true; IO will correct
   const [elapsedMs, setElapsedMs] = useState(0);
-  const rafRef = useRef(null);
-  const lastTsRef = useRef(null);
 
-  const key = useMemo(() => `${index}`, [index]);
+  // Pause if either hovered OR off-screen
+  const isPaused = hoverPaused || !inView;
 
-  // Resolve the delay for the *current* step
+  // Resolve per-step delay (supports array)
   const currentDelay = useMemo(() => {
     if (Array.isArray(interval)) {
       const arr = interval.filter((n) => Number.isFinite(n) && n > 0);
@@ -38,30 +28,23 @@ export default function AnyFaderInline({
     return Number.isFinite(interval) ? Math.max(0, interval) : 0;
   }, [interval, index]);
 
-  // Resolve current height: per-item height if provided, else fallback default
-  const resolvedHeight = useMemo(() => {
-    if (Array.isArray(heights) && heights.length > 0) {
-      const h = heights[index % heights.length];
-      return h ?? defaultHeight;
-    }
-    return defaultHeight;
-  }, [heights, index, defaultHeight]);
-
-  // rAF ticker (pausable), using the *currentDelay* per step
+  // rAF ticker (updates elapsedMs so progress bar animates smoothly)
+  const rafRef = useRef(null);
+  const lastTsRef = useRef(null);
   useEffect(() => {
     const tick = (ts) => {
       if (lastTsRef.current == null) lastTsRef.current = ts;
       const dt = ts - lastTsRef.current;
       lastTsRef.current = ts;
 
-      if (!paused && items.length > 0 && currentDelay > 0) {
+      if (!isPaused && items.length > 0 && currentDelay > 0) {
         setElapsedMs((prev) => {
           const next = prev + dt;
           if (next >= currentDelay && items.length > 1) {
-            const newIndex = (index + 1) % items.length;
-            onIndexChange?.(newIndex);
-            setIndex(newIndex);
-            return 0; // reset progress for next step (which will use a new delay)
+            const nextIndex = (index + 1) % items.length;
+            onIndexChange?.(nextIndex);
+            setIndex(nextIndex);
+            return 0;
           }
           return next;
         });
@@ -76,39 +59,82 @@ export default function AnyFaderInline({
       rafRef.current = null;
       lastTsRef.current = null;
     };
-  }, [index, paused, items.length, currentDelay, onIndexChange]);
+  }, [index, isPaused, items.length, currentDelay, onIndexChange]);
 
-  if (!items || items.length === 0) return null;
+  // Smooth height tween: measure the current slide's natural height
+  const contentRef = useRef(null);
+  const [targetH, setTargetH] = useState(0);
 
+  useEffect(() => {
+    if (!contentRef.current) return;
+
+    const measure = () => {
+      const h = contentRef.current?.getBoundingClientRect().height ?? 0;
+      if (h > 0) setTargetH(h);
+    };
+
+    const ro = new ResizeObserver(measure);
+    ro.observe(contentRef.current);
+
+    measure();
+    const onWin = () => measure();
+    window.addEventListener("resize", onWin);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", onWin);
+    };
+  }, [index, items]);
+
+  // Detect visibility in viewport; pause when off-screen
+  const containerRef = useRef(null);
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        const e = entries[0];
+        // Consider "in view" when at least 10% visible
+        setInView(e.isIntersecting && e.intersectionRatio > 0.1);
+      },
+      { threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] }
+    );
+
+    io.observe(containerRef.current);
+    return () => io.disconnect();
+  }, []);
+
+  if (!items.length) return null;
+
+  const key = useMemo(() => `${index}`, [index]);
   const current = items[index % items.length];
   const progressPct =
     currentDelay > 0 ? Math.max(0, Math.min(100, (elapsedMs / currentDelay) * 100)) : 0;
 
   return (
     <motion.div
-      className={`relative w-full overflow-hidden flex flex-col items-center ${className}`}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      animate={{
-        height:
-          typeof resolvedHeight === "number" ? `${resolvedHeight}px` : resolvedHeight,
-      }}
+      ref={containerRef}
+      className={`relative w-full ${className}`} // relative so the bar can be absolute
+      style={{ overflow: "hidden" }}
+      onMouseEnter={() => setHoverPaused(true)}
+      onMouseLeave={() => setHoverPaused(false)}
+      animate={{ height: targetH + 20 }}              // smooth tween to natural height
       initial={false}
-      transition={{ duration: heightTransitionMs / 1000, ease: "easeInOut" }}
-      style={{ willChange: "height" }}
+      transition={{ duration: 0.4, ease: "easeInOut" }}
     >
-
-      {/* Bottom progress bar (part of flex flow, not absolute) */}
+            {/* Bottom progress bar (same style/css as before) */}
       {items.length > 1 && currentDelay > 0 && (
         <div
           style={{
-            width: "60%",        // centered with flex + width %
+            position: "relative",
+            left: "0",
+            // right: "20%",
+            // bottom: 15,
             height: 6,
             borderRadius: 9999,
             background: "rgba(255,255,255,0.35)",
             overflow: "hidden",
-            marginTop: 8,
-            marginBottom: 4,
+            // marginInline: 12,
           }}
         >
           <div
@@ -124,24 +150,22 @@ export default function AnyFaderInline({
           />
         </div>
       )}
-      {/* Optional glass layer */}
-      <div className={`absolute inset-0 pointer-events-none ${glassClassName || ""}`} />
-
-      {/* Stage (fills available space above bar) */}
-      <div className="flex-1 relative w-full h-full flex items-center justify-center">
+      {/* Slide content stays in normal flow so it's always visible */}
+      <div ref={contentRef}>
         <AnimatePresence mode="wait">
           <motion.div
             key={key}
-            className={`absolute inset-0 flex items-center justify-center ${contentClassName}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: fadeDuration }}
+            transition={{ opacity: { duration: fadeDuration } }}
           >
             {current}
           </motion.div>
         </AnimatePresence>
       </div>
+
+
     </motion.div>
   );
 }

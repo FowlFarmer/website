@@ -8,6 +8,8 @@ const bg2 = '/dbh_bg.jpg';
 const bg3 = '/mc_shipbuilding_bg.png';
 const bg4 = '/office_bg.jpg';
 
+import Test from './cards/test.jsx';
+
 import LabCard from './cards/lab.jsx';
 import GuardianAngel from './cards/ga.jsx';
 import ImaginecraftCard from './cards/imaginecraft.jsx';
@@ -68,6 +70,8 @@ export default function Gallery() {
         ]}
         breakpoints={[300, 800]}
         />
+
+      {/* <Test /> */}
       <ImaginecraftCard />
       <Gerb2Card />
       <SmallProjectsCard />
