@@ -12,7 +12,7 @@ export default function DBHCard() {
         marginTop: "180px",
         width: "90%",
         position: "relative",
-        overflow: "hidden",
+        // overflow: "hidden",
         alignContent: "center",
         ...dbh_blob_opacity
       }}
