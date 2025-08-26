@@ -24,10 +24,9 @@ export default function Gerb2Card() {
             <TextFader
               texts={[
                 "Gerb is a fully autonomous differential drive robot in Foxglove sim. The system processes LIDAR data into local and global maps, enabling obstacle avoidance and smooth trajectory execution, and is a fully containerized monorepo infra with Docker for consistent deployment.",
-                "I implemented a containerized ROS2 robotic navigation system in a monorepo infrastructure comprising of modular nodes for path planning, costmap generation, control, and map memory.",
-                "I Leveraged robotics algorithms including A* pathfinding (modified with custom costmap weight heuristics), obstacle inflation, ray tracing, pure pursuit control, and a differential drive motion model."
+                "I implemented a containerized ROS2 robotic navigation system in a monorepo infrastructure comprising of modular nodes for path planning, costmap generation, control, and map memory. I leveraged robotics algorithms including A* pathfinding (modified with custom costmap weight heuristics), obstacle inflation, ray tracing, pure pursuit control, and a differential drive motion model."
               ]}
-              interval={6000}
+              interval={7000}
               fadeDuration={0.3}
               height={"150px"}
             />

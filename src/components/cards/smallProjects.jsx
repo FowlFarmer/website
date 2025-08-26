@@ -1,7 +1,7 @@
 // SmallProjectsCard.jsx
 import React from 'react';
 import AnyFader from '../tools/AnyFader.jsx';
-import HorizontalCycleBar from '../tools/itemscycle.jsx';
+import HorizontalCycleBarCentered from '../tools/itemscycleCentered.jsx';
 import InlinePdf from '../tools/pdf.jsx';
 
 export default function SmallProjectsCard() {
@@ -28,8 +28,8 @@ export default function SmallProjectsCard() {
           BreathMentor | Wearable Breathing Monitor
         </h2>
 
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'stretch' }}>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '10px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', alignItems: 'center', justifyContent: "center" }}>
+          <div style={{ flex: "1 1 400px", display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '10px' }}>
             <p style={{ fontWeight: 'bold', marginTop: "-10px" }}>
               Annually, Guillain-Barré Syndrome develops in 150,000 people worldwide and 6,000 Americans. Patients suffer from hardness of breathing, amongst other symptoms.
             </p>
@@ -41,15 +41,13 @@ export default function SmallProjectsCard() {
             </p>
           </div>
 
-          <div style={{ flex: 0.4, display: 'flex', alignItems: 'stretch' }}>
+          <div style={{ flex: "0.7 0.7 350px", display: 'flex', gap: '10px', alignItems: 'stretch', justifyContent: "center" }}>
             <img
               src="/breathmentor_1.png"
               alt="BreathMentor"
               style={{ width: 'auto', height: '300px', objectFit: 'cover', display: 'block' }}
             />
-          </div>
 
-          <div style={{ flex: 0.4, display: 'flex', alignItems: 'stretch' }}>
             <img
               src="/breathmentor_2.gif"
               alt="BreathMentor_2"
@@ -59,8 +57,7 @@ export default function SmallProjectsCard() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', padding: '20px', marginTop: "-20px" }}>
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'stretch' }}>
+      <div style={{ display: 'flex', flexWrap: "wrap", padding: '20px', marginTop: "-20px", gap: "10px", justifyContent: "center", alignItems: "center" }}>
           <div className="big-zoom" style={{ display: 'flex', alignItems: 'stretch' }}>
             <InlinePdf src="/breathmentor_doc.pdf" height={200} />
           </div>
@@ -70,7 +67,6 @@ export default function SmallProjectsCard() {
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', padding: '0px 10px' }}>
             <img src="/breathmentor_4.png" alt="BreathMentor_4" style={{ width: 'auto', height: '200px' }} />
           </div>
-        </div>
       </div>
     </div>,
 
@@ -79,8 +75,8 @@ export default function SmallProjectsCard() {
       <div style={{ display: 'flex', flexDirection: 'column', padding: '20px' }}>
         <h2 style={{ marginTop: '0px', marginLeft: '10px' }}>Automatic Bedmaker</h2>
 
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'stretch' }}>
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '10px', marginTop: "-10px" }}>
+        <div style={{ display: 'flex', flexWrap: "wrap", gap: '20px', alignItems: 'stretch', justifyContent: "center" }}>
+          <div style={{ flex: "1 1 450px", display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '10px', marginTop: "-10px" }}>
             <p>
               The idea of this device is simple: it consists of four nodes, one at each corner of a bed. Each node houses a motor that, through gear ratios to increase torque, spins a spool attached to a cord connected to a blanket corner. With the push of a button, the blanket is pulled taut and the bed is made. When finished, the motors reverse, unspooling the cords so you can snuggle up with your blanket in any cozy position you like.
             </p>
@@ -95,7 +91,7 @@ export default function SmallProjectsCard() {
             </p>
           </div>
 
-          <div style={{ flex: 0.5 }}>
+          <div style={{ flex: "0.5 0.5 200px" }}>
             <img
               src="/bedmaker_loop.gif"
               alt="Bedmaker Gif"
@@ -112,7 +108,7 @@ export default function SmallProjectsCard() {
                 borderRadius: "12px",
               }}
             >
-              <HorizontalCycleBar
+              <HorizontalCycleBarCentered
                 intervalMs={2500}
                 pauseOnHover={false}
                 visibleCount={1}
@@ -132,12 +128,12 @@ export default function SmallProjectsCard() {
           ​Ethereum Health Records: Ethical Analysis Paper
         </h2>
 
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'stretch' }}>
-          <div style={{ flex: 1, textAlign: "right", alignItems: "center" }}>
+        <div style={{ display: 'flex', flexWrap: "wrap", gap: '20px', alignItems: 'stretch' }}>
+          <div style={{ flex: "1 1 300px", textAlign: "right", alignItems: "center" }}>
             <p>The rapid pace of blockchain's maturation as a technology has profound impacts on many non-financial sectors.</p>
             <p>In this paper, I analyzed the specific case of the ethics within Ethereum 's impact on electronic health records.</p>
           </div>
-          <div className="zoom" style={{ flex: 1.2 }}>
+          <div className="zoom" style={{ flex: "1.2 1.2 450px" }}>
             <InlinePdf src="/ethereum.pdf" />
           </div>
         </div>

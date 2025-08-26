@@ -29,7 +29,37 @@ body {
 
 
 
+
+
+
+/* ------- */
+
+
 /* Outer container clips overflow */
+.hcyclebarcentered {
+  overflow: hidden;
+  width: 100%; /* or fixed width */
+  position: relative;
+}
+
+.hcyclebarcentered-track {
+  display: flex;
+  flex-direction: row;
+  will-change: transform;
+  transition: transform 0.4s ease;
+}
+
+.hcyclebarcentered-track.is-animating {
+  transition: transform 0.4s ease;
+}
+
+.hcyclebarcentered-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+
 .hcyclebar {
   overflow: hidden;
   width: 100%; /* or fixed width */
@@ -188,7 +218,7 @@ yeet
 }
 
 .glass-effect {
-backdrop-filter: blur(7px);
+backdrop-filter: blur(8px);
 background: rgba(255,255,255,0.06);
 border: 2px solid rgba(255,255,255,0.06);
 border-radius: 12px;
@@ -199,7 +229,7 @@ color: white;
 font-family: Helvetica;
 font-weight: 100;
 text-align: left;
-text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* default shadow */
+text-shadow: 2px 2px 5px rgba(0,0,0,0.8); /* default shadow */
 }
 
 .glass-effect:hover {

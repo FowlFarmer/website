@@ -2,11 +2,6 @@ import React from 'react';
 import { Link } from "react-router-dom";
 
 import ScrollBackground from './tools/ScrollBackground.jsx';
-// Background images moved to public/ — reference them by public path
-const bg1 = '/calhacks_bg.webp';
-const bg2 = '/dbh_bg.jpg';
-const bg3 = '/mc_shipbuilding_bg.png';
-const bg4 = '/office_bg.jpg';
 
 import Test from './cards/test.jsx';
 
@@ -62,20 +57,30 @@ export default function Gallery() {
      <div className="self" style={{width: "100%", justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
        <ScrollBackground
         // className="scrollFadeBg"
-        transitionDuration={0.3}
+        transitionDuration={0.6}
         images={[
-          bg4,
-          bg2,
-          bg3
+          // "/minecraft_bg.webp",
+          "/minecraft_bg.webp",
+          "/walle_bg.jpeg",
+          "/hackathons_bg.jpg",
+          "/lab_bg.jpg",
         ]}
-        breakpoints={[300, 800]}
+        breakpointIds={[
+          // "Imaginecraft",
+          "Projects",
+          "Hackathons",
+          "Lab",
+        ]}
         />
 
       {/* <Test /> */}
-      <ImaginecraftCard />
-      <Gerb2Card />
-      <SmallProjectsCard />
-      <GuardianAngel />
+      <div id="Imaginecraft"/>
+      <ImaginecraftCard/>
+      <div id="Projects"/>
+      <Gerb2Card/>
+      <SmallProjectsCard/>
+      <div id="Hackathons"/>
+      <GuardianAngel/>
       <div className="glass-effect" style={{
         marginTop: "40px",
         width: "87%",
@@ -94,8 +99,8 @@ export default function Gallery() {
           visibleCount={4}
         />
       </div>
-
-      <LabCard />
+      <div id="Lab"/>
+      <LabCard/>
     </div>
 
   );
