@@ -44,8 +44,8 @@ export default function App() {
       <div className="app-container" id="popup-root">
         <FadeRoutes />
         <NavBar />
-        <Analytics />
       </div>
+        <Analytics />
     </Router>
   );
 }
