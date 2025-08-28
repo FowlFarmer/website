@@ -88,3 +88,4 @@ junit.xml
 
 # Ignore public build artifacts
 public/*.map
+.vercel
