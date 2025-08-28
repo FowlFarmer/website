@@ -33,7 +33,6 @@ function FadeRoutes() {
           <Route path="/gallery" element={<Gallery />} />
           <Route path="*" element={<Gallery />} />
         </Routes>
-        <Analytics />
       </motion.main>
     </AnimatePresence>
   );
@@ -45,6 +44,7 @@ export default function App() {
       <div className="app-container" id="popup-root">
         <FadeRoutes />
         <NavBar />
+        <Analytics />
       </div>
     </Router>
   );
