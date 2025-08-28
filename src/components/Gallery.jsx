@@ -83,14 +83,16 @@ export default function Gallery() {
       <GuardianAngel/>
       <div className="glass-effect" style={{
         marginTop: "40px",
-        width: "87%",
+        width: "90%",
         // aspectRatio: "16/10",
         position: "relative",
         overflow: "hidden",
         alignContent: "flex-start",
         textAlign: "center",
-        padding: "20px"
+        // padding: "20px",
+        // boxSizing: "border-box"
       }}>
+        <div style={{padding: "20px"}}>
         <p style={{lineHeight: "0", textAlign: "left", fontWeight: "bold"}}>Other Hackathon Projects</p>
         <HorizontalCycleBar
           items={items}
@@ -98,6 +100,7 @@ export default function Gallery() {
           pauseOnHover={true}
           visibleCount={4}
         />
+        </div>
       </div>
       <div id="Lab"/>
       <LabCard/>
