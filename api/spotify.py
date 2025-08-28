@@ -182,7 +182,7 @@ class handler(BaseHTTPRequestHandler):
                         "device": cached.get("device"),
                         "item": cached.get("item"),
                         "context": cached.get("context"),
-                        "raw": None
+                        "raw": cached
                     }
                     log("cache.return", progress_ms=out["progress_ms"],
                         have_item=bool(out["item"]))
