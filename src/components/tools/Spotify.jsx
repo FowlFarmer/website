@@ -102,6 +102,14 @@ export default function SpotifyNowPlayingWithBar() {
   const rightMs = durationMs || 0;
 
   return (
+   <div
+      className="glass-effect"
+      style={{
+        marginTop: "180px",
+        width: "90%",
+        position: "relative",
+        alignContent: "center",
+      }}>
     <div style={{ position: "relative", padding: 12 }}>
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         {image && (
@@ -167,6 +175,7 @@ export default function SpotifyNowPlayingWithBar() {
           <div style={{ flex: 1, textAlign: "right" }}>{rightMs} ms</div>
         </div>
       )}
+    </div>
     </div>
   );
 }
