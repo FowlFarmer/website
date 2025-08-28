@@ -1,9 +1,7 @@
-# api/now-playing.py
 import os
 import json
 import base64
-import urllib.parse
-import urllib.request
+import requests
 
 TOKEN_URL = "https://accounts.spotify.com/api/token"
 NOW_PLAYING_URL = "https://api.spotify.com/v1/me/player/currently-playing"
@@ -13,9 +11,9 @@ def _json_response(status, body):
         "statusCode": status,
         "headers": {
             "Content-Type": "application/json",
-            # same-origin from your Vercel site → no CORS header needed
-            # add below if you’ll call from other origins:
-            # "Access-Control-Allow-Origin": "*"
+            # Add CORS if calling from other origins:
+            # "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "no-store",
         },
         "body": json.dumps(body),
     }
@@ -27,59 +25,45 @@ def _mint_access_token():
 
     basic = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
 
-    data = urllib.parse.urlencode({
-        "grant_type": "refresh_token",
-        "refresh_token": refresh_token
-    }).encode()
-
-    req = urllib.request.Request(
+    resp = requests.post(
         TOKEN_URL,
-        data=data,
+        data={"grant_type": "refresh_token", "refresh_token": refresh_token},
         headers={
             "Authorization": f"Basic {basic}",
-            "Content-Type": "application/x-www-form-urlencoded"
+            "Content-Type": "application/x-www-form-urlencoded",
         },
-        method="POST",
+        timeout=10,
     )
-    with urllib.request.urlopen(req) as r:
-        payload = json.loads(r.read().decode("utf-8"))
-        # returns: { access_token, expires_in, token_type, scope, ... }
-        return payload["access_token"]
+    resp.raise_for_status()
+    return resp.json()["access_token"]
 
 def handler(request):
     try:
-        # 1) get a fresh access token
         access_token = _mint_access_token()
 
-        # 2) use it to fetch "currently playing"
-        req = urllib.request.Request(
+        r = requests.get(
             NOW_PLAYING_URL,
             headers={"Authorization": f"Bearer {access_token}"},
-            method="GET",
+            timeout=10,
         )
 
-        try:
-            with urllib.request.urlopen(req) as r:
-                # 200 OK → body contains JSON for the current track
-                if r.status == 200:
-                    data = json.loads(r.read().decode("utf-8"))
-                    return _json_response(200, {
-                        "ok": True,
-                        "is_playing": bool(data.get("is_playing")),
-                        "data": data
-                    })
-                # 204 No Content → nothing currently playing
-                if r.status == 204:
-                    return _json_response(200, {
-                        "ok": True,
-                        "is_playing": False,
-                        "data": None
-                    })
-                # unexpected but pass through
-                return _json_response(r.status, {"ok": False, "error": "unexpected_status"})
-        except urllib.error.HTTPError as e:
-            # e.code: 401, 403, etc. Bubble message
-            body = e.read().decode("utf-8") if e.fp else ""
-            return _json_response(e.code, {"ok": False, "error": body or str(e)})
+        if r.status_code == 200:
+            data = r.json()
+            return _json_response(200, {
+                "ok": True,
+                "is_playing": bool(data.get("is_playing")),
+                "data": data,
+            })
+        if r.status_code == 204:
+            return _json_response(200, {"ok": True, "is_playing": False, "data": None})
+
+        # Pass through unexpected status
+        return _json_response(r.status_code, {"ok": False, "error": "unexpected_status"})
+
+    except requests.HTTPError as e:
+        # r may be attached with more details
+        resp = getattr(e, "response", None)
+        body = resp.text if resp is not None else str(e)
+        return _json_response(resp.status_code if resp else 500, {"ok": False, "error": body})
     except Exception as e:
         return _json_response(500, {"ok": False, "error": str(e)})
