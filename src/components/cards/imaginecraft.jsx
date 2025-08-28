@@ -39,9 +39,7 @@ export default function ImaginecraftCard({
       }}
     >
       <p
-        style={{
-          textAlign: "left",
-        //   marginTop: "20px",
+        style={{        //   marginTop: "20px",
         //   marginLeft: "20px",
           fontWeight: "bold",
         }}
