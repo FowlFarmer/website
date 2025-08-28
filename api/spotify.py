@@ -1,23 +1,9 @@
 # api/spotify.py
-import os
-import json
-import base64
-import requests
+from http.server import BaseHTTPRequestHandler
+import os, json, base64, requests
 
 TOKEN_URL = "https://accounts.spotify.com/api/token"
 PLAYER_URL = "https://api.spotify.com/v1/me/player"
-
-def _json_response(status, body):
-    return {
-        "statusCode": status,
-        "headers": {
-            "Content-Type": "application/json",
-            # Add if you’ll call from other origins:
-            # "Access-Control-Allow-Origin": "*",
-            "Cache-Control": "no-store",
-        },
-        "body": json.dumps(body),
-    }
 
 def _mint_access_token():
     client_id = os.environ["SPOTIFY_CLIENT_ID"]
@@ -38,64 +24,63 @@ def _mint_access_token():
     return resp.json()["access_token"]
 
 def _extract_image(item):
-    # Tracks: item.album.images; Podcasts/episodes: item.images
-    images = None
-    if item is None:
+    if not item:
         return None
-    if "album" in item and item["album"] and "images" in item["album"]:
-        images = item["album"]["images"]
-    elif "images" in item:
-        images = item["images"]
-    if images and isinstance(images, list) and images:
-        return images[0].get("url") or images[-1].get("url")
+    if item.get("album") and item["album"].get("images"):
+        imgs = item["album"]["images"]
+    else:
+        imgs = item.get("images")  # podcasts/episodes
+    if isinstance(imgs, list) and imgs:
+        return imgs[0].get("url") or imgs[-1].get("url")
     return None
 
-def handler(request):
-    try:
-        access_token = _mint_access_token()
+def _ok_payload_from_player(data):
+    item = data.get("item") or {}
+    artists = ", ".join(a.get("name", "") for a in item.get("artists", []) if a) or None
+    return {
+        "ok": True,
+        "is_playing": bool(data.get("is_playing")),
+        "device_name": (data.get("device") or {}).get("name"),
+        "title": item.get("name"),
+        "artists": artists,
+        "image": _extract_image(item),
+        "progress_ms": data.get("progress_ms") or 0,
+        "duration_ms": item.get("duration_ms") or 0,
+    }
 
-        r = requests.get(
-            PLAYER_URL,
-            headers={"Authorization": f"Bearer {access_token}"},
-            timeout=10,
-        )
+class handler(BaseHTTPRequestHandler):
+    def _send_json(self, status: int, body: dict):
+        raw = json.dumps(body).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(raw)))
+        # If you will call from other origins, uncomment:
+        # self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(raw)
 
-        # 204 = no active device / no content
-        if r.status_code == 204:
-            return _json_response(200, {
-                "ok": True,
-                "is_playing": False,
-                "device_name": None,
-                "title": None,
-                "artists": None,
-                "image": None,
-                "progress_ms": 0,
-                "duration_ms": 0,
+    def do_GET(self):
+        try:
+            token = _mint_access_token()
+            r = requests.get(PLAYER_URL, headers={"Authorization": f"Bearer {token}"}, timeout=10)
+
+            if r.status_code == 204:
+                return self._send_json(200, {
+                    "ok": True, "is_playing": False, "device_name": None,
+                    "title": None, "artists": None, "image": None,
+                    "progress_ms": 0, "duration_ms": 0
+                })
+            if r.status_code == 200:
+                return self._send_json(200, _ok_payload_from_player(r.json() or {}))
+
+            # Pass through unexpected statuses for easier debugging
+            return self._send_json(r.status_code, {"ok": False, "error": "unexpected_status", "body": r.text})
+
+        except requests.HTTPError as e:
+            resp = getattr(e, "response", None)
+            return self._send_json(resp.status_code if resp else 500, {
+                "ok": False, "error": resp.text if resp else str(e)
             })
-
-        if r.status_code == 200:
-            data = r.json() or {}
-            item = data.get("item")
-            artists = None
-            if item and "artists" in item and item["artists"]:
-                artists = ", ".join(a.get("name", "") for a in item["artists"] if a)
-
-            body = {
-                "ok": True,
-                "is_playing": bool(data.get("is_playing")),
-                "device_name": (data.get("device") or {}).get("name"),
-                "title": item.get("name") if item else None,
-                "artists": artists,
-                "image": _extract_image(item),
-                "progress_ms": data.get("progress_ms") or 0,
-                "duration_ms": (item or {}).get("duration_ms") or 0,
-            }
-            return _json_response(200, body)
-
-        return _json_response(r.status_code, {"ok": False, "error": "unexpected_status", "body": r.text})
-
-    except requests.HTTPError as e:
-        resp = getattr(e, "response", None)
-        return _json_response(resp.status_code if resp else 500, {"ok": False, "error": resp.text if resp else str(e)})
-    except Exception as e:
-        return _json_response(500, {"ok": False, "error": str(e)})
+        except Exception as e:
+            return self._send_json(500, {"ok": False, "error": str(e)})
