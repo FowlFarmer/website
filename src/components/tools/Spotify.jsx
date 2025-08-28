@@ -98,8 +98,8 @@ export default function SpotifyNowPlayingWithBar() {
     durationMs > 0 ? Math.min(100, (displayedProgMs / durationMs) * 100) : 0;
 
   // round left text to the nearest second (per your spec)
-  const leftMs = Math.min(durationMs, Math.floor(displayedProgMs / 1000) * 1000);
-  const rightMs = durationMs || 0;
+  const leftMs = formatTime(Math.min(durationMs, Math.floor(displayedProgMs / 1000) * 1000));
+  const rightMs = formatTime(durationMs || 0);
 
   return (
    <div
