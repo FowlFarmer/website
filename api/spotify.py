@@ -2,6 +2,8 @@ import os, json, base64, urllib.parse, urllib.request, time, traceback
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
+from pymongo import MongoClient
+
 TOKEN_URL  = "https://accounts.spotify.com/api/token"
 PLAYER_URL = "https://api.spotify.com/v1/me/player"
 
@@ -18,6 +20,7 @@ def log(msg, **kv):
 # --- Mongo (global client reused on warm invocations) ---
 _client = None
 def _get_collection():
+    global _client
     uri  = os.environ.get("MONGODB_URI")
     dbn  = os.environ.get("MONGODB_DB")
     coln = os.environ.get("MONGODB_COLLECTION")
@@ -27,23 +30,21 @@ def _get_collection():
     if not have_mongo:
         return None, None
 
-    from pymongo import MongoClient
-    global _client
     if _client is None:
         t0 = time.time()
         _client = MongoClient(uri, connectTimeoutMS=5000)
         log("mongo.client.created", ms=int((time.time() - t0) * 1000))
+
     db = _client[dbn]
     col = db[coln]
     return db, col
 
 def _cache_save(doc: dict):
     _, col = _get_collection()
-    if not col:
+    if col is None:                                    # <-- changed
         log("cache.save.skipped", reason="no_collection")
         return
     try:
-        # best-effort index (created once)
         col.create_index([("_id", -1)], background=True)
     except Exception as e:
         log("cache.index.warn", err=str(e))
@@ -55,13 +56,12 @@ def _cache_save(doc: dict):
 
 def _cache_latest():
     _, col = _get_collection()
-    if not col:
+    if col is None:                                    # <-- changed
         log("cache.latest.skipped", reason="no_collection")
         return None
     try:
         doc = col.find_one({}, sort=[("_id", -1)])
-        found = doc is not None
-        log("cache.latest.result", found=found)
+        log("cache.latest.result", found=bool(doc))
         return doc
     except Exception as e:
         log("cache.latest.err", err=str(e))
