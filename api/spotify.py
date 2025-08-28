@@ -172,25 +172,41 @@ class handler(BaseHTTPRequestHandler):
                 log("branch.no_active_device", status=status)
                 cached = _cache_latest()
                 if cached:
+                    # Synthesize a paused player payload identical in shape to live /me/player
+                    raw_like = {
+                        "device": cached.get("device"),
+                        "repeat_state": None,
+                        "shuffle_state": None,
+                        "context": cached.get("context"),
+                        "timestamp": int(time.time() * 1000),
+                        "progress_ms": cached.get("progress_ms", 0),
+                        "item": cached.get("item"),
+                        "currently_playing_type": "track",  # or derive from item if you store episodes, etc.
+                        "is_playing": False,                # paused
+                        "actions": {"disallows": {}}        # minimal stub
+                    }
+
                     out = {
                         "ok": True,
+                        # keep for debugging; delete this line if you want it truly indistinguishable
                         "source": "cache",
+                        # top-level fields identical to live branch:
                         "is_playing": False,
-                        "progress_ms": cached.get("progress_ms", 0),
-                        "shuffle_state": None,
-                        "repeat_state": None,
-                        "device": cached.get("device"),
-                        "item": cached.get("item"),
-                        "context": cached.get("context"),
-                        "raw": cached
+                        "progress_ms": raw_like["progress_ms"],
+                        "shuffle_state": raw_like["shuffle_state"],
+                        "repeat_state": raw_like["repeat_state"],
+                        "device": raw_like["device"],
+                        "item": raw_like["item"],
+                        "context": raw_like["context"],
+                        "raw": raw_like
                     }
-                    log("cache.return", progress_ms=out["progress_ms"],
-                        have_item=bool(out["item"]))
+                    log("cache.return", progress_ms=out["progress_ms"], have_item=bool(out["item"]))
                     if want_debug:
                         out["debug"] = {"branch": "cache", "status": status}
                     self._send_json(200, out)
                 else:
                     log("cache.empty_fallback")
+                    # nothing to return; this case matches your original "inactive" shape
                     out = {"ok": True, "active": False, "raw": None}
                     if want_debug:
                         out["debug"] = {"branch": "empty", "status": status}
