@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 
 import CosplayCard from './cards/cosplay.jsx';
 import Shipbuilding from './cards/ships.jsx';
+import Spotify from './tools/Spotify.jsx';
 
 // Backgrounds moved to public/ — reference via public path
 const bg1 = '/first_bg.gif';
@@ -36,10 +37,12 @@ export default function Self() {
                     <p style={{ textAlign: "center" }}>Or scroll down to have a peek into who I am :) </p>
                 </div>
             </div>
-
+                
             <div id="DetroitBecomeHuman"/>
             {/* Replaced inlined Detroit Become Human card with component */}
             <DBHCard />
+            <div id="Spotify"/>
+            <Spotify />
             <div id="Cosplay"/>
             <CosplayCard />
             <div id="Shipbuilding"/>
