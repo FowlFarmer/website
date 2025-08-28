@@ -1,3 +1,4 @@
+# api/spotify.py
 import os, json, base64, urllib.parse, urllib.request, time, traceback
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
@@ -9,18 +10,15 @@ PLAYER_URL = "https://api.spotify.com/v1/me/player"
 
 # --- Simple logger helpers (stdout) ---
 def log(msg, **kv):
-    # compact, no secrets; include epoch ms to correlate steps
     stamp = int(time.time() * 1000)
     if kv:
-        safe = {k: v for k, v in kv.items()}
-        print(f"[spotify-fn] {stamp} | {msg} | {json.dumps(safe)}", flush=True)
+        print(f"[spotify-fn] {stamp} | {msg} | {json.dumps(kv)}", flush=True)
     else:
         print(f"[spotify-fn] {stamp} | {msg}", flush=True)
 
 # --- Mongo (global client reused on warm invocations) ---
 _client = None
 def _get_collection():
-    global _client
     uri  = os.environ.get("MONGODB_URI")
     dbn  = os.environ.get("MONGODB_DB")
     coln = os.environ.get("MONGODB_COLLECTION")
@@ -30,33 +28,44 @@ def _get_collection():
     if not have_mongo:
         return None, None
 
+    global _client
     if _client is None:
         t0 = time.time()
         _client = MongoClient(uri, connectTimeoutMS=5000)
         log("mongo.client.created", ms=int((time.time() - t0) * 1000))
-
     db = _client[dbn]
     col = db[coln]
     return db, col
 
 def _cache_save(doc: dict):
+    """Insert new snapshot, then delete ALL previous docs."""
     _, col = _get_collection()
-    if col is None:                                    # <-- changed
+    if col is None:
         log("cache.save.skipped", reason="no_collection")
         return
     try:
+        # best-effort index (created once)
         col.create_index([("_id", -1)], background=True)
     except Exception as e:
         log("cache.index.warn", err=str(e))
+
     try:
         res = col.insert_one(doc)
-        log("cache.save.ok", id=str(res.inserted_id))
+        new_id = res.inserted_id
+        log("cache.save.ok", id=str(new_id))
+
+        # prune: delete everything except the newly inserted doc
+        try:
+            result = col.delete_many({"_id": {"$ne": new_id}})
+            log("cache.prune.ok", deleted=result.deleted_count)
+        except Exception as pe:
+            log("cache.prune.err", err=str(pe))
     except Exception as e:
         log("cache.save.err", err=str(e))
 
 def _cache_latest():
     _, col = _get_collection()
-    if col is None:                                    # <-- changed
+    if col is None:
         log("cache.latest.skipped", reason="no_collection")
         return None
     try:
@@ -139,7 +148,7 @@ class handler(BaseHTTPRequestHandler):
                 log("branch.live", is_playing=bool(out["is_playing"]),
                     have_item=bool(out["item"]), progress_ms=out["progress_ms"])
 
-                # Save to cache (only if we have an item)
+                # Save to cache (only if we have an item), then prune others
                 try:
                     if out["item"]:
                         snapshot = {
@@ -161,13 +170,12 @@ class handler(BaseHTTPRequestHandler):
 
             if status == 204:
                 log("branch.no_active_device", status=status)
-                # Try cache
                 cached = _cache_latest()
                 if cached:
                     out = {
                         "ok": True,
                         "source": "cache",
-                        "is_playing": False,  # force paused for fallback
+                        "is_playing": False,
                         "progress_ms": cached.get("progress_ms", 0),
                         "shuffle_state": None,
                         "repeat_state": None,
@@ -207,8 +215,7 @@ class handler(BaseHTTPRequestHandler):
         self.send_response(code)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(payload)))
-        # Uncomment for local cross-origin testing:
-        # self.send_header("Access-Control-Allow-Origin", "*")
+        # self.send_header("Access-Control-Allow-Origin", "*")  # enable if needed
         self.end_headers()
         self.wfile.write(payload)
         log("response.sent", status=code, bytes=len(payload))
