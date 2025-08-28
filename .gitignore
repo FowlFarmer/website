@@ -27,3 +27,64 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+
+
+
+.env
+.env.*
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Build output
+build/
+dist/
+
+# dotenv environment variables
+.env
+.env.*
+
+# macOS
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# VS Code
+.vscode/
+
+# Coverage
+coverage/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Misc
+*.swp
+*.swo
+
+# Local
+local.env
+
+# React
+*.local
+
+# OS generated files
+Thumbs.db
+
+# Test output
+junit.xml
+
+# API tokens, secrets, etc.
+*.secret
+*.token
+
+# Ignore public build artifacts
+public/*.map

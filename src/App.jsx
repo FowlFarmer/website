@@ -5,6 +5,8 @@ import NavBar from './components/NavBar.jsx';
 import Gallery from './components/Gallery.jsx';
 import Self from './components/Self.jsx';
 
+import { Analytics } from "@vercel/analytics/next"
+
 // A wrapper that applies fade-out (exit) then fade-in (enter) on route changes
 function FadeRoutes() {
   const location = useLocation();
@@ -31,6 +33,7 @@ function FadeRoutes() {
           <Route path="/gallery" element={<Gallery />} />
           <Route path="*" element={<Gallery />} />
         </Routes>
+        <Analytics />
       </motion.main>
     </AnimatePresence>
   );
