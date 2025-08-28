@@ -1,13 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 
+function formatTime(ms) {
+  if (!ms || ms <= 0) return "0:00";
+  const totalSec = Math.floor(ms / 1000);
+  const min = Math.floor(totalSec / 60);
+  const sec = totalSec % 60;
+  return `${min}:${sec.toString().padStart(2, "0")}`;
+}
+
 export default function SpotifyNowPlayingWithBar() {
-  const [payload, setPayload] = useState(null);       // last response from /api/spotify
-  const [playing, setPlaying] = useState(false);      // boolean
-  const [durationMs, setDurationMs] = useState(0);    // track duration
-  const [baseProgMs, setBaseProgMs] = useState(0);    // progress reported by API at last poll
-  const baseTimeRef = useRef(0);                      // Date.now() at last poll
-  const rafRef = useRef(null);                        // animation loop
-  const [renderTick, setRenderTick] = useState(0);    // forces re-render for the smooth bar
+  const [payload, setPayload] = useState(null);
+  const [playing, setPlaying] = useState(false);
+  const [durationMs, setDurationMs] = useState(0);
+  const [baseProgMs, setBaseProgMs] = useState(0);
+  const baseTimeRef = useRef(0);
+  const rafRef = useRef(null);
+  const [renderTick, setRenderTick] = useState(0);
 
   // poll the API every 5s
   useEffect(() => {
@@ -18,7 +26,6 @@ export default function SpotifyNowPlayingWithBar() {
         const res = await fetch("/api/spotify");
         const json = await res.json();
 
-        // not active
         if (json?.active === false || !json?.raw) {
           if (!stopped) {
             setPayload(null);
@@ -42,14 +49,14 @@ export default function SpotifyNowPlayingWithBar() {
           setPlaying(Boolean(json.is_playing));
           setDurationMs(dMs);
           setBaseProgMs(Math.min(pMs, dMs));
-          baseTimeRef.current = Date.now(); // ground truth timestamp
+          baseTimeRef.current = Date.now();
         }
       } catch (e) {
         console.error("Spotify API error:", e);
       }
     };
 
-    fetchStatus(); // immediate
+    fetchStatus();
     const id = setInterval(fetchStatus, 5000);
     return () => {
       stopped = true;
@@ -57,7 +64,7 @@ export default function SpotifyNowPlayingWithBar() {
     };
   }, []);
 
-  // smooth bar animation: re-render ~60fps while playing; else every 1s
+  // smooth bar animation
   useEffect(() => {
     let mounted = true;
     const step = () => {
@@ -68,7 +75,6 @@ export default function SpotifyNowPlayingWithBar() {
     if (playing) {
       rafRef.current = requestAnimationFrame(step);
     } else {
-      // paused: update once a second just to keep timestamps fresh
       const id = setInterval(() => setRenderTick((t) => t + 1), 1000);
       return () => clearInterval(id);
     }
@@ -78,7 +84,6 @@ export default function SpotifyNowPlayingWithBar() {
     };
   }, [playing]);
 
-  // compute displayed progress (never exceed duration)
   const elapsedMs = Math.max(0, Date.now() - baseTimeRef.current);
   const displayedProgMs = Math.min(
     durationMs,
@@ -97,19 +102,10 @@ export default function SpotifyNowPlayingWithBar() {
   const progressPct =
     durationMs > 0 ? Math.min(100, (displayedProgMs / durationMs) * 100) : 0;
 
-  // round left text to the nearest second (per your spec)
-  const leftMs = formatTime(Math.min(durationMs, Math.floor(displayedProgMs / 1000) * 1000));
-  const rightMs = formatTime(durationMs || 0);
+  const leftText = formatTime(displayedProgMs);
+  const rightText = formatTime(durationMs);
 
   return (
-   <div
-      className="glass-effect"
-      style={{
-        marginTop: "180px",
-        width: "90%",
-        position: "relative",
-        alignContent: "center",
-      }}>
     <div style={{ position: "relative", padding: 12 }}>
       <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         {image && (
@@ -128,7 +124,7 @@ export default function SpotifyNowPlayingWithBar() {
         </div>
       </div>
 
-      {/* Bottom progress bar (your style, with smooth width) */}
+      {/* Bottom progress bar */}
       {durationMs > 0 && (
         <div
           style={{
@@ -149,7 +145,7 @@ export default function SpotifyNowPlayingWithBar() {
               width: `${progressPct}%`,
               background: "rgba(255,255,255,0.95)",
               borderRadius: 9999,
-              transition: "none", // we drive it manually via animation frames
+              transition: "none",
               willChange: "width",
               transform: "translateZ(0)",
             }}
@@ -157,25 +153,24 @@ export default function SpotifyNowPlayingWithBar() {
         </div>
       )}
 
-      {/* Counter row: left = current ms (ticks each second), right = total ms */}
+      {/* Counter row */}
       {durationMs > 0 && (
         <div
           style={{
             position: "absolute",
             left: "20%",
             right: "20%",
-            bottom: 28, // a bit above the bar
+            bottom: 28,
             display: "flex",
             alignItems: "center",
             fontSize: 12,
             opacity: 0.85,
           }}
         >
-          <div style={{ flex: 1, textAlign: "left" }}>{leftMs} ms</div>
-          <div style={{ flex: 1, textAlign: "right" }}>{rightMs} ms</div>
+          <div style={{ flex: 1, textAlign: "left" }}>{leftText}</div>
+          <div style={{ flex: 1, textAlign: "right" }}>{rightText}</div>
         </div>
       )}
-    </div>
     </div>
   );
 }
