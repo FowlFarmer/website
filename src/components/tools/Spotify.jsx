@@ -134,7 +134,7 @@ export default function SpotifyNowPlayingWithBar() {
         </div>
       </div>
 
-      {/* Bottom progress bar */}
+      {/* [progress] row */}
       {durationMs > 0 && (
         <div
           style={{
@@ -142,6 +142,17 @@ export default function SpotifyNowPlayingWithBar() {
             left: "20%",
             right: "20%",
             bottom: 15,
+            display: "flex",
+            alignItems: "center",
+            fontSize: 12,
+            opacity: 0.85,
+          }}
+        >
+          <div style={{ flex: "0 0 auto", textAlign: "left" }}>{leftText}</div>
+          <div
+          style={{
+            position: "relative",
+            flex: 1,
             height: 6,
             borderRadius: 9999,
             background: "rgba(255,255,255,0.35)",
@@ -161,24 +172,7 @@ export default function SpotifyNowPlayingWithBar() {
             }}
           />
         </div>
-      )}
-
-      {/* Counter row */}
-      {durationMs > 0 && (
-        <div
-          style={{
-            position: "absolute",
-            left: "20%",
-            right: "20%",
-            bottom: 28,
-            display: "flex",
-            alignItems: "center",
-            fontSize: 12,
-            opacity: 0.85,
-          }}
-        >
-          <div style={{ flex: 1, textAlign: "left" }}>{leftText}</div>
-          <div style={{ flex: 1, textAlign: "right" }}>{rightText}</div>
+          <div style={{ flex: "0 0 auto", textAlign: "right" }}>{rightText}</div>
         </div>
       )}
     </div>
