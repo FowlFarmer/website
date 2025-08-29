@@ -336,7 +336,7 @@ text-align: left;
 }
 
 .navblinker {
-  animation: navblinkColor 0.7s infinite alternate;
+  animation: navblinkColor 1s infinite alternate;
 }
 
 @keyframes navblinkColor {
