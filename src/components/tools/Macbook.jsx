@@ -42,7 +42,7 @@ function formatLargestUnitAgo(then) {
  * }
  */
 export default function Macbook({
-  endpoint = "/api/telemetry",
+  endpoint = "/api/macbook",
   pollMs = 20000, // 20s
 }) {
   const [data, setData] = useState(null);
