@@ -73,6 +73,7 @@ export default function TelemetryCards({
   const ago = formatLargestUnitAgo(ts);
 
   const battery = data?.battery?.percent;
+  console.log("battery", battery);
   const batteryEmoji = battery != null ? (Math.round(battery) > 20 ? "🔋" : "🪫") : "🔋❓";
   const batteryLine =
     battery != null ? `${batteryEmoji} ${Math.round(battery)}%` : `${batteryEmoji} unknown %`;
