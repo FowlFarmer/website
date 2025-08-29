@@ -96,6 +96,7 @@ export default function SpotifyNowPlayingWithBar() {
 
   const device = payload.device?.name || "Unknown device";
   const track = payload.item;
+  const track_link = track?.external_urls?.spotify || null; 
   const artist =
     (track?.artists || []).map((a) => a.name).join(", ") || "Unknown artist";
   const image = track?.album?.images?.[0]?.url;
@@ -115,6 +116,7 @@ export default function SpotifyNowPlayingWithBar() {
         alignContent: "center",
     }}
     >
+        <a href={track_link} target="_blank" rel="noopener noreferrer">
     <div style={{ position: "relative", padding: 12 }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         {image && (
@@ -129,7 +131,8 @@ export default function SpotifyNowPlayingWithBar() {
             <div>
             {artist} — {track?.name || "Unknown track"}
             </div>
-            {/* remove the inline "play/paused" here */}
+            {/* remove the inline "play/paused" here but readd space*/}
+            <div style={{ height: "1rem" }} />
         </div>
         </div>
 
@@ -138,13 +141,13 @@ export default function SpotifyNowPlayingWithBar() {
         style={{
             position: "absolute",
             top: "50%",
-            right: "12px",
+            right: "24px",
             transform: "translateY(-50%)",
             opacity: 0.8,
             fontWeight: 500,
         }}
         >
-        {payload.is_playing ? "play" : "paused"}
+        {payload.is_playing ? "> now playing" : "|| paused"}
         </div>
 
         {/* [progress] row ... unchanged */}
@@ -189,6 +192,7 @@ export default function SpotifyNowPlayingWithBar() {
         </div>
         )}
     </div>
+    </a>
     </div>
   );
 }
