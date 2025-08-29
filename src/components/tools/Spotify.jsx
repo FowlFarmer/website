@@ -96,7 +96,7 @@ export default function SpotifyNowPlayingWithBar() {
 
   const device = payload.device?.name || "Unknown device";
   const track = payload.item;
-  const track_link = track?.external_urls?.spotify || null; 
+  const track_link = track?.external_urls?.spotify || null;
   const artist =
     (track?.artists || []).map((a) => a.name).join(", ") || "Unknown artist";
   const image = track?.album?.images?.[0]?.url;
@@ -107,92 +107,100 @@ export default function SpotifyNowPlayingWithBar() {
   const rightText = formatTime(durationMs);
 
   return (
-        <div
-        className="glass-effect"
-        style={{
-            marginTop: "180px",
-            width: "90%",
-        position: "relative",   // needed for absolute children
+    <div
+      className="glass-effect"
+      style={{
+        marginTop: "180px",
+        width: "90%",
+        position: "relative",
         alignContent: "center",
-    }}
+      }}
     >
-        <a style={{ color: "inherit", textDecoration: "none" }} href={track_link} target="_blank" rel="noopener noreferrer">
-    <div style={{ position: "relative", padding: 12 }}>
-        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-        {image && (
-            <img
-            src={image}
-            alt="album art"
-            style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 8 }}
-            />
-        )}
-        <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ fontWeight: 600 }}>{device}</div>
-            <div>
-            {artist} — {track?.name || "Unknown track"}
-            </div>
-            {/* remove the inline "play/paused" here but readd space*/}
-            <div style={{ height: "1.5rem" }} />
-        </div>
-        </div>
-
-        {/* floating play/paused label */}
-        <div
-        style={{
-            position: "absolute",
-            top: "50%",
-            right: "24px",
-            transform: "translateY(-50%)",
-            opacity: 0.8,
-            fontWeight: 500,
-        }}
-        >
-        {payload.is_playing ? "> now playing" : "|| paused"}
-        </div>
-
-        {/* [progress] row ... unchanged */}
-        {durationMs > 0 && (
-        <div
-            style={{
-            position: "absolute",
-            left: "20%",
-            right: "20%",
-            bottom: 15,
-            display: "flex",
-            alignItems: "center",
-            fontSize: 12,
-            opacity: 0.85,
-            }}
-        >
-            <div style={{ flex: "0 0 auto", textAlign: "left" }}>{leftText}</div>
-            <div
-            style={{
-                position: "relative",
-                flex: 1,
-                height: 6,
-                borderRadius: 9999,
-                background: "rgba(255,255,255,0.35)",
-                overflow: "hidden",
-                marginInline: 12,
-            }}
-            >
-            <div
+      <a
+        style={{ color: "inherit", textDecoration: "none" }}
+        href={track_link}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <div style={{ position: "relative", padding: 12 }}>
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            {image && (
+              <img
+                src={image}
+                alt="album art"
                 style={{
-                height: "100%",
-                width: `${progressPct}%`,
-                background: "rgba(255,255,255,0.95)",
-                borderRadius: 9999,
-                transition: "none",
-                willChange: "width",
-                transform: "translateZ(0)",
+                  width: 72,
+                  height: 72,
+                  objectFit: "cover",
+                  borderRadius: 8,
                 }}
-            />
+              />
+            )}
+            <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+              <div style={{ fontWeight: 600 }}>Currently Listening...</div>
+              <div>
+                {artist} — {track?.name || "Unknown track"}
+              </div>
+
+              {/* progress bar replaces the 1.5rem gap */}
+              {durationMs > 0 && (
+                <div
+                  style={{
+                    marginTop: 4,
+                    height: "1.5rem",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <div style={{ flex: "0 0 auto", fontSize: 12, opacity: 0.85 }}>
+                    {leftText}
+                  </div>
+                  <div
+                    style={{
+                      position: "relative",
+                      flex: 1,
+                      height: 6,
+                      borderRadius: 9999,
+                      background: "rgba(255,255,255,0.35)",
+                      overflow: "hidden",
+                      marginInline: 8,
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${progressPct}%`,
+                        background: "rgba(255,255,255,0.95)",
+                        borderRadius: 9999,
+                        transition: "none",
+                        willChange: "width",
+                        transform: "translateZ(0)",
+                      }}
+                    />
+                  </div>
+                  <div style={{ flex: "0 0 auto", fontSize: 12, opacity: 0.85 }}>
+                    {rightText}
+                  </div>
+                </div>
+              )}
             </div>
-            <div style={{ flex: "0 0 auto", textAlign: "right" }}>{rightText}</div>
+          </div>
+
+          {/* floating play/paused label */}
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              right: "24px",
+              transform: "translateY(-50%)",
+              opacity: 0.8,
+              fontWeight: 500,
+            }}
+          >
+            {payload.is_playing ? "> now playing" : "|| paused"}
+          </div>
         </div>
-        )}
-    </div>
-    </a>
+      </a>
     </div>
   );
 }
