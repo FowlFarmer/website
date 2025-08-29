@@ -127,10 +127,13 @@ export default function SpotifyNowPlayingWithBar() {
         )}
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ fontWeight: 600 }}>{device}</div>
-          <div>
-            {artist} — {track?.name || "Unknown track"}
+          <div style={{ display: "flex" }}>
+
+            <div style={{ flex: 1, textAlign: "left" }}>
+                {artist} — {track?.name || "Unknown track"}
+            </div>
+            <div style={{ opacity: 0.8, flex: 1, textAlign: "right" }}>{payload.is_playing ? "play" : "paused"}</div>
           </div>
-          <div style={{ opacity: 0.8 }}>{payload.is_playing ? "play" : "paused"}</div>
         </div>
       </div>
 
