@@ -132,7 +132,7 @@ export default function SpotifyNowPlayingWithBar() {
             {artist} — {track?.name || "Unknown track"}
             </div>
             {/* remove the inline "play/paused" here but readd space*/}
-            <div style={{ height: "1rem" }} />
+            <div style={{ height: "1.5rem" }} />
         </div>
         </div>
 
