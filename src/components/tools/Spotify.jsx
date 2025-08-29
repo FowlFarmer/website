@@ -148,7 +148,7 @@ export default function SpotifyNowPlayingWithBar() {
     >
       <a
         style={{ color: "inherit", textDecoration: "none" }}
-        href={track_link}
+        href="https://open.spotify.com/user/31y2s65rjrvh3yamr6sbkzy4pmqe?si=08ec26d5af714d24"
         target="_blank"
         rel="noopener noreferrer"
       >
