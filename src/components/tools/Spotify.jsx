@@ -116,7 +116,7 @@ export default function SpotifyNowPlayingWithBar() {
         alignContent: "center",
     }}
     >
-        <a href={track_link} target="_blank" rel="noopener noreferrer">
+        <a style={{ color: "inherit", textDecoration: "none" }} href={track_link} target="_blank" rel="noopener noreferrer">
     <div style={{ position: "relative", padding: 12 }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
         {image && (
