@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Pick only the greatest time unit (e.g., "2 days ago", "4 hours ago", "7 min ago").
- * Accepts an ISO timestamp string or Date.
+ * Pick only the greatest time unit (e.g., "2 days ago", "4 hours ago").
  */
 function formatLargestUnitAgo(then) {
   if (!then) return "just now";
@@ -12,42 +11,33 @@ function formatLargestUnitAgo(then) {
 
   const sec = Math.floor(diffMs / 1000);
   const min = Math.floor(sec / 60);
-  const hr  = Math.floor(min / 60);
+  const hr = Math.floor(min / 60);
   const day = Math.floor(hr / 24);
-  const mon = Math.floor(day / 30);     // coarse (ok for display)
-  const yr  = Math.floor(day / 365);    // coarse
+  const mon = Math.floor(day / 30);
+  const yr = Math.floor(day / 365);
 
   const fmt = (n, u) => `${n} ${u}${n !== 1 ? "s" : ""} ago`;
 
-  if (yr  >= 1) return fmt(yr,  "year");
+  if (yr >= 1) return fmt(yr, "year");
   if (mon >= 1) return fmt(mon, "month");
   if (day >= 1) return fmt(day, "day");
-  if (hr  >= 1) return fmt(hr,  "hour");
+  if (hr >= 1) return fmt(hr, "hour");
   if (min >= 1) return fmt(min, "min");
   return fmt(sec, "sec");
 }
 
 /**
- * TelemetryCard
- * Fetches latest doc from your telemetry API and shows:
- *  - device name (fixed)
- *  - "Last seen … ago"
- *  - "Chilling in (City) (Country)" on the right
- *
- * Expected API shape (example):
- * {
- *   "timestamp": "2025-08-28T19:20:00-04:00",
- *   "battery": { "percent": 88.0 },
- *   "location": { "city": "Montreal", "country": "CA", "region": "Quebec" }
- * }
+ * TelemetryCards
+ * Two glass cards in a flexbox:
+ *  - Left: Theodore's MacBook Air, battery + last seen
+ *  - Right: "Currently Chilling in City"
  */
-export default function Macbook({
+export default function TelemetryCards({
   endpoint = "/api/macbook",
-  pollMs = 20000, // 20s
+  pollMs = 20000,
 }) {
   const [data, setData] = useState(null);
-  const [tick, setTick] = useState(0); // for “ago” live update
-  const timerRef = useRef(null);
+  const [tick, setTick] = useState(0); // refresh "ago"
   const jitterRef = useRef(null);
 
   // Poll the API
@@ -66,10 +56,13 @@ export default function Macbook({
     };
     fetchOnce();
     const id = setInterval(fetchOnce, pollMs);
-    return () => { stopped = true; clearInterval(id); };
+    return () => {
+      stopped = true;
+      clearInterval(id);
+    };
   }, [endpoint, pollMs]);
 
-  // Light 1s tick to make “ago” text update smoothly
+  // 1s ticker to keep "ago" fresh
   useEffect(() => {
     jitterRef.current = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(jitterRef.current);
@@ -79,28 +72,35 @@ export default function Macbook({
   const ts = data?.timestamp;
   const ago = formatLargestUnitAgo(ts);
 
-  // Location line (right side)
+  const battery = data?.battery?.percent;
+  const batteryEmoji = battery != null ? (Math.round(battery) > 20 ? "🔋" : "🪫") : "🔋❓";
+  const batteryLine =
+    battery != null ? `${batteryEmoji} ${Math.round(battery)}%` : `${batteryEmoji} unknown %`;
+
   const city = data?.location?.city;
   const country = data?.location?.country;
-  const locationRight = city && country
-    ? `Chilling in ${city} ${country}`
-    : city
-      ? `Chilling in ${city}`
+  const chillLine =
+    city && country
+      ? `Currently chilling in ${city}, ${country}`
+      : city
+      ? `Currently chilling in ${city}`
       : country
-        ? `Chilling in ${country}`
-        : "Chilling somewhere";
+      ? `Currently chilling in ${country}`
+      : "Currently chilling somewhere";
 
   return (
     <div
-      className="glass-effect"
       style={{
         marginTop: "180px",
         width: "90%",
-        position: "relative",
-        alignContent: "center",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "20px",
+        justifyContent: "center",
       }}
     >
-      <div style={{ position: "relative", padding: 12 }}>
+      {/* MacBook card */}
+      <div className="glass-effect" style={{ flex: "1 1 300px", padding: 16 }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <img
             src="/macbook.png"
@@ -114,32 +114,22 @@ export default function Macbook({
           />
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ fontWeight: 600 }}>{deviceName}</div>
-            <div style={{ opacity: 0.9 }}>
-              Last seen {ago}
-            </div>
-            {/* spacer to preserve layout like your Spotify card */}
-            <div style={{ height: "1.5rem" }} />
+            <div style={{ opacity: 0.9 }}>Last seen {ago}</div>
+            <div style={{ opacity: 0.8 }}>{batteryLine}</div>
           </div>
         </div>
+      </div>
 
-        {/* Right-side floating label (where play/pause was) */}
+      {/* Chill card */}
+      <div className="glass-effect" style={{ flex: "1 1 300px", padding: 16 }}>
         <div
           style={{
-            position: "absolute",
-            top: "50%",
-            right: "24px",
-            transform: "translateY(-50%)",
-            opacity: 0.85,
-            fontWeight: 500,
-            textAlign: "right",
-            whiteSpace: "nowrap",
-            maxWidth: "40ch",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
+            fontWeight: 600,
+            fontSize: "1.1rem",
+            textAlign: "center",
           }}
-          title={locationRight}
         >
-          {locationRight}
+          {chillLine}
         </div>
       </div>
     </div>
