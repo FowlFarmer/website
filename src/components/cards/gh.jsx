@@ -32,7 +32,7 @@ export default function GitHubProfileCard() {
         }}
       >
         {/* LEFT: Calendar */}
-        <div className="flex items-start justify-start" style={{ flex: "1 1 450px" }}>
+        <div className="flex items-start justify-start" style={{ flex: "1 1 150px" }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <h2 style={{ margin: 0, marginBottom: 12 }}>
               GitHub Activity —{" "}
@@ -64,7 +64,7 @@ export default function GitHubProfileCard() {
         </div>
 
         {/* RIGHT: Stats images */}
-        <div style={{ flex: "1 1 450px", alignContent: "center" }}>
+        <div style={{ flex: "1 1 150px", alignContent: "center" }}>
           <div
             className="glass-effect"
             style={{
