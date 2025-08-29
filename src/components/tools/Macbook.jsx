@@ -91,16 +91,18 @@ export default function TelemetryCards({
   return (
     <div
       style={{
-        marginTop: "180px",
+        marginTop: "20px",
         width: "90%",
         display: "flex",
         flexWrap: "wrap",
         gap: "20px",
         justifyContent: "center",
+        minWidth: 0,
+        minHeight: 0,
       }}
     >
       {/* MacBook card */}
-      <div className="glass-effect" style={{ flex: "1 1 300px", padding: 16 }}>
+      <div className="glass-effect" style={{ flex: "1 1 300px", padding: 16, minWidth: 0, minHeight: 0 }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <img
             src="/macbook.png"
@@ -121,7 +123,7 @@ export default function TelemetryCards({
       </div>
 
       {/* Chill card */}
-      <div className="glass-effect" style={{ flex: "1 1 300px", padding: 16 }}>
+  <div className="glass-effect" style={{ flex: "1 1 300px", padding: 16, minWidth: 0, minHeight: 0 }}>
         <div
           style={{
             fontWeight: 600,

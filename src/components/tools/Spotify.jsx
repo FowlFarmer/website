@@ -90,30 +90,60 @@ export default function SpotifyNowPlayingWithBar() {
     playing ? baseProgMs + elapsedMs : baseProgMs
   );
 
-  if (!payload) {
-    return <div>not playing</div>;
-  }
+  // When the DB / API is down, show a small local preview so the component
+  // still renders during development. This mirrors the real payload shape
+  // that the rest of the component expects.
+  const dummyPayload = {
+    device: { name: "Local" },
+    is_playing: false,
+    item: {
+      name: "Local Preview",
+      duration_ms: 180000,
+      artists: [{ name: "Local Artist" }],
+      album: { images: [{ url: "/favicon.png" }] },
+      external_urls: { spotify: "#" },
+    },
+    raw: {},
+    progress_ms: 0,
+  };
 
-  const device = payload.device?.name || "Unknown device";
-  const track = payload.item;
+  const effectivePayload = payload || dummyPayload;
+
+  // prefer live state-derived duration/progress when available, otherwise
+  // fall back to the dummy item's values so the UI shows realistic numbers
+  const effectiveDuration =
+    durationMs > 0
+      ? durationMs
+      : Number(effectivePayload.item?.duration_ms) || 0;
+  const effectiveDisplayedProg = Math.min(
+    effectiveDuration,
+    playing ? baseProgMs + elapsedMs : baseProgMs
+  );
+
+  const device = effectivePayload.device?.name || "Unknown device";
+  const track = effectivePayload.item;
   const track_link = track?.external_urls?.spotify || null;
   const artist =
     (track?.artists || []).map((a) => a.name).join(", ") || "Unknown artist";
   const image = track?.album?.images?.[0]?.url;
   const progressPct =
-    durationMs > 0 ? Math.min(100, (displayedProgMs / durationMs) * 100) : 0;
+    effectiveDuration > 0
+      ? Math.min(100, (effectiveDisplayedProg / effectiveDuration) * 100)
+      : 0;
 
-  const leftText = formatTime(displayedProgMs);
-  const rightText = formatTime(durationMs);
+  const leftText = formatTime(effectiveDisplayedProg);
+  const rightText = formatTime(effectiveDuration);
 
   return (
     <div
       className="glass-effect"
       style={{
-        marginTop: "180px",
+        // marginTop: "180px",
         width: "90%",
         position: "relative",
-        alignContent: "center",
+  alignContent: "center",
+  minWidth: 0,
+  minHeight: 0,
       }}
     >
       <a
@@ -123,7 +153,7 @@ export default function SpotifyNowPlayingWithBar() {
         rel="noopener noreferrer"
       >
         <div style={{ position: "relative", padding: 12 }}>
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+      <div style={{ display: "flex", gap: 12, alignItems: "center", minWidth: 0, minHeight: 0 }}>
             {image && (
               <img
                 src={image}
@@ -136,14 +166,14 @@ export default function SpotifyNowPlayingWithBar() {
                 }}
               />
             )}
-            <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+        <div style={{ display: "flex", flexDirection: "column", flex: "1 1 0%", minWidth: 0, minHeight: 0 }}>
               <div style={{ fontWeight: 600 }}>Currently Listening...</div>
               <div>
                 {artist} — {track?.name || "Unknown track"}
               </div>
 
               {/* progress bar replaces the 1.5rem gap */}
-              {durationMs > 0 && (
+              {effectiveDuration > 0 && (
                 <div
                   style={{
                     marginTop: 4,
@@ -197,7 +227,7 @@ export default function SpotifyNowPlayingWithBar() {
               fontWeight: 500,
             }}
           >
-            {payload.is_playing ? "> now playing" : "|| paused"}
+            {effectivePayload.is_playing ? "> now playing" : "|| paused"}
           </div>
         </div>
       </a>
