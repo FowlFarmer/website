@@ -3,7 +3,7 @@ import useScrollThresholdFade from '../tools/useScrollThresholdFade.jsx';
 import TextFader from '../tools/TextFader.jsx';
 
 export default function DBHCard() {
-  const dbh_blob_opacity = useScrollThresholdFade(80, 800, 300);
+  const dbh_blob_opacity = useScrollThresholdFade(80, 8000000, 300);
 
   return (
     <div
