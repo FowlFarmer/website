@@ -168,9 +168,13 @@ export default function SpotifyNowPlayingWithBar() {
             )}
         <div style={{ display: "flex", flexDirection: "column", flex: "1 1 0%", minWidth: 0, minHeight: 0 }}>
               <div style={{ fontWeight: 600 }}>Currently Listening...</div>
-              <div>
-                {artist} — {track?.name || "Unknown track"}
-              </div>
+              <a href={track_link} style={{ color: "inherit", textDecoration: "none" }}
+        target="_blank"
+        rel="noopener noreferrer">
+                <div className="song-hover">
+                  {artist} — {track?.name || "Unknown track"}
+                </div>
+              </a>
 
               {/* progress bar replaces the 1.5rem gap */}
               {effectiveDuration > 0 && (

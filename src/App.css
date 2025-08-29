@@ -266,6 +266,21 @@ yeet
   min-height: 100vh;
 } */
 
+
+
+.song-hover{
+  transform: translateX(0px);
+  color: white;
+  transition: all 0.3s ease-in-out;
+}
+
+.song-hover:hover{
+  transform: translateX(10px);
+  color: #55da95ff;
+  transition: all 0.3s ease-in-out;
+}
+
+
 .project-card {
   width: 90%;
 }
