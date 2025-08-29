@@ -42,11 +42,11 @@ export default function Self() {
             <div id="DetroitBecomeHuman"/>
             {/* Replaced inlined Detroit Become Human card with component */}
             <DBHCard />
-            <div id="Vitals" style={{ display: "flex", gap: "12px" }}>
-                <div style={{ flex: 1 }}>
+            <div id="Vitals" style={{ display: "flex", gap: "12px", width: "100%" }}>
+                <div style={{ flex: 1, width: "100%" }}>
                     <Spotify />
                 </div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, width: "100%" }}>
                     <Macbook />
                 </div>
             </div>

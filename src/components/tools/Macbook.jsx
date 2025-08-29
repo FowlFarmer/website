@@ -103,7 +103,7 @@ export default function Macbook({
       <div style={{ position: "relative", padding: 12 }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <img
-            src="/macTelem.png"
+            src="/macbook.png"
             alt="device"
             style={{
               width: 72,
