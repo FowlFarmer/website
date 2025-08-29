@@ -38,7 +38,7 @@ export default function Navbar() {
         </div>
         <div style={{ 
           display: "flex", 
-          gap: "60px",
+          gap: "40px",
           top: "0",
           alignItems: "center", 
           // fontWeight: "500", 
@@ -51,7 +51,7 @@ export default function Navbar() {
           <HashLink to="/self#Begin" style={{ textDecoration: "none", color: "inherit" }}>me</HashLink>
           <HashLink smooth to="/gallery#Imaginecraft" style={{ textDecoration: "none", color: "inherit" }}>projects</HashLink>
           <HashLink smooth to="/gallery#Hackathons" style={{ textDecoration: "none", color: "inherit" }}>hackathons</HashLink>
-          <HashLink smooth to="/gallery#Lab" style={{ textDecoration: "none", color: "inherit" }}>other</HashLink>
+          {/* <HashLink smooth to="/gallery#Lab" style={{ textDecoration: "none", color: "inherit" }}>other</HashLink> */}
           <HashLink smooth to="/contact" style={{ textDecoration: "none", color: "inherit" }}>contact</HashLink>
         </div>
             </div>

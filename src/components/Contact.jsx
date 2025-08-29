@@ -13,9 +13,11 @@ import InlinePdf from './tools/pdf.jsx';
 export default function Contact() {
       
   return (
-    <div className="self" style={{width: "100%", justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
-      <div style={{position: "fixed", top: 0, left: 0, right: 0, bottom: 0, display: "flex", justifyContent: "center", alignItems: "center"}}>
-        <div style={{flex: "1 1 200px", maxWidth: "500px", color: "white"}}>
+    <div className="self" style={{width: "90%", justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
+        <div style={{height: "30px"}} />
+      <div style={{width: "90%", position: "relative", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center"}}>
+        <div style={{flex: "1 1 400px", maxWidth: "500px", color: "white"}}>
+          
           <h2 style={{fontWeight: "100"}}>Contact Me</h2>
           {/* <p>If you have any questions or inquiries, feel free to reach out!</p> */}
           <a href="https://github.com/FowlFarmer" target="_blank" rel="noopener noreferrer" style={{textDecoration: "none", color: "inherit"}}>
@@ -39,9 +41,9 @@ export default function Contact() {
               <img src="/discord_logo.png" alt="discord" style={{maxHeight: "100%"}} />
               <p className="contact-hover-child" style={{marginLeft: "40px", fontSize: "1.1rem", fontWeight: "100"}}>zhong.li</p>
             </div>
-
+        <div style={{height: "100px"}} />
         </div>
-        <div style={{flex: "1 1 200px", maxWidth: "500px"}}>
+        <div style={{flex: "1 1 400px", maxWidth: "500px"}}>
           <InlinePdf src="/Resume.pdf" height={647.06} /> {/* 8.5:11 */}
           
         </div>
