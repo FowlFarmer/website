@@ -8,6 +8,7 @@ import CosplayCard from './cards/cosplay.jsx';
 import Shipbuilding from './cards/ships.jsx';
 import Spotify from './tools/Spotify.jsx';
 import Macbook from './tools/Macbook.jsx';
+import GitHubProfileCard from './cards/gh.jsx';
 
 // Backgrounds moved to public/ — reference via public path
 const bg1 = '/first_bg.gif';
@@ -50,6 +51,7 @@ export default function Self() {
                     <Macbook />
                 </div>
             </div>
+            <GitHubProfileCard />
             <div id="Cosplay"/>
             <CosplayCard />
             <div id="Shipbuilding"/>
