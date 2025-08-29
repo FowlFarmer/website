@@ -35,15 +35,14 @@ export default function GitHubProfileCard() {
         <div className="flex items-start justify-start" style={{ flex: "1 1 150px" }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <h2 style={{ margin: 0, marginBottom: 12 }}>
-              GitHub Activity —{" "}
               <a
                 href={`https://github.com/${username}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ textDecoration: "none", color: "inherit" }}
               >
-                {username}
               </a>
+              The Cycle of Software Life <span style={{ opacity: 0.4 }}>(Building)</span> and Death <span style={{ opacity: 0.4 }}>(I Broke Stuff)</span>
             </h2>
             <div
               className="glass-effect"
