@@ -136,7 +136,7 @@ export default function SpotifyNowPlayingWithBar() {
 
   return (
     <div
-      className="glass-effect"
+      className="glass-effect-2 hoverparent"
       style={{
         // marginTop: "180px",
         width: "90%",
@@ -214,6 +214,27 @@ export default function SpotifyNowPlayingWithBar() {
                 </div>
               )}
             </div>
+          </div>
+
+
+
+
+        <div
+            className="blinker hoverchild"
+            style={{
+              position: "absolute",
+              top: "25%",
+              right: "24px",
+              transform: "translateY(-50%)",
+
+              fontWeight: "200",
+              fontStyle: "italic",
+              fontSize: "0.8rem",
+            //   opacity: 0.8,
+            //   fontWeight: 500,
+            }}
+          >
+            click to connect with me on Spotify →
           </div>
 
           {/* floating play/paused label */}

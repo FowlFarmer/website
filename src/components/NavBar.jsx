@@ -1,25 +1,60 @@
 import React from "react";
 import useScrollThresholdFade from "./tools/useScrollThresholdFade";
 import { Link } from "react-router-dom";
-
+import { HashLink } from 'react-router-hash-link';
+import { useLocation } from "react-router-dom";
 
 export default function Navbar() {
-  const nav_opacity = useScrollThresholdFade(10, Infinity, 300);
+  let nav_opacity;
+  if (useLocation().pathname === "/contact") {
+    nav_opacity = { opacity: 1 };
+  } else {
+    nav_opacity = useScrollThresholdFade(10, Infinity, 300);
+  }
   return (
     <nav className="navbar">
-      <div className="navbar-styles" style={nav_opacity}>
-        <Link to="/self">
+      <div className="navbar-styles nav-hover-parent" style={nav_opacity}>
+        <div className="" style={{position: "absolute"}}>
+        <Link to="/self" style={{textDecoration: "none", color: "inherit"}}>
           <img
             className="navbar-logo"
             src="/calligraphy_logo.png"
             alt="MySite Logo"
             style={{
-              height: "100%",
+              height: "20px",
               borderRadius: "4px",
             }}
           />
+          <p className="nav-hover-child navblinker" style={{
+              position: "absolute",
+              width: "max-content",
+              top: -14,
+              left: "50px",
+              fontWeight: "100",
+              fontStyle: "italic",
+              fontSize: "0.8rem",
+            }}>return to home</p>
         </Link>
-      </div>
+        </div>
+        <div style={{ 
+          display: "flex", 
+          gap: "60px",
+          top: "0",
+          alignItems: "center", 
+          // fontWeight: "500", 
+          justifyContent: "center",
+          fontWeight: "300",
+          // fontStyle: "italic",
+          fontSize: "0.9rem",
+          color: "black"
+          }}>
+          <HashLink to="/self#Begin" style={{ textDecoration: "none", color: "inherit" }}>me</HashLink>
+          <HashLink smooth to="/gallery#Imaginecraft" style={{ textDecoration: "none", color: "inherit" }}>projects</HashLink>
+          <HashLink smooth to="/gallery#Hackathons" style={{ textDecoration: "none", color: "inherit" }}>hackathons</HashLink>
+          <HashLink smooth to="/gallery#Lab" style={{ textDecoration: "none", color: "inherit" }}>other</HashLink>
+          <HashLink smooth to="/contact" style={{ textDecoration: "none", color: "inherit" }}>contact</HashLink>
+        </div>
+            </div>
     </nav>
   );
 }

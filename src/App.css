@@ -303,12 +303,92 @@ color: white;
 font-family: Helvetica;
 font-weight: 100;
 text-align: left;
-text-shadow: 2px 2px 5px rgba(0,0,0,0.5); /* default shadow */
+text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
 }
 
 .glass-effect:hover {
   transform: scale(1.01);     /* subtle lift */
   box-shadow: 0 3px 5px 4px rgba(0,0,0,0.06); /* subtle shadow */
+}
+
+.glass-effect-2 {
+/* backdrop-filter: blur(8px); */
+/* background: rgba(0,0,0,0.0); */
+/* border: 2px solid rgba(255,255,255,0.06); */
+border-radius: 12px;
+/* box-shadow: 0 3px 4px 3px rgba(150,150,150,0.05); subtle shadow */
+cursor: pointer;
+transition: all 0.2s ease-in-out, opacity 0.5s ease-in-out;
+color: white;
+font-family: Helvetica;
+font-weight: 100;
+text-align: left;
+/* text-shadow: 2px 2px 5px rgba(0,0,0,0); default shadow */
+}
+
+.blinker {
+  animation: blinkColor 0.7s infinite alternate;
+}
+
+@keyframes blinkColor {
+  from { color: white; }
+  to   { color: rgb(51, 51, 51); }
+}
+
+.navblinker {
+  animation: navblinkColor 0.7s infinite alternate;
+}
+
+@keyframes navblinkColor {
+  from { color: rgb(212, 212, 212); }
+  to   { color: rgb(0, 0, 0); }
+}
+
+.glass-effect-2:hover {
+  transform: scale(1.01);     /* subtle lift */
+  box-shadow: 0 3px 5px 4px rgba(0,0,0,0.06); /* subtle shadow */
+}
+
+.nav-hover-child {
+  opacity: 0;
+  transition: all 0.5s ease-in-out;
+}
+
+.nav-hover-parent:hover .nav-hover-child {
+  opacity: 1;
+  transition: all 0.5s ease-in-out;
+}
+
+.hoverchild {
+  opacity: 0;
+  transition: all 0.5s ease-in-out;
+}
+
+.hoverparent:hover .hoverchild {
+  opacity: 1;
+  transition: all 0.5s ease-in-out;
+}
+
+.contact-hover-parent:hover .contact-hover-child {
+  opacity: 1;
+  transform: translateX(10px);
+  transition: all 0.5s ease-in-out;
+}
+
+.contact-hover-parent:hover {
+  transform: translateX(10px);
+  transition: all 0.5s ease-in-out;
+}
+
+.contact-hover-parent {
+  transition: all 0.5s ease-in-out;
+  transform: translateX(0px);
+}
+
+.contact-hover-child {
+  opacity: 0;
+  transform: translateX(0px);
+  transition: all 0.5s ease-in-out; 
 }
 
 .navbar {

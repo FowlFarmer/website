@@ -21,7 +21,7 @@ export default function Self() {
 
     return (
         <div className="self" style={{justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
-
+            <div id="Begin" />
             {/* <ScrollBackground
                 transitionDuration={0.6}
                 images={[bg1, bg2, bg3, bg4]}
@@ -39,7 +39,6 @@ export default function Self() {
                     <p style={{ textAlign: "center" }}>Or scroll down to have a peek into who I am :) </p>
                 </div>
             </div>
-                
             <div id="DetroitBecomeHuman"/>
             {/* Replaced inlined Detroit Become Human card with component */}
             <DBHCard />

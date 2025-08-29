@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import NavBar from './components/NavBar.jsx';
 import Gallery from './components/Gallery.jsx';
 import Self from './components/Self.jsx';
+import Contact from './components/Contact.jsx';
 
 import { Analytics } from "@vercel/analytics/react"
 
@@ -31,6 +32,8 @@ function FadeRoutes() {
           <Route path="/" element={<Navigate to="/self" replace />} />
           <Route path="/self" element={<Self />} />
           <Route path="/gallery" element={<Gallery />} />
+          <Route path="/contact" element={<Contact />} />
+
           <Route path="*" element={<Gallery />} />
         </Routes>
       </motion.main>

@@ -26,18 +26,60 @@ function formatLargestUnitAgo(then) {
   return fmt(sec, "sec");
 }
 
+/** Resolve IANA timezone from lat/lon using tz-lookup (loaded lazily). */
+async function latLonToIana(lat, lon) {
+  try {
+    const mod = await import("tz-lookup");
+    const tzlookup = mod.default || mod;
+    return tzlookup(lat, lon); // e.g., "America/Toronto"
+  } catch (e) {
+    console.warn("tz-lookup not available, falling back to UTC:", e);
+    return "UTC"; // graceful fallback
+  }
+}
+
+/** Format a nice time string in a given IANA zone. */
+function formatTimeInZone(date, zone, withSeconds = true) {
+  const opts = {
+    timeZone: zone,
+    hour: "2-digit",
+    minute: "2-digit",
+    ...(withSeconds ? { second: "2-digit" } : {}),
+  };
+  return new Intl.DateTimeFormat("en-CA", opts).format(date);
+}
+
+/** Get a readable short zone label like "EDT" or "GMT-4" (best-effort). */
+function formatZoneAbbrev(zone) {
+  try {
+    // Try short name (e.g., "EDT") or fallback to offset (e.g., "GMT-4")
+    const s = new Intl.DateTimeFormat("en-CA", {
+      timeZone: zone,
+      timeZoneName: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).formatToParts(new Date());
+    const part = s.find(p => p.type === "timeZoneName")?.value;
+    return part || zone;
+  } catch {
+    return zone;
+  }
+}
+
 /**
  * TelemetryCards
  * Two glass cards in a flexbox:
  *  - Left: Theodore's MacBook Air, battery + last seen
- *  - Right: "Currently Chilling in City"
+ *  - Right: "Currently Chilling in City" + Local Time (from lat/lon)
  */
 export default function TelemetryCards({
   endpoint = "/api/macbook",
   pollMs = 20000,
 }) {
   const [data, setData] = useState(null);
-  const [tick, setTick] = useState(0); // refresh "ago"
+  const [tick, setTick] = useState(0); // refresh "ago"/clock each second
+  const [zone, setZone] = useState("UTC");
+  const [zoneAbbrev, setZoneAbbrev] = useState("UTC");
   const jitterRef = useRef(null);
 
   // Poll the API
@@ -62,11 +104,41 @@ export default function TelemetryCards({
     };
   }, [endpoint, pollMs]);
 
-  // 1s ticker to keep "ago" fresh
+  // 1s ticker to keep "ago" and clock fresh
   useEffect(() => {
     jitterRef.current = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(jitterRef.current);
   }, []);
+
+  // Resolve timezone whenever coords change
+  const lat =
+    data?.location?.lat ??
+    data?.location?.latitude ??
+    43.4705;
+  const lon =
+    data?.location?.lon ??
+    data?.location?.lng ??
+    data?.location?.longitude ??
+    -80.5392;
+
+  useEffect(() => {
+    let canceled = false;
+    (async () => {
+      if (lat == null || lon == null) {
+        if (!canceled) {
+          setZone("UTC");
+          setZoneAbbrev("UTC");
+        }
+        return;
+      }
+      const z = await latLonToIana(lat, lon);
+      if (!canceled) {
+        setZone(z);
+        setZoneAbbrev(formatZoneAbbrev(z));
+      }
+    })();
+    return () => { canceled = true; };
+  }, [lat, lon]);
 
   const deviceName = "Theodore's MacBook Air";
   const ts = data?.timestamp;
@@ -88,11 +160,21 @@ export default function TelemetryCards({
       ? `Currently chilling in ${country}`
       : "Currently chilling somewhere";
 
+  // Live time for the right card (updates via tick)
+  const now = new Date(); // re-evaluated each render due to tick
+  const localTime = formatTimeInZone(now, zone, true);
+
+  // Build a friendly subline including zone name and coords
+  const coordLine =
+    lat != null && lon != null
+      ? `(${lat.toFixed(4)}, ${lon.toFixed(4)})`
+      : "";
+
   return (
     <div
       style={{
         marginTop: "20px",
-        width: "90%",
+        width: "90.5%", // temp tweak to match other card width
         display: "flex",
         flexWrap: "wrap",
         gap: "20px",
@@ -102,7 +184,7 @@ export default function TelemetryCards({
       }}
     >
       {/* MacBook card */}
-      <div className="glass-effect" style={{ flex: "1 1 300px", padding: 16, minWidth: 0, minHeight: 0 }}>
+      <div className="glass-effect-2" style={{ flex: "1 1 300px", padding: 12, minWidth: 0, minHeight: 0 }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <img
             src="/macbook.png"
@@ -122,17 +204,20 @@ export default function TelemetryCards({
         </div>
       </div>
 
-      {/* Chill card */}
-  <div className="glass-effect" style={{ flex: "1 1 300px", padding: 16, minWidth: 0, minHeight: 0 }}>
+      {/* Chill + Local Time card (replaces the map) */}
+      <div className="glass-effect-2" style={{ flex: "1 1 300px", padding: 12, minWidth: 0, minHeight: 0 }}>
         <div
           style={{
             fontWeight: 600,
             fontSize: "1.1rem",
-            textAlign: "center",
+            textAlign: "left",
+            marginBottom: 8,
           }}
         >
-          {chillLine}
+          {chillLine} 
         </div>
+        <p style={{ lineHeight: "0", marginTop: "14px", fontSize: "1.5rem", fontWeight: "100" }}>{localTime}</p>
+        <p style={{ opacity: 0.7, lineHeight: "0", marginTop: "0px" }}>local time</p>
       </div>
     </div>
   );
