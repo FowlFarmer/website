@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import CosplayCard from './cards/cosplay.jsx';
 import Shipbuilding from './cards/ships.jsx';
 import Spotify from './tools/Spotify.jsx';
+import Macbook from './tools/Macbook.jsx';
 
 // Backgrounds moved to public/ — reference via public path
 const bg1 = '/first_bg.gif';
@@ -41,8 +42,14 @@ export default function Self() {
             <div id="DetroitBecomeHuman"/>
             {/* Replaced inlined Detroit Become Human card with component */}
             <DBHCard />
-            <div id="Spotify"/>
-            <Spotify />
+            <div id="Vitals" style={{ display: "flex" }}>
+                <div style={{ flex: 1 }}>
+                    <Spotify />
+                </div>
+                <div style={{ flex: 1 }}>
+                    <Macbook />
+                </div>
+            </div>
             <div id="Cosplay"/>
             <CosplayCard />
             <div id="Shipbuilding"/>
