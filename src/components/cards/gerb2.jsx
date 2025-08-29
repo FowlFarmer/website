@@ -28,7 +28,7 @@ export default function Gerb2Card() {
               ]}
               interval={7000}
               fadeDuration={0.3}
-              height={"150px"}
+              height={"220px"}
             />
         </div>
         <div style={{ flex: "1 1 360px", padding: "20px", alignContent: "center", textAlign: "center" }}>
