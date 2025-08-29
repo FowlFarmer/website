@@ -44,13 +44,7 @@ export default function Self() {
             {/* Replaced inlined Detroit Become Human card with component */}
             <DBHCard />
             <Spotify />
-            <div className="testbox" id="Vitals" style={{ display: "flex", flexWrap: "wrap", gap: "12px", width: "100%" }}>
-                {/* <div style={{ flex: "1 1 400px" }}>
-                </div> */}
-                <div className="testbox" style={{ flex: "1 1 400px" }}>
-                    <Macbook />
-                </div>
-            </div>
+            <Macbook />
             <GitHubProfileCard />
             <div id="Cosplay"/>
             <CosplayCard />
