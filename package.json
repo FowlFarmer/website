@@ -17,6 +17,7 @@
     "matter-js": "^0.20.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-github-calendar": "^4.5.9",
     "react-router-dom": "^6.21.0"
   },
   "devDependencies": {
