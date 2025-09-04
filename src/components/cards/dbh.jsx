@@ -24,7 +24,7 @@ export default function DBHCard() {
             <TextFader
               texts={[
                 "Detroit: Become Human is not just a game: it's an incredibly touching story that offers a peek into a potential future world where Artificial Intelligence could be considered a new form of life.",
-                "With the rapid advances of AI, Robotics, and Neural Interfaces, we should take some time to reflect on our creations and what they mean to us. Are they a tool for us - something that can help improve our lives - or are they an evil?"
+                "With the rapid advances of AI, Robotics, and Neural Interfaces, we should take some time to reflect on our creations and their deeper implications. Are they a tool for us, something that can help improve our lives, or can they destroy us?"
               ]}
               interval={6000}
               fadeDuration={0.3}
