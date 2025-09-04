@@ -364,6 +364,15 @@ text-align: left;
   box-shadow: 0 3px 5px 4px rgba(0,0,0,0.06); /* subtle shadow */
 }
 
+.hover1:hover {
+  transform: scale(1.02) translateY(-2px);
+}
+
+.hover1 {
+  transform: scale(1.0) translateY(-1px);
+  transition: all 0.12s ease-in-out;
+}
+
 .nav-hover-child {
   opacity: 0;
   transition: all 0.5s ease-in-out;

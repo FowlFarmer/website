@@ -48,11 +48,11 @@ export default function Navbar() {
           fontSize: "0.9rem",
           color: "black"
           }}>
-          <HashLink to="/self#Begin" style={{ textDecoration: "none", color: "inherit" }}>me</HashLink>
-          <HashLink smooth to="/gallery#Imaginecraft" style={{ textDecoration: "none", color: "inherit" }}>projects</HashLink>
-          <HashLink smooth to="/gallery#Hackathons" style={{ textDecoration: "none", color: "inherit" }}>hackathons</HashLink>
+          <HashLink className="hover1" to="/self#Begin" style={{ textDecoration: "none", color: "inherit" }}>me</HashLink>
+          <HashLink className="hover1" smooth to="/gallery#Imaginecraft" style={{ textDecoration: "none", color: "inherit" }}>projects</HashLink>
+          <HashLink className="hover1" smooth to="/gallery#Hackathons" style={{ textDecoration: "none", color: "inherit" }}>hackathons</HashLink>
           {/* <HashLink smooth to="/gallery#Lab" style={{ textDecoration: "none", color: "inherit" }}>other</HashLink> */}
-          <HashLink smooth to="/contact" style={{ textDecoration: "none", color: "inherit" }}>contact</HashLink>
+          <HashLink className="hover1" smooth to="/contact" style={{ textDecoration: "none", color: "inherit" }}>contact</HashLink>
         </div>
             </div>
     </nav>

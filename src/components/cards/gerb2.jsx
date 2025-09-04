@@ -42,7 +42,11 @@ export default function Gerb2Card() {
             style={{ width: "100%", aspectRatio: "16/9" }}
           ></iframe>
           <div style={{marginTop: "10px"}} />
-          <a
+          {/*dssdfdsfgfhjtyr
+          dsfdfd
+          sdfsf
+          dfghtjyhgfdhjyutrefdght */}
+          <a 
               href="https://github.com/FowlFarmer/AutoSpriteTransform"
               target="_blank"
               rel="noopener noreferrer"
