@@ -5,6 +5,7 @@ import ScrollBackground from './tools/ScrollBackground.jsx';
 
 import Test from './cards/test.jsx';
 
+import ROSS from './cards/ross.jsx';
 import LabCard from './cards/lab.jsx';
 import GuardianAngel from './cards/ga.jsx';
 import ImaginecraftCard from './cards/imaginecraft.jsx';
@@ -74,6 +75,7 @@ export default function Gallery() {
         /> */}
 
       {/* <Test /> */}
+      <ROSS />
       <div id="Imaginecraft"/>
       <ImaginecraftCard/>
       <div id="Projects"/>
