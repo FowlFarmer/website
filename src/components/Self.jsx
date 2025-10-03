@@ -31,7 +31,8 @@ export default function Self() {
             <div className="mainBlob glass-effect" style={{ width: "60%", padding: "20px", marginTop: "100px", ...first_blob_opacity }}>
                 <div style={{ justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
                     <img style={{filter: "invert(100%)"}} src="/calligraphy_logo.png" alt="Profile" />
-                    <span>Hi, I'm Theodore</span>
+                    <span>Hi, I'm Theodore.</span>
+                    <span>I also go by Jia.</span>
                     <p style={{ textAlign: "center" }}>I code, make cool projects, and nerd out about random things.</p>
                     <Link to="/gallery">
                         <button className="rounded-button" onClick={() => console.log('Button clicked!')}>Feel free to look at my work</button>
