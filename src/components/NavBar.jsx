@@ -30,7 +30,6 @@ export default function Navbar() {
           <p className="nav-hover-child navblinker" style={{
               position: "absolute",
               width: "max-content",
-              top: -14,
               left: "50px",
               fontWeight: "100",
               fontStyle: "italic",

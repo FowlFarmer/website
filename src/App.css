@@ -397,14 +397,26 @@ text-align: left;
   transition: all 0.12s ease-in-out;
 }
 
-.nav-hover-child {
-  opacity: 0;
-  transition: all 0.5s ease-in-out;
+
+@media (min-width: 600px) {
+  /* phone styles */
+  .nav-hover-child {
+    top: -14px;
+    opacity: 0;
+    transition: all 0.5s ease-in-out;
+  }
+  .nav-hover-parent:hover .nav-hover-child {
+    top: -14px;
+    opacity: 1;
+    transition: all 0.5s ease-in-out;
+  }
 }
 
-.nav-hover-parent:hover .nav-hover-child {
-  opacity: 1;
-  transition: all 0.5s ease-in-out;
+@media (max-width: 599px) {
+  /* phone styles */
+  .nav-hover-child {
+    top: -10000000px; /* effectively hide it off-screen */
+  }
 }
 
 .hoverchild {
