@@ -6,10 +6,10 @@ import { useLocation } from "react-router-dom";
 
 export default function Navbar() {
   let nav_opacity;
-  if (useLocation().pathname === "/contact") {
+  if (useLocation().pathname === "/contact" || useLocation().pathname === "/gallery") {
     nav_opacity = { opacity: 1 };
   } else {
-    nav_opacity = useScrollThresholdFade(10, Infinity, 300);
+    nav_opacity = useScrollThresholdFade(80, Infinity, 300);
   }
   return (
     <nav className="navbar">
