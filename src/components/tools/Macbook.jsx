@@ -184,7 +184,7 @@ export default function TelemetryCards({
       }}
     >
       {/* MacBook card */}
-      <div className="glass-effect-2" style={{ flex: "1 1 300px", padding: 12, minWidth: 0, minHeight: 0 }}>
+      <div className="glass-effect-2" style={{ flex: "1 1 220px", padding: 12, minWidth: 0, minHeight: 0 }}>
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <img
             src="/macbook.png"
@@ -205,7 +205,7 @@ export default function TelemetryCards({
       </div>
 
       {/* Chill + Local Time card (replaces the map) */}
-      <div className="glass-effect-2" style={{ flex: "1 1 300px", padding: 12, minWidth: 0, minHeight: 0 }}>
+      <div className="glass-effect-2" style={{ flex: "1 1 220px", padding: 12, minWidth: 0, minHeight: 0 }}>
         <div
           style={{
             fontWeight: 600,
