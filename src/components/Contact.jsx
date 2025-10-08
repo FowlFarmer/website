@@ -24,35 +24,42 @@ export default function Contact() {
           
           <h2 style={{fontWeight: "100"}}>Contact Me</h2>
           {/* <p>If you have any questions or inquiries, feel free to reach out!</p> */}
-          <a href="https://www.linkedin.com/in/zhutheodore" target="_blank" rel="noopener noreferrer" style={{textDecoration: "none", color: "inherit"}}>
-            <div className="contact-hover-parent" style={{display: "flex", height: "50px", width: "50px", padding: "10px", textAlign: "left", alignItems: "center"}}>
-              <img src="/linkedin_logo.png" alt="linkedin" style={{maxHeight: "100%", filter: "invert(100%)"}} />
-              {/* <p className="contact-hover-child" style={{marginLeft: "40px", fontSize: "1.1rem", fontWeight: "100"}}>zhutheodore</p> */}
-              <div style={{marginTop: "200px", marginLeft: "30px"}} class="contact-hover-child badge-base LI-profile-badge" data-locale="en_US" data-size="medium" data-theme="dark" data-type="VERTICAL" data-vanity="zhutheodore" data-version="v1"><a class="badge-base__link LI-simple-link" href="https://www.linkedin.com/in/zhutheodore?trk=profile-badge"></a></div>
-            </div>
-          </a>
-          <a href="https://github.com/FowlFarmer" target="_blank" rel="noopener noreferrer" style={{textDecoration: "none", color: "inherit"}}>
-            <div className="contact-hover-parent" style={{display: "flex", height: "50px", width: "50px", padding: "10px", textAlign: "left", alignItems: "center", marginTop: "22px"}}>
-              <img src="/gh_logo.png" alt="github" style={{maxHeight: "100%", filter: "invert(100%)"}} />
+    
+          
+          
+          <a className="contact-hover-parent" href="https://github.com/FowlFarmer" target="_blank" rel="noopener noreferrer" style={{textDecoration: "none", color: "inherit"}}>
+            <div style={{display: "flex", height: "50px", width: "50px", padding: "10px", textAlign: "left", alignItems: "center", marginTop: "22px"}}>
+              <img className="contact-logo-child" src="/gh_logo.png" alt="github" style={{maxHeight: "100%", filter: "invert(100%)"}} />
               <p className="contact-hover-child" style={{marginLeft: "40px", fontSize: "1.1rem", fontWeight: "100"}}>FowlFarmer</p>
             </div>
           </a>
 
-          <a href={`mailto:${email}?subject=${subject}&body=${body}`} style={{textDecoration: "none", color: "inherit"}}>
-            <div className="contact-hover-parent" style={{display: "flex", width: "50px", padding: "10px", textAlign: "left", alignItems: "center"}}>
-              <img src="/gmail_logo.png" alt="gmail" style={{maxHeight: "100%", filter: "invert(100%)"}} />
+          <a className="contact-hover-parent" href={`mailto:${email}?subject=${subject}&body=${body}`} style={{textDecoration: "none", color: "inherit"}}>
+            <div style={{display: "flex", width: "50px", padding: "10px", textAlign: "left", alignItems: "center"}}>
+              <img className="contact-logo-child" src="/gmail_logo.png" alt="gmail" style={{maxHeight: "100%", filter: "invert(100%)"}} />
               <p className="contact-hover-child" style={{marginLeft: "40px", fontSize: "1.1rem", fontWeight: "100"}}>mail to: theodorez888@gmail.com</p>
             </div>
           </a>
-            <div className="contact-hover-parent" style={{display: "flex", height: "50px", width: "50px", padding: "10px", textAlign: "left", alignItems: "center"}}>
-              <img src="/discord_logo.png" alt="discord" style={{maxHeight: "100%"}} />
-              <p className="contact-hover-child" style={{marginLeft: "40px", fontSize: "1.1rem", fontWeight: "100"}}>zhong.li</p>
-            </div>
+          <div className="contact-hover-parent" style={{display: "flex", height: "50px", width: "50px", padding: "10px", textAlign: "left", alignItems: "center"}}>
+            <img className="contact-logo-child" src="/discord_logo.png" alt="discord" style={{maxHeight: "100%"}} />
+            <p className="contact-hover-child" style={{marginLeft: "40px", fontSize: "1.1rem", fontWeight: "100"}}>zhong.li</p>
+          </div>
+
+          <div style={{position: "absolute", marginTop: "-250px", marginLeft: "150px"}} className="contact-linkedin-child badge-base LI-profile-badge" data-locale="en_US" data-size="medium" data-theme="dark" data-type="VERTICAL" data-vanity="zhutheodore" data-version="v1"><a className="badge-base__link LI-simple-link" href="https://www.linkedin.com/in/zhutheodore?trk=profile-badge"></a></div>
+          <div style={{height: "40px"}} />
+        
+        
         <div style={{height: "100px"}} />
         </div>
-        <div style={{flex: "1 1 400px", maxWidth: "500px"}}>
-          <InlinePdf src="/Resume.pdf" height={647.06} /> {/* 8.5:11 */}
-          
+        <div style={{textAlign: "right"}}>
+          <a href="/Resume.pdf" download="Theodore_Resume.pdf" style={{textDecoration: "none", color: "inherit"}}>
+          <img className='resume-download-hover' src="/download-icon.png" alt="Download Icon" style={{height: "25px", left: 0, filter: "invert(100%)"}} />
+          </a>
+          <a href="/Resume.pdf" download="Theodore_Resume.pdf" style={{textDecoration: "none", color: "inherit"}}>
+          <div className='resume-hover' style={{flex: "1 1 400px", maxWidth: "500px", aspectRatio: "8.5/11"}}>
+            <img src="/Resume.png" alt="Resume" style={{ width: "100%", height: "100%" }} />
+          </div>
+          </a>
         </div>
       </div>
     </div>

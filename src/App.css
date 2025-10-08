@@ -417,18 +417,54 @@ text-align: left;
   transition: all 0.5s ease-in-out;
 }
 
+.resume-download-hover:hover {
+  transform: translateY(-5px) scale(1.2);
+  /* opacity: 0.8; */
+  transition: all 0.3s ease-in-out;
+}
+
+.resume-hover:hover {
+  transform: translateY(5px) scale(1.02);
+  /* color: white; */
+  transition: all 0.3s ease-in-out;
+}
+
+.resume-download-hover {
+  transform: translateY(0px) scale(1);
+  /* opacity: 0.8; */
+  transition: all 0.3s ease-in-out;
+}
+
+.resume-hover {
+  transform: translateY(0px) scale(1);
+  /* color: white; */
+  transition: all 0.3s ease-in-out;
+}
+
 .contact-hover-parent:hover .contact-hover-child {
   opacity: 1;
   transform: translateX(10px);
   transition: all 0.5s ease-in-out;
 }
 
-.contact-hover-parent:hover {
+.contact-hover-parent:hover ~ .contact-linkedin-child {
+  opacity: 0;
+  /* transform: translateX(10px); */
+  transition: all 0.35s ease-in-out;
+}
+
+.contact-linkedin-child {
+  opacity: 1;
+  /* transform: translateX(10px); */
+  transition: all 1s ease-in-out;
+}
+
+.contact-hover-parent:hover .contact-logo-child {
   transform: translateX(10px);
   transition: all 0.5s ease-in-out;
 }
 
-.contact-hover-parent {
+.contact-logo-child {
   transition: all 0.5s ease-in-out;
   transform: translateX(0px);
 }
