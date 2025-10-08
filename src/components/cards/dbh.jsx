@@ -18,8 +18,7 @@ export default function DBHCard() {
       }}
     >
       <div style={{ display: "flex", flexWrap: "wrap", gap: "20px", padding: "20px" }}>
-        <div className="flex items-start justify-start" style={{ flex: "0.8 0.8 450px"}}>
-          <div style={{ flex: 1, alignItems: "flex-start" }}>
+        <div style={{ flex: "0.8 0.8 450px"}}>
             <h2>Cover // Detroit: Become Human Opening Theme</h2>
             <TextFader
               texts={[
@@ -28,9 +27,8 @@ export default function DBHCard() {
               ]}
               interval={6000}
               fadeDuration={0.3}
-              height={"150px"}
+              height={"180px"}
             />
-          </div>
         </div>
         <div style={{ flex: "1 1 450px", alignContent: "center" }}>
           <iframe

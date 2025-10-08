@@ -1,3 +1,4 @@
+import { i } from "framer-motion/client";
 import { useEffect, useRef, useState } from "react";
 
 function formatTime(ms) {
@@ -9,6 +10,16 @@ function formatTime(ms) {
 }
 
 export default function SpotifyNowPlayingWithBar() {
+  const [isMobile, setIsMobile] = useState(
+  typeof window !== "undefined" ? window.innerWidth <= 600 : false // SSR safe
+);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 600);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const [payload, setPayload] = useState(null);
   const [playing, setPlaying] = useState(false);
   const [durationMs, setDurationMs] = useState(0);
@@ -172,12 +183,22 @@ export default function SpotifyNowPlayingWithBar() {
         target="_blank"
         rel="noopener noreferrer">
                 <div className="song-hover">
-                  {artist} — {track?.name || "Unknown track"}
+                  {isMobile ? (
+                    <>
+                      {artist}
+                      <br />
+                      {track?.name || "Unknown track"}
+                    </>
+                  ) : (
+                    <>
+                      {artist} — {track?.name || "Unknown track"}
+                    </>
+                  )}
                 </div>
               </a>
 
               {/* progress bar replaces the 1.5rem gap */}
-              {effectiveDuration > 0 && (
+              {effectiveDuration > 0 && !isMobile && (
                 <div
                   style={{
                     marginTop: 4,
@@ -218,10 +239,58 @@ export default function SpotifyNowPlayingWithBar() {
                 </div>
               )}
             </div>
+
+
+
+
+            
           </div>
-
-
-
+          {/* progress bar mobile placement */}
+          {effectiveDuration > 0 && isMobile && (
+            <>
+            <div className="playpause-mobile">
+                    {effectivePayload.is_playing ? "> now playing" : "|| paused"}
+                  </div>
+                <div
+                  style={{
+                    marginTop: 4,
+                    height: "1.5rem",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <div style={{ flex: "0 0 auto", fontSize: 12, opacity: 0.85 }}>
+                    {leftText}
+                  </div>
+                  <div
+                    style={{
+                      position: "relative",
+                      flex: 1,
+                      height: 6,
+                      borderRadius: 9999,
+                      background: "rgba(255,255,255,0.35)",
+                      overflow: "hidden",
+                      marginInline: 8,
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${progressPct}%`,
+                        background: "rgba(255,255,255,0.95)",
+                        borderRadius: 9999,
+                        transition: "none",
+                        willChange: "width",
+                        transform: "translateZ(0)",
+                      }}
+                    />
+                  </div>
+                  <div style={{ flex: "0 0 auto", fontSize: 12, opacity: 0.85 }}>
+                    {rightText}
+                  </div>
+                </div>
+                </>
+              )}
 
         <div
             className="blinker hoverchild"
@@ -242,18 +311,12 @@ export default function SpotifyNowPlayingWithBar() {
           </div>
 
           {/* floating play/paused label */}
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              right: "24px",
-              transform: "translateY(-50%)",
-              opacity: 0.8,
-              fontWeight: 500,
-            }}
-          >
-            {effectivePayload.is_playing ? "> now playing" : "|| paused"}
-          </div>
+          {isMobile ? null : (
+            <div className="playpause">
+              {effectivePayload.is_playing ? "> now playing" : "|| paused"}
+            </div>
+          )}
+
         </div>
       </a>
     </div>

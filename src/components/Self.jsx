@@ -45,9 +45,9 @@ export default function Self() {
             <DBHCard />
             <div className="glass-effect" style={{ width: "90%", marginTop: "40px", display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "center", alignItems: "center" }}>
             <div style={{height: "20px", width: "100%"}} />
-            <div style={{height: "40px", width: "90%", borderColor: "#55da95ff", borderWidth: "2px", borderStyle: "solid", opacity: 0.8, borderRadius: "8px"}} />
+            <div style={{height: "40px", marginLeft: "30px", marginRight: "30px", width: "100%", borderColor: "#55da95ff", borderWidth: "2px", borderStyle: "solid", opacity: 0.8, borderRadius: "8px"}} />
             <p style={{color: "white", position: "absolute", top: "25px", left: "50%", transform: "translate(-50%, 0%)"}}>Current Status</p>
-            <img src="sus.png" alt="Current Status" style={{position: "absolute", scale: 0.9, height: "60px", top: "24px", left: "30px"}} />
+            <img src="sus.png" alt="Current Status" style={{position: "absolute", scale: 0.9, height: "60px", top: "24px", left: "25px"}} />
             <div style={{height: "10px", width: "100%"}} />
             <Spotify />
             <Macbook />
