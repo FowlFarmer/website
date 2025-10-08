@@ -192,6 +192,30 @@ yeet
   transform: scale(1.1);     /* subtle lift */
 }
 
+.navbar-hide-background {
+  background-color: #000;
+  position: fixed;
+  top: 0px;
+  left: 0;
+  right: 0;
+  width: 100.0%;
+  height: 46px; /* just to hide gap */
+  transition: all 0.3s ease-in-out;
+}
+
+.navbar-gradient-background {
+  position: fixed;
+  top: 46px;
+  left: 0;
+  right: 0;
+  width: 100.0%;
+  height: 45px; /* just to hide gap */
+  transition: all 0.3s ease-in-out;
+  background: linear-gradient(
+    rgba(0, 0, 0, 1),  /* Top: opaque */
+    rgba(0, 0, 0, 0)     /* Bottom: transparent */
+  );
+}
 
 .navbar-styles {
   position: fixed;

@@ -13,6 +13,8 @@ export default function Navbar() {
   }
   return (
     <nav className="navbar">
+      <div className="navbar-hide-background"></div>
+      <div className="navbar-gradient-background"></div>
       <div className="navbar-styles nav-hover-parent" style={nav_opacity}>
         <div className="" style={{position: "absolute"}}>
         <Link to="/self" style={{textDecoration: "none", color: "inherit"}}>
