@@ -12,7 +12,7 @@ function formatTime(ms) {
 export default function SpotifyNowPlayingWithBar() {
   const [isMobile, setIsMobile] = useState(
   typeof window !== "undefined" ? window.innerWidth <= 600 : false // SSR safe
-);
+  );
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 600);

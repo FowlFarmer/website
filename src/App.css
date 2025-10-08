@@ -428,12 +428,20 @@ text-align: left;
     opacity: 1;
     transition: all 0.5s ease-in-out;
   }
+
+  .current-status {
+    text-align: center;
+  }
 }
 
 @media (max-width: 599px) {
   /* phone styles */
   .nav-hover-child {
     top: -10000000px; /* effectively hide it off-screen */
+  }
+
+  .current-status {
+    text-align: right;
   }
 }
 
