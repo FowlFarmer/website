@@ -35,7 +35,7 @@ export default function DBHCard() {
             ]}
             interval={6000}
             fadeDuration={0.3}
-            height={isMobile ? "220px" : "150px"}
+            height={isMobile ? "170px" : "150px"}
             // if TextFader supports a style prop, ensure it can’t overflow:
             // style={{ width: "100%", maxWidth: "100%" }}
           />
