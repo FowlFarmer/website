@@ -31,9 +31,10 @@ export default function Contact() {
 
   return (
     <div className="self" style={{width: "90%", justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
+      {/* <script src="https://platform.linkedin.com/badges/js/profile.js" async defer type="text/javascript"></script> */}
       <div style={{height: "60px"}} />
       <div style={{width: "90%", position: "relative", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center"}}>
-        <div style={{flex: "1 1 400px", maxWidth: "500px", color: "white"}}>
+        <div className='testbox' style={{flex: "1 1 400px", maxWidth: "500px", color: "white", display: "flex", flexDirection: "column"}}>
           
           <h2 style={{fontWeight: "100"}}>Contact Me</h2>
           {/* <p>If you have any questions or inquiries, feel free to reach out!</p> */}
@@ -58,19 +59,13 @@ export default function Contact() {
           </div>
 
           <div
-            style={{position: "absolute", marginTop: "-250px", marginLeft: "150px"}}
-            className="contact-linkedin-child badge-base LI-profile-badge"
-            data-locale="en_US"
-            data-size="medium"
-            data-theme="dark"
-            data-type="VERTICAL"
-            data-vanity="zhutheodore"
-            data-version="v1"
+            style={{marginTop: "-245px", width: "250px", height: "250px", marginLeft: "auto"}}
+            className="contact-linkedin-child testbox"
           >
-            <a
-              className="badge-base__link LI-simple-link"
-              href="https://www.linkedin.com/in/zhutheodore?trk=profile-badge"
-            ></a>
+            <a href="https://www.linkedin.com/in/zhutheodore" style={{textDecoration: "none", color: "inherit", width: "250px", height: "100%", zIndex: 1}}>
+            <img src="/linkedin_snapshot.png" alt="linkedin" style={{maxHeight: "250px"}} />
+            <div style={{marginTop: "-258px"}} class="badge-base LI-profile-badge" data-locale="en_US" data-size="medium" data-theme="dark" data-type="VERTICAL" data-vanity="zhutheodore" data-version="v1"></div>
+            </a>
           </div>
 
           <div style={{height: "40px"}} />
