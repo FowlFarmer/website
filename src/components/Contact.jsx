@@ -33,7 +33,7 @@ export default function Contact() {
     <div className="self" style={{width: "90%", justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
       {/* <script src="https://platform.linkedin.com/badges/js/profile.js" async defer type="text/javascript"></script> */}
       <div style={{height: "60px"}} />
-      <div style={{width: "90%", position: "relative", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center"}}>
+      <div style={{width: "90%", position: "relative", top: 0, left: 0, right: 0, bottom: 0, display: "flex", gap: "40px", flexWrap: "wrap", justifyContent: "center", alignItems: "center"}}>
         <div className='' style={{flex: "1 1 400px", maxWidth: "500px", color: "white", display: "flex", flexDirection: "column"}}>
           
           <h2 style={{fontWeight: "100"}}>Contact Me</h2>
