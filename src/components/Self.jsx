@@ -1,13 +1,13 @@
 import React from 'react';
-import useScrollThresholdFade from './tools/useScrollThresholdFade.jsx';
-import ScrollBackground from './tools/ScrollBackground.jsx';
+import useScrollThresholdFade from './jias-react-components/tools/useScrollThresholdFade.jsx';
+import ScrollBackground from './jias-react-components/tools/ScrollBackground.jsx';
 import DBHCard from './cards/dbh.jsx';   
 import { Link } from 'react-router-dom';
 
 import CosplayCard from './cards/cosplay.jsx';
 import Shipbuilding from './cards/ships.jsx';
-import Spotify from './tools/Spotify.jsx';
-import Macbook from './tools/Macbook.jsx';
+import Spotify from './jias-react-components/tools/Spotify.jsx';
+import Macbook from './jias-react-components/tools/Macbook.jsx';
 import GitHubProfileCard from './cards/gh.jsx';
 
 // Backgrounds moved to public/ — reference via public path

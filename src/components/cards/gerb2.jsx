@@ -1,6 +1,6 @@
 import React from 'react';
-import useScrollThresholdFade from '../tools/useScrollThresholdFade.jsx';
-import TextFader from '../tools/TextFader.jsx';
+import useScrollThresholdFade from '../jias-react-components/tools/useScrollThresholdFade.jsx';
+import TextFader from '../jias-react-components/tools/TextFader.jsx';
 
 export default function Gerb2Card() {
 //   const dbh_blob_opacity = useScrollThresholdFade(80, 800, 300);

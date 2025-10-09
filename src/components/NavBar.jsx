@@ -1,5 +1,5 @@
 import React from "react";
-import useScrollThresholdFade from "./tools/useScrollThresholdFade";
+import useScrollThresholdFade from "./jias-react-components/tools/useScrollThresholdFade";
 import { Link } from "react-router-dom";
 import { HashLink } from 'react-router-hash-link';
 import { useLocation } from "react-router-dom";

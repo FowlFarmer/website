@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from "react-router-dom";
-import InlinePdf from './tools/pdf.jsx';
+import InlinePdf from './jias-react-components/tools/pdf.jsx';
 
 /**
  * Gallery component

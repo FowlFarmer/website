@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from "react-router-dom";
 
-import ScrollBackground from './tools/ScrollBackground.jsx';
+import ScrollBackground from './jias-react-components/tools/ScrollBackground.jsx';
 
 import Test from './cards/test.jsx';
 
@@ -12,10 +12,10 @@ import ImaginecraftCard from './cards/imaginecraft.jsx';
 import Gerb2Card from './cards/gerb2.jsx';
 import SmallProjectsCard from './cards/smallProjects.jsx';
 
-import HorizontalCycleBar from './tools/itemscycle.jsx';
-import useScrollFade from './tools/useScrollFadeBackground.jsx';
-import useScrollThresholdFade from './tools/useScrollThresholdFade.jsx';
-import TextFader from './tools/TextFader.jsx';
+import HorizontalCycleBar from './jias-react-components/tools/itemscycle.jsx';
+import useScrollFade from './jias-react-components/tools/useScrollFadeBackground.jsx';
+import useScrollThresholdFade from './jias-react-components/tools/useScrollThresholdFade.jsx';
+import TextFader from './jias-react-components/tools/TextFader.jsx';
 
 /**
  * Gallery component

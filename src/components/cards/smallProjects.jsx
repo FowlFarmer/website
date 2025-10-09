@@ -1,8 +1,8 @@
 // SmallProjectsCard.jsx
 import React from 'react';
-import AnyFader from '../tools/AnyFader.jsx';
-import HorizontalCycleBarCentered from '../tools/itemscycleCentered.jsx';
-import InlinePdf from '../tools/pdf.jsx';
+import AnyFader from '../jias-react-components/tools/AnyFader.jsx';
+import HorizontalCycleBarCentered from '../jias-react-components/tools/itemscycleCentered.jsx';
+import InlinePdf from '../jias-react-components/tools/pdf.jsx';
 
 export default function SmallProjectsCard() {
   const _bedmaker_images = [

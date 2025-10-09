@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-// import SmartSectionTimeline from "../tools/smartSectionTimeline.jsx";
+// import SmartSectionTimeline from "../jias-react-components/tools/smartSectionTimeline.jsx";
 /**
  * ImaginecraftCard
  * - Mirrors your GuardianAngel card layout

@@ -1,9 +1,9 @@
 import React from 'react';
-import useScrollThresholdFade from '../tools/useScrollThresholdFade.jsx';
-import TextFader from '../tools/TextFader.jsx';
-import InlinePdf from '../tools/pdf.jsx';
-import AnyFaderInline from '../tools/AnyFaderInline.jsx';
-import HorizontalCycleBar from '../tools/itemscycle.jsx';
+import useScrollThresholdFade from '../jias-react-components/tools/useScrollThresholdFade.jsx';
+import TextFader from '../jias-react-components/tools/TextFader.jsx';
+import InlinePdf from '../jias-react-components/tools/pdf.jsx';
+import AnyFaderInline from '../jias-react-components/tools/AnyFaderInline.jsx';
+import HorizontalCycleBar from '../jias-react-components/tools/itemscycle.jsx';
 import { m } from 'framer-motion';
 
 export default function LabCard() {

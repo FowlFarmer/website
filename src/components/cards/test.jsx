@@ -1,9 +1,9 @@
 // SmallProjectsCard.jsx
 import React from 'react';
-import TextFader from '../tools/TextFader.jsx';
-import AnyFader from '../tools/AnyFader.jsx';
-import HorizontalCycleBar from '../tools/itemscycle.jsx';
-import InlinePdf from '../tools/pdf.jsx';
+import TextFader from '../jias-react-components/tools/TextFader.jsx';
+import AnyFader from '../jias-react-components/tools/AnyFader.jsx';
+import HorizontalCycleBar from '../jias-react-components/tools/itemscycle.jsx';
+import InlinePdf from '../jias-react-components/tools/pdf.jsx';
 
 export default function Test() {
 

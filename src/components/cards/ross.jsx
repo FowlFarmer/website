@@ -1,6 +1,6 @@
 import React from 'react';
-import HorizontalCycleBarCentered from '../tools/itemscycleCentered.jsx';
-import TextFader from '../tools/TextFader.jsx';
+import HorizontalCycleBarCentered from '../jias-react-components/tools/itemscycleCentered.jsx';
+import TextFader from '../jias-react-components/tools/TextFader.jsx';
 
 export default function GuardianAngel() {
   const _images = [
