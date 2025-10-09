@@ -34,7 +34,7 @@ export default function Contact() {
       {/* <script src="https://platform.linkedin.com/badges/js/profile.js" async defer type="text/javascript"></script> */}
       <div style={{height: "60px"}} />
       <div style={{width: "90%", position: "relative", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center"}}>
-        <div className='testbox' style={{flex: "1 1 400px", maxWidth: "500px", color: "white", display: "flex", flexDirection: "column"}}>
+        <div className='' style={{flex: "1 1 400px", maxWidth: "500px", color: "white", display: "flex", flexDirection: "column"}}>
           
           <h2 style={{fontWeight: "100"}}>Contact Me</h2>
           {/* <p>If you have any questions or inquiries, feel free to reach out!</p> */}
@@ -60,7 +60,7 @@ export default function Contact() {
 
           <div
             style={{marginTop: "-245px", width: "250px", height: "250px", marginLeft: "auto"}}
-            className="contact-linkedin-child testbox"
+            className="contact-linkedin-child "
           >
             <a href="https://www.linkedin.com/in/zhutheodore" style={{textDecoration: "none", color: "inherit", width: "250px", height: "100%", zIndex: 1}}>
             <img src="/linkedin_snapshot.png" alt="linkedin" style={{maxHeight: "250px"}} />
