@@ -117,7 +117,7 @@ export default function Gallery() {
               textAlign: "center"
             }}
           >
-        <p style={{ lineHeight: "0px" }}>There's an older website that contains some deprecated stuff. You can find it <a href="https://portfoliotheodore.weebly.com" target="_blank" rel="noopener noreferrer">here</a>.</p>
+        {/* <p style={{ lineHeight: "0px" }}>There's an older website that contains some deprecated stuff. You can find it <a href="https://portfoliotheodore.weebly.com" target="_blank" rel="noopener noreferrer">here</a>.</p> */}
       </div>
     </div>
 
