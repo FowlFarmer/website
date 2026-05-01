@@ -78,7 +78,7 @@ export default function Contact() {
           </a>
           <a href="/Theodore_Resume.pdf" style={{textDecoration: "none", color: "inherit"}}>
             <div className='resume-hover' style={{flex: "1 1 400px", maxWidth: "500px", aspectRatio: "8.5/11"}}>
-              <img src="/Resume.png" alt="Resume" style={{ width: "100%", height: "100%" }} />
+              <img src="/Resume.jpg" alt="Resume" style={{ width: "100%", height: "100%" }} />
             </div>
           </a>
         </div>
