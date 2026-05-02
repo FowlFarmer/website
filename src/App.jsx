@@ -5,6 +5,8 @@ import NavBar from './components/NavBar.jsx';
 import Gallery from './components/Gallery.jsx';
 import Self from './components/Self.jsx';
 import Contact from './components/Contact.jsx';
+import Avalon from './components/Avalon.jsx';
+import AvalonPost from './components/AvalonPost.jsx';
 
 import { Analytics } from "@vercel/analytics/react"
 
@@ -33,6 +35,8 @@ function FadeRoutes() {
           <Route path="/self" element={<Self />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/avalon" element={<Avalon />} />
+          <Route path="/avalon/:slug" element={<AvalonPost />} />
 
           <Route path="*" element={<Gallery />} />
         </Routes>

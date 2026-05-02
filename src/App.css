@@ -649,3 +649,66 @@ text-align: left;
 .project-content a.button:hover {
   background-color: #1b2e54;
 }
+
+/* ── Avalon prose styles ─────────────────────────────────────── */
+.avalon-prose {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 100;
+  line-height: 1.8;
+  font-size: 1rem;
+}
+
+.avalon-prose h1 {
+  font-weight: 300;
+  font-size: 2rem;
+  margin-bottom: 4px;
+}
+
+.avalon-prose h2 {
+  font-weight: 300;
+  font-size: 1.25rem;
+  margin-top: 2.5rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 6px;
+}
+
+.avalon-prose p {
+  margin: 0.9rem 0;
+  opacity: 0.85;
+}
+
+.avalon-prose em {
+  opacity: 0.55;
+  font-style: italic;
+}
+
+.avalon-prose ul,
+.avalon-prose ol {
+  padding-left: 1.5rem;
+  opacity: 0.8;
+}
+
+.avalon-prose li {
+  margin: 0.4rem 0;
+}
+
+.avalon-prose a {
+  color: rgba(255, 255, 255, 0.7);
+  text-underline-offset: 3px;
+}
+
+.avalon-prose code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.88em;
+}
+
+.avalon-prose blockquote {
+  border-left: 2px solid rgba(255, 255, 255, 0.2);
+  margin-left: 0;
+  padding-left: 1rem;
+  opacity: 0.6;
+  font-style: italic;
+}

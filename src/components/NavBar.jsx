@@ -6,7 +6,7 @@ import { useLocation } from "react-router-dom";
 
 export default function Navbar() {
   let nav_opacity;
-  if (useLocation().pathname === "/contact" || useLocation().pathname === "/gallery") {
+  if (useLocation().pathname === "/contact" || useLocation().pathname === "/gallery" || useLocation().pathname.startsWith("/avalon")) {
     nav_opacity = { opacity: 1 };
   } else {
     nav_opacity = useScrollThresholdFade(80, Infinity, 300);
@@ -51,9 +51,10 @@ export default function Navbar() {
           }}>
           {/* <HashLink className="hover1" to="/self#Begin" style={{ textDecoration: "none", color: "inherit" }}>me</HashLink> */}
           <HashLink className="hover1" smooth to="/gallery#Ross" style={{ textDecoration: "none", color: "inherit" }}>projects</HashLink>
-          <HashLink className="hover1" smooth to="/gallery#Hackathons" style={{ textDecoration: "none", color: "inherit" }}>hackathons</HashLink>
+          {/* <HashLink className="hover1" smooth to="/gallery#Hackathons" style={{ textDecoration: "none", color: "inherit" }}>hackathons</HashLink> */}
           {/* <HashLink smooth to="/gallery#Lab" style={{ textDecoration: "none", color: "inherit" }}>other</HashLink> */}
           <HashLink className="hover1" smooth to="/contact" style={{ textDecoration: "none", color: "inherit" }}>contact</HashLink>
+          <HashLink className="hover1" smooth to="/avalon" style={{ textDecoration: "none", color: "inherit" }}>avalon</HashLink>
         </div>
             </div>
     </nav>
