@@ -48,7 +48,7 @@ export default function CADCard() {
       <p style={{ textAlign: 'left', marginTop: '20px', marginLeft: '20px', fontWeight: 'bold' }}>
         CAD Designs
       </p>
-      <AnyFader items={items} interval={4000} fadeDuration={0.3} />
+      <AnyFader items={items} interval={6000} fadeDuration={0.3} />
     </div>
   );
 }
