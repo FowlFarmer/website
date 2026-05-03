@@ -6,6 +6,7 @@ import ScrollBackground from './jias-react-components/tools/ScrollBackground.jsx
 import Test from './cards/test.jsx';
 
 import ROSS from './cards/ross.jsx';
+import CADCard from './cards/cad.jsx';
 import LabCard from './cards/lab.jsx';
 import GuardianAngel from './cards/ga.jsx';
 import ImaginecraftCard from './cards/imaginecraft.jsx';
@@ -77,6 +78,7 @@ export default function Gallery() {
       {/* <Test /> */}
       <div id="Ross"/>
       <ROSS />
+      <CADCard />
       <div id="Imaginecraft"/>
       <ImaginecraftCard/>
       <div id="Projects"/>
