@@ -29,7 +29,7 @@ const items = [
   />,
   <Slide
     images={['/cad/lance1.png', '/cad/lance2.png']}
-    title="Lance Assembly"
+    title="Cool stick"
     caption="Lance that is wielded by a certain Fate Grand Order character. Looks even more awesomer in person."
   />,
   <Slide
