@@ -78,7 +78,7 @@ export default function Gallery() {
       {/* <Test /> */}
       <div id="Ross"/>
       <ROSS />
-      <CADCard />
+      {/* <CADCard /> */}
       <div id="Imaginecraft"/>
       <ImaginecraftCard/>
       <div id="Projects"/>

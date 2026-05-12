@@ -4,18 +4,21 @@ import TextFader from '../jias-react-components/tools/TextFader.jsx';
 
 export default function CosplayCard() {
     const images = [ // 1 - 12
-        "/cosplay_1.jpg",
-        "/cosplay_2.jpg",
-        "/cosplay_3.jpg",
-        "/cosplay_4.jpg",
-        "/cosplay_5.jpg",
-        "/cosplay_6.jpg",
-        "/cosplay_7.jpg",
-        "/cosplay_8.jpg",
-        "/cosplay_9.jpg",
-        "/cosplay_10.jpg",
-        "/cosplay_11.jpg",
-        "/cosplay_12.jpg",
+      "/cad/lance1.png",
+      "/cad/lance2.png",
+      "/cad/wallboard.png",
+      "/cosplay_1.jpg",
+      "/cosplay_2.jpg",
+      "/cosplay_3.jpg",
+      "/cosplay_4.jpg",
+      "/cosplay_5.jpg",
+      "/cosplay_6.jpg",
+      "/cosplay_7.jpg",
+      "/cosplay_8.jpg",
+      "/cosplay_9.jpg",
+      "/cosplay_10.jpg",
+      "/cosplay_11.jpg",
+      "/cosplay_12.jpg",
     ];
   return (
     <div
