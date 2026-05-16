@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import useScrollThresholdFade from '../jias-react-components/tools/useScrollThresholdFade.jsx';
 import TextFader from '../jias-react-components/tools/TextFader.jsx';
 
 export default function CosplayCard() {
+    const [lightbox, setLightbox] = useState(null);
+
     const images = [ // 1 - 12
       "/cad/lance1.png",
       "/cad/lance2.png",
@@ -46,16 +48,50 @@ export default function CosplayCard() {
         
         <div style={{display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", padding: "20px"}}>
         {images.map((src, idx) => (
-            <div style={{ maxWidth: "30%", minWidth: "200px" }}>
+            <div key={idx} style={{ maxWidth: "30%", minWidth: "200px" }}>
             <img
-            key={idx}
             src={src}
             alt={`Image ${idx}`}
             className="cosplay-item glass-effect"
+            style={{ cursor: "pointer" }}
+            onClick={() => setLightbox(src)}
             />
             </div>
         ))}
         </div>
+
+        {lightbox && (
+          <div
+            onClick={() => setLightbox(null)}
+            style={{
+              position: "fixed", inset: 0,
+              background: "rgba(0,0,0,0.7)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              zIndex: 1000,
+            }}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{ position: "relative", width: "60vw" }}
+            >
+              <button
+                onClick={() => setLightbox(null)}
+                style={{
+                  position: "absolute", top: "8px", right: "8px",
+                  background: "rgba(0,0,0,0.6)", border: "none", color: "white",
+                  borderRadius: "50%", width: "32px", height: "32px",
+                  fontSize: "18px", cursor: "pointer", lineHeight: "32px", textAlign: "center",
+                  zIndex: 1001,
+                }}
+              >×</button>
+              <img
+                src={lightbox}
+                alt="expanded"
+                style={{ width: "100%", aspectRatio: "4/3", objectFit: "cover", objectPosition: "center", borderRadius: "8px", display: "block" }}
+              />
+            </div>
+          </div>
+        )}
 
 
     </div>
