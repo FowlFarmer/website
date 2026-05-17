@@ -5,7 +5,7 @@ import DBHCard from './cards/dbh.jsx';
 import { Link } from 'react-router-dom';
 
 import CosplayCard from './cards/cosplay.jsx';
-import Shipbuilding from './cards/ships.jsx';
+import ShipsGalleryCard from './cards/shipsGallery.jsx';
 import Spotify from './jias-react-components/tools/Spotify.jsx';
 import Macbook from './jias-react-components/tools/Macbook.jsx';
 import GitHubProfileCard from './cards/gh.jsx';
@@ -57,6 +57,7 @@ export default function Self() {
             {/* <GitHubProfileCard /> */}
             <div id="Cosplay"/>
             <CosplayCard />
+            {/* <ShipsGalleryCard /> */}
             <div id="Shipbuilding"/>
             {/* <Shipbuilding /> */}
             {/* <div style={{marginTop: "100000px"}} /> */}
