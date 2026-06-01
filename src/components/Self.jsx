@@ -4,6 +4,7 @@ import ScrollBackground from './jias-react-components/tools/ScrollBackground.jsx
 import DBHCard from './cards/dbh.jsx';   
 import { Link } from 'react-router-dom';
 
+import WorkExperienceCard from './cards/workExperience.jsx';
 import CosplayCard from './cards/cosplay.jsx';
 import ShipsGalleryCard from './cards/shipsGallery.jsx';
 import Spotify from './jias-react-components/tools/Spotify.jsx';
@@ -55,6 +56,8 @@ export default function Self() {
                 <div style={{height: "20px", width: "100%"}} />
             </div>
             {/* <GitHubProfileCard /> */}
+            <div id="WorkExperience" />
+            <WorkExperienceCard />
             <div id="Cosplay"/>
             <CosplayCard />
             {/* <ShipsGalleryCard /> */}
