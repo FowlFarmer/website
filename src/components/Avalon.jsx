@@ -1,61 +1,202 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
+import { createEarthMarker, updateEarthMarker } from "./avalon/earthMarkers.js";
+import { latLonToVector3 } from "./avalon/geo.js";
+import { avalonLocations } from "./avalon/locations.js";
+
+function createStars(count) {
+  const positions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+  const white = new THREE.Color("#ffffff");
+  const blue = new THREE.Color("#8cc8ff");
+
+  for (let i = 0; i < count; i += 1) {
+    const radius = 120 + Math.random() * 260;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+    positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+    positions[i * 3 + 2] = radius * Math.cos(phi);
+
+    const color = white.clone().lerp(blue, Math.random() * 0.65);
+    colors[i * 3] = color.r;
+    colors[i * 3 + 1] = color.g;
+    colors[i * 3 + 2] = color.b;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+  return new THREE.Points(
+    geometry,
+    new THREE.PointsMaterial({
+      size: 1.2,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.8,
+      depthWrite: false,
+    }),
+  );
+}
 
 export default function Avalon() {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const mountRef = useRef(null);
+  const [activeLocation, setActiveLocation] = useState(avalonLocations[0]);
 
   useEffect(() => {
-    fetch("/avalon/index.json")
-      .then((r) => r.json())
-      .then((data) => {
-        // Sort by date descending
-        const sorted = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
-        setPosts(sorted);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    const mount = mountRef.current;
+    if (!mount) return undefined;
+
+    const locationActions = {
+      "select-location": setActiveLocation,
+    };
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color("#02030a");
+
+    const camera = new THREE.PerspectiveCamera(48, 1, 0.1, 1000);
+    camera.position.set(0, 8, 62);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.7));
+    renderer.setClearColor("#02030a", 1);
+    mount.appendChild(renderer.domElement);
+
+    const ambient = new THREE.AmbientLight("#9ab8ff", 0.7);
+    const sun = new THREE.DirectionalLight("#fff1c7", 3);
+    sun.position.set(-35, 20, 40);
+    scene.add(ambient, sun, createStars(1400));
+
+    const earthGroup = new THREE.Group();
+    scene.add(earthGroup);
+
+    const earth = new THREE.Mesh(
+      new THREE.SphereGeometry(18, 64, 64),
+      new THREE.MeshStandardMaterial({
+        color: "#2f8cff",
+        roughness: 0.85,
+        metalness: 0.02,
+      }),
+    );
+    earthGroup.add(earth);
+
+    const atmosphere = new THREE.Mesh(
+      new THREE.SphereGeometry(18.8, 64, 64),
+      new THREE.MeshBasicMaterial({
+        color: "#8adfff",
+        transparent: true,
+        opacity: 0.16,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      }),
+    );
+    earthGroup.add(atmosphere);
+
+    const landMaterial = new THREE.MeshStandardMaterial({ color: "#58c76f", roughness: 0.9 });
+    [
+      [48, -98, 5.6, 2.7, 0.3],
+      [4, -62, 4.8, 2.4, -0.6],
+      [50, 18, 5.2, 2.6, 0.1],
+      [12, 82, 5.8, 2.5, 0.8],
+      [-24, 134, 4.1, 2.0, -0.3],
+    ].forEach(([lat, lon, sx, sy, tilt]) => {
+      const patch = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 12), landMaterial);
+      patch.position.copy(latLonToVector3(lat, lon, 18.3));
+      patch.scale.set(sx, sy, 0.22);
+      patch.lookAt(0, 0, 0);
+      patch.rotateZ(tilt);
+      earthGroup.add(patch);
+    });
+
+    const markers = avalonLocations.map((location) => {
+      const marker = createEarthMarker(location);
+      earthGroup.add(marker);
+      return marker;
+    });
+    const markerRayTargets = markers.flatMap((marker) => marker.userData.rayTargets);
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let hovered = null;
+
+    const resize = () => {
+      const width = mount.clientWidth || window.innerWidth;
+      const height = mount.clientHeight || window.innerHeight;
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    };
+
+    const pick = (event, commit) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const [hit] = raycaster.intersectObjects(markerRayTargets, false);
+      hovered = hit?.object?.userData.markerGroup || null;
+      renderer.domElement.style.cursor = hovered ? "pointer" : "default";
+      if (commit && hovered?.userData.location) {
+        const { location } = hovered.userData;
+        const action = locationActions[location.action];
+        if (action) action(location);
+      }
+    };
+
+    const handleMove = (event) => pick(event, false);
+    const handleClick = (event) => pick(event, true);
+
+    window.addEventListener("resize", resize);
+    renderer.domElement.addEventListener("pointermove", handleMove);
+    renderer.domElement.addEventListener("click", handleClick);
+    resize();
+
+    const clock = new THREE.Clock();
+    const animate = () => {
+      const elapsed = clock.getElapsedTime();
+      earthGroup.rotation.y = elapsed * 0.16;
+      atmosphere.rotation.y = -elapsed * 0.08;
+
+      markers.forEach((marker) => updateEarthMarker(marker, elapsed, marker === hovered));
+
+      camera.lookAt(0, 0, 0);
+      renderer.render(scene, camera);
+    };
+
+    renderer.setAnimationLoop(animate);
+
+    return () => {
+      renderer.setAnimationLoop(null);
+      window.removeEventListener("resize", resize);
+      renderer.domElement.removeEventListener("pointermove", handleMove);
+      renderer.domElement.removeEventListener("click", handleClick);
+      renderer.dispose();
+      scene.traverse((object) => {
+        if (object.geometry) object.geometry.dispose();
+        if (object.material) {
+          if (Array.isArray(object.material)) object.material.forEach((material) => material.dispose());
+          else object.material.dispose();
+        }
+      });
+      mount.removeChild(renderer.domElement);
+    };
   }, []);
 
   return (
-    <div className="self" style={{ width: "90%", maxWidth: "720px", margin: "0 auto", color: "white" }}>
-      <div style={{ height: "80px" }} />
-      <h1 style={{ fontWeight: "100", fontSize: "2.5rem", marginBottom: "4px" }}>Avalon</h1>
-      <p style={{ fontWeight: "100", fontStyle: "italic", opacity: 0.5, marginTop: 0, marginBottom: "48px", fontSize: "0.95rem" }}>
-        writing · notes · ideas
-      </p>
+    <section className="avalon-space" aria-label="Interactive Three.js Earth portfolio">
+      <div className="avalon-stage" ref={mountRef} />
 
-      {loading && <p style={{ opacity: 0.4, fontWeight: "100" }}>Loading…</p>}
-
-      <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
-        {posts.map((post) => (
-          <Link
-            key={post.slug}
-            to={`/avalon/${post.slug}`}
-            style={{ textDecoration: "none", color: "inherit" }}
-          >
-            <div
-              className="avalon-post-card"
-              style={{
-                borderBottom: "1px solid rgba(255,255,255,0.1)",
-                paddingBottom: "28px",
-                cursor: "pointer",
-                transition: "opacity 0.2s",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.7")}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-            >
-              <p style={{ fontWeight: "100", opacity: 0.4, fontSize: "0.8rem", margin: "0 0 6px 0", letterSpacing: "0.05em" }}>
-                {post.date}
-              </p>
-              <h2 style={{ fontWeight: "300", fontSize: "1.3rem", margin: "0 0 8px 0" }}>{post.title}</h2>
-              <p style={{ fontWeight: "100", opacity: 0.6, fontSize: "0.9rem", margin: 0 }}>{post.description}</p>
-            </div>
-          </Link>
-        ))}
+      <div className="avalon-overlay">
+        <span>Interactive portfolio map</span>
+        <h1>Avalon</h1>
+        <p>Simple first pass: a procedural Earth with extensible latitude and longitude markers for project locations.</p>
       </div>
 
-      <div style={{ height: "80px" }} />
-    </div>
+      <aside className="avalon-project-panel">
+        <span>{activeLocation.label}</span>
+        <h2>{activeLocation.title}</h2>
+        <p>{activeLocation.description}</p>
+      </aside>
+    </section>
   );
 }

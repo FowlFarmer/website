@@ -18,9 +18,9 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-github-calendar": "^4.5.9",
-    "react-markdown": "^10.1.0",
     "react-router-dom": "^6.21.0",
     "react-router-hash-link": "^2.4.3",
+    "three": "^0.184.0",
     "tz-lookup": "^6.1.25"
   },
   "devDependencies": {
