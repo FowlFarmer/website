@@ -1,10 +1,11 @@
 {
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/" }
   ],
   "functions": {
     "api/**": {
-      "excludeFiles": "{.next,*.cache,node_modules,public,app,src}/**"
+      "includeFiles": "api/**"
     }
   }
 }
