@@ -7,7 +7,7 @@ const experiences = [
     logo: '/jobpics/tesla_logo.jpeg',
     headline: 'Optimus Reliability & HV Software Integration',
     dateRange: 'January - April 2026',
-    location: 'Sunnyvale, CA',
+    location: 'Sunnyvale, California',
     images: ['/jobpics/tesla_1.png', '/jobpics/tesla_2.png', '/jobpics/tesla_3.png', '/jobpics/tesla_4.png', '/jobpics/tesla_5.png', '/jobpics/tesla_6.png'],
   },
   {
@@ -16,7 +16,7 @@ const experiences = [
     logo: '/jobpics/watonomous_logo.jpeg',
     headline: 'Software and Hardware Platforms for Self-Driving Cars',
     dateRange: 'January 2025 - Present',
-    location: 'Waterloo, ON',
+    location: 'Student Design Team @ University of Waterloo',
     images: ['/jobpics/watonomous_1.png'],
   },
   {
@@ -25,7 +25,7 @@ const experiences = [
     logo: '/jobpics/independent_robotics_logo.jpeg',
     headline: 'Software Integration for Aquatic Robotics',
     dateRange: 'May - August 2025',
-    location: 'Location coming soon',
+    location: 'Montreal, Quebec',
     images: ['/jobpics/ir_1.png', '/jobpics/ir_2.png'],
   },
   {
@@ -43,132 +43,46 @@ function CyclingImage({ images, alt }) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    if (!images?.length || images.length === 1) return;
-
-    const intervalId = window.setInterval(() => {
-      setActiveIndex((currentIndex) => (currentIndex + 1) % images.length);
+    if (!images?.length || images.length <= 1) return;
+    const id = setInterval(() => {
+      setActiveIndex((i) => (i + 1) % images.length);
     }, 2800);
-
-    return () => window.clearInterval(intervalId);
+    return () => clearInterval(id);
   }, [images]);
 
-  if (!images?.length) {
-    return (
-      <div
-        className="glass-effect"
-        style={{
-          width: '100%',
-          aspectRatio: '4 / 3',
-          borderRadius: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          opacity: 0.8,
-        }}
-      >
-        <span style={{ color: 'white' }}>Photo coming soon</span>
-      </div>
-    );
-  }
-
   return (
-    <div
-      className="glass-effect"
-      style={{
-        position: 'relative',
-        width: '100%',
-        overflow: 'hidden',
-        borderRadius: '16px',
-        aspectRatio: '4 / 3',
-        minHeight: '240px',
-      }}
-    >
-      {images.map((src, index) => (
+    <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', borderRadius: '10px', overflow: 'hidden' }}>
+      {images.map((src, i) => (
         <img
-          key={`${alt}-${index}`}
+          key={i}
           src={src}
-          alt={`${alt} ${index + 1}`}
+          alt={`${alt} ${i + 1}`}
           style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            objectPosition: 'center',
-            opacity: index === activeIndex ? 1 : 0,
+            position: 'absolute', inset: 0,
+            width: '100%', height: '100%',
+            objectFit: 'cover', objectPosition: 'center',
+            opacity: i === activeIndex ? 1 : 0,
             transition: 'opacity 700ms ease',
           }}
         />
       ))}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.18) 100%)',
-          pointerEvents: 'none',
-        }}
-      />
     </div>
   );
 }
 
-function CompanyBadge({ experience }) {
-  const [hasLogoError, setHasLogoError] = useState(false);
-  const initials = experience.company
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 3)
-    .toUpperCase();
-
+function LogoBadge({ logo, company }) {
+  const [err, setErr] = useState(false);
+  const initials = company.split(' ').map(w => w[0]).join('').slice(0, 3).toUpperCase();
   return (
-    <div
-      style={{
-        position: 'absolute',
-        left: '-28px',
-        top: '30px',
-        width: '18px',
-        height: '18px',
-        borderRadius: '999px',
-        overflow: 'hidden',
-        background: 'rgba(255, 255, 255, 0.12)',
-        border: '1px solid rgba(255, 255, 255, 0.2)',
-        boxShadow: '0 0 0 5px rgba(255, 255, 255, 0.06)',
-      }}
-      aria-label={experience.company}
-      title={experience.company}
-    >
-      {!hasLogoError ? (
-        <img
-          src={experience.logo}
-          alt=""
-          onError={() => setHasLogoError(true)}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'contain',
-            background: 'white',
-            display: 'block',
-          }}
-        />
-      ) : (
-        <span
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '0.45rem',
-            fontWeight: 700,
-            color: '#111',
-            background: 'white',
-            pointerEvents: 'none',
-          }}
-        >
-          {initials}
-        </span>
-      )}
+    <div style={{
+      width: '26px', height: '26px', borderRadius: '999px',
+      overflow: 'hidden', flexShrink: 0,
+      background: 'white', border: '1px solid rgba(255,255,255,0.2)',
+    }}>
+      {!err
+        ? <img src={logo} alt="" onError={() => setErr(true)} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+        : <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', fontSize: '0.5rem', fontWeight: 700, color: '#111' }}>{initials}</span>
+      }
     </div>
   );
 }
@@ -178,56 +92,65 @@ export default function WorkExperienceCard() {
     <div
       className="glass-effect"
       style={{
-        margin: '40px auto 0',
-        width: '85%',
-        maxWidth: '1100px',
-        position: 'relative',
-        padding: '20px',
+        marginTop: "40px",
+        width: "90%",
+        position: "relative",
       }}
     >
-      <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 500 }}>Experience</h2>
-      </div>
+      <div style={{ padding: "24px" }}>
+        <h2 style={{ textAlign: 'center', margin: '0 0 28px 0' }}>Experience</h2>
 
-      <div style={{ position: 'relative', paddingLeft: '30px' }}>
-        <div
-          style={{
-            position: 'absolute',
-            left: '12px',
-            top: '10px',
-            bottom: '10px',
-            width: '2px',
-            background: 'rgba(255, 255, 255, 0.16)',
-          }}
-        />
+        <div style={{ position: 'relative', paddingLeft: '42px' }}>
+          <div
+            style={{
+              position: 'absolute',
+              left: '19px',
+              top: '18px',
+              bottom: '18px',
+              width: '2px',
+              background: 'rgba(255,255,255,0.15)',
+            }}
+          />
 
-        {experiences.map((experience, index) => (
-          <div key={experience.id} style={{ position: 'relative', marginBottom: index === experiences.length - 1 ? 0 : '22px' }}>
-            <CompanyBadge experience={experience} />
-
+          {experiences.map((exp, index) => (
             <div
+              key={exp.id}
               style={{
+                position: 'relative',
                 display: 'flex',
                 flexWrap: 'wrap',
-                gap: '16px',
-                alignItems: 'stretch',
+                alignItems: 'center',
+                gap: '22px',
+                padding: '16px 0',
+                minHeight: '144px',
+                borderBottom: index === experiences.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.08)',
               }}
             >
-              <div style={{ flex: '1 1 300px', minWidth: 0 }}>
-                <p style={{ margin: '0 0 6px 0', color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.75rem', fontWeight: 400 }}>
-                  {experience.dateRange}
-                </p>
-                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 500 }}>{experience.company}</h3>
-                <p style={{ margin: '6px 0 4px 0', fontSize: '0.85rem', fontWeight: 400, opacity: 0.85 }}>{experience.headline}</p>
-                <p style={{ margin: 0, color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.78rem', fontWeight: 400 }}>{experience.location}</p>
+              <div style={{ position: 'absolute', left: '-36px', top: '50%', transform: 'translateY(-50%)' }}>
+                <LogoBadge logo={exp.logo} company={exp.company} />
               </div>
 
-              <div style={{ flex: '1 1 300px', minWidth: 0, maxWidth: '480px' }}>
-                <CyclingImage images={experience.images} alt={experience.company} />
+              <div style={{ flex: '1 1 320px', minWidth: 0 }}>
+                <p style={{ margin: '0 0 6px 0', fontSize: '0.82rem', color: 'rgba(255,255,255,0.48)', fontWeight: 400 }}>
+                  {exp.dateRange}
+                </p>
+                <h3 style={{ margin: '0 0 6px 0', fontSize: '1.14rem', fontWeight: 500 }}>
+                  {exp.company}
+                </h3>
+                <p style={{ margin: '0 0 6px 0', fontSize: '0.92rem', lineHeight: 1.4, opacity: 0.82, fontWeight: 400 }}>
+                  {exp.headline}
+                </p>
+                <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(255,255,255,0.48)', fontWeight: 400 }}>
+                  {exp.location}
+                </p>
+              </div>
+
+              <div style={{ flex: '0 0 208px', width: '208px', marginLeft: 'auto' }}>
+                <CyclingImage images={exp.images} alt={exp.company} />
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
