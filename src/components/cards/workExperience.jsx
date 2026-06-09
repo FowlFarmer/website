@@ -5,7 +5,7 @@ const experiences = [
     id: 'tesla',
     company: 'Tesla',
     logo: '/jobpics/tesla_logo.jpeg',
-    headline: 'Optimus Reliability & HV Software Integration',
+    headline: 'Test Systems Engineering: Optimus Reliability & HV Software Integration',
     dateRange: 'January - April 2026',
     location: 'Sunnyvale, California',
     images: ['/jobpics/tesla_1.png', '/jobpics/tesla_2.png', '/jobpics/tesla_3.png', '/jobpics/tesla_4.png', '/jobpics/tesla_5.png', '/jobpics/tesla_6.png'],

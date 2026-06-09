@@ -1,7 +1,8 @@
 import * as THREE from "three";
+import { EARTH_RADIUS } from "./spaceScene.js";
 import { latLonToVector3, orientToSurfaceNormal } from "./geo.js";
 
-const MARKER_RADIUS = 19.7;
+const MARKER_RADIUS = EARTH_RADIUS + 1.7;
 
 function makeRing(radius, color, opacity) {
   return new THREE.Mesh(
@@ -29,6 +30,7 @@ export function createEarthMarker(location) {
     new THREE.SphereGeometry(2.1, 16, 16),
     new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }),
   );
+  hitTarget.material.userData.skipSceneOpacity = true;
 
   outerRing.userData.markerGroup = group;
   outerRing.userData.location = location;
