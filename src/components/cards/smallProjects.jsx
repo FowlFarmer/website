@@ -7,16 +7,16 @@ import InlinePdf from '../jias-react-components/tools/pdf.jsx';
 export default function SmallProjectsCard() {
   const _bedmaker_images = [
     <div>
-      <img src="/bedmaker_2.png" alt="Bedmaker 2" />
+      <img src="/bedmaker/bedmaker_2.png" alt="Bedmaker 2" />
     </div>,
     <div>
-      <img src="/bedmaker_3.png" alt="Bedmaker 3" />
+      <img src="/bedmaker/bedmaker_3.png" alt="Bedmaker 3" />
     </div>,
     <div>
-      <img src="/bedmaker_4.png" alt="Bedmaker 4" />
+      <img src="/bedmaker/bedmaker_4.png" alt="Bedmaker 4" />
     </div>,
     <div>
-      <img src="/bedmaker_5.png" alt="Bedmaker 5" />
+      <img src="/bedmaker/bedmaker_5.png" alt="Bedmaker 5" />
     </div>
   ];
 
@@ -43,13 +43,13 @@ export default function SmallProjectsCard() {
 
           <div style={{ flex: "0.7 0.7 350px", display: 'flex', gap: '10px', alignItems: 'stretch', justifyContent: "center" }}>
             <img
-              src="/breathmentor_1.png"
+              src="/breathmentor/breathmentor_1.png"
               alt="BreathMentor"
               style={{ width: 'auto', height: '300px', objectFit: 'cover', display: 'block' }}
             />
 
             <img
-              src="/breathmentor_2.gif"
+              src="/breathmentor/breathmentor_2.gif"
               alt="BreathMentor_2"
               style={{ width: 'auto', height: '300px', objectFit: 'cover', display: 'block' }}
             />
@@ -59,13 +59,13 @@ export default function SmallProjectsCard() {
 
       <div style={{ display: 'flex', flexWrap: "wrap", padding: '20px', marginTop: "-20px", gap: "10px", justifyContent: "center", alignItems: "center" }}>
           <div className="big-zoom" style={{ display: 'flex', alignItems: 'stretch' }}>
-            <InlinePdf src="/breathmentor_doc.pdf" height={200} />
+            <InlinePdf src="/breathmentor/breathmentor_doc.pdf" height={200} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', padding: '0px 10px' }}>
-            <img src="/breathmentor_3.png" alt="BreathMentor_3" style={{ width: 'auto', height: '200px' }} />
+            <img src="/breathmentor/breathmentor_3.png" alt="BreathMentor_3" style={{ width: 'auto', height: '200px' }} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', padding: '0px 10px' }}>
-            <img src="/breathmentor_4.png" alt="BreathMentor_4" style={{ width: 'auto', height: '200px' }} />
+            <img src="/breathmentor/breathmentor_4.png" alt="BreathMentor_4" style={{ width: 'auto', height: '200px' }} />
           </div>
       </div>
     </div>,
@@ -93,7 +93,7 @@ export default function SmallProjectsCard() {
 
           <div style={{ flex: "0.5 0.5 200px" }}>
             <img
-              src="/bedmaker_loop.gif"
+              src="/bedmaker/bedmaker_loop.gif"
               alt="Bedmaker Gif"
               style={{ width: '100%', height: 'auto', borderRadius: "12px" }}
             />
@@ -134,7 +134,7 @@ export default function SmallProjectsCard() {
             <p>In this paper, I analyzed the specific case of the ethics within Ethereum 's impact on electronic health records.</p>
           </div>
           <div className="zoom" style={{ flex: "1.2 1.2 450px" }}>
-            <InlinePdf src="/ethereum.pdf" />
+            <InlinePdf src="/ethereum/ethereum.pdf" />
           </div>
         </div>
       </div>

@@ -14,8 +14,8 @@ import { Link } from "react-router-dom";
  *   githubUrl    - external link to repo/readme (defaults to your Weebly gallery section)
  */
 export default function ImaginecraftCard({
-  primaryImg = "/imaginecraft_1.png",
-  secondaryImg = "/imaginecraft_2.png",
+  primaryImg = "/imaginecraft/imaginecraft_1.png",
+  secondaryImg = "/imaginecraft/imaginecraft_2.png",
   githubUrl = "https://github.com/FowlFarmer/AutoSpriteTransform",
 }) {
   return (

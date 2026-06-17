@@ -12,10 +12,10 @@ import Macbook from './jias-react-components/tools/Macbook.jsx';
 import GitHubProfileCard from './cards/gh.jsx';
 
 // Backgrounds moved to public/ — reference via public path
-const bg1 = '/first_bg.gif';
-const bg2 = '/dbh_bg.jpg';
-const bg3 = '/shrine_bg.jpg';
-const bg4 = '/mc_shipbuilding_bg.png';
+const bg1 = '/home/first_bg.gif';
+const bg2 = '/home/dbh_bg.jpg';
+const bg3 = '/home/shrine_bg.jpg';
+const bg4 = '/home/mc_shipbuilding_bg.png';
 
 export default function Self() {
     const first_blob_opacity = useScrollThresholdFade(-1, 300, 300);
@@ -31,7 +31,7 @@ export default function Self() {
 
             <div className="mainBlob glass-effect" style={{ width: "60%", padding: "20px", marginTop: "100px", ...first_blob_opacity }}>
                 <div style={{ justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <img style={{filter: "invert(100%)"}} src="/calligraphy_logo.png" alt="Profile" />
+                    <img style={{filter: "invert(100%)"}} src="/site/calligraphy_logo.png" alt="Profile" />
                     <span>Hi, I'm Theodore.</span>
                     <span>I also go by Jia.</span>
                     <p style={{ textAlign: "center" }}>I code, make cool projects, and nerd out about random things.</p>

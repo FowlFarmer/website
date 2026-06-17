@@ -4,9 +4,9 @@ export default function ShipsGalleryCard() {
   const [lightbox, setLightbox] = useState(null);
 
   const images = [
-    '/ships/ship1.webp',
-    '/ships/ship2.webp',
-    '/ships/ship3.webp',
+    '/ships_gallery/ship1.webp',
+    '/ships_gallery/ship2.webp',
+    '/ships_gallery/ship3.webp',
   ];
 
   return (

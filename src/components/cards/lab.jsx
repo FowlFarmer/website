@@ -19,7 +19,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/labpic_1.jpeg" alt="Lab Pic 1" />
+        }} src="/lab/labpic_1.jpeg" alt="Lab Pic 1" />
         <p>Our Lab Team</p>
       </div>,
       <div className="labpic">
@@ -32,7 +32,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/labpic_3.png" alt="Lab Pic 3" />
+        }} src="/lab/labpic_3.png" alt="Lab Pic 3" />
         <p>Mammalian cell culture in a biocabinet</p>
       </div>,
       <div className="labpic">
@@ -45,7 +45,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/labpic_4.png" alt="Lab Pic 4" />
+        }} src="/lab/labpic_4.png" alt="Lab Pic 4" />
         <p>Observing cell health in a microscope</p>
       </div>,
       <div className="labpic">
@@ -58,7 +58,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/labpic_10.png" alt="Lab Pic 10" />
+        }} src="/lab/labpic_10.png" alt="Lab Pic 10" />
         <p>Electrophoresis Gel Imaging</p>
       </div>,
     ];
@@ -75,7 +75,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/labpic_2.png" alt="Lab Pic 2" />
+        }} src="/lab/labpic_2.png" alt="Lab Pic 2" />
         <p>Flow Cytometry data (My plasmid cloning was successful!)</p>
       </div>,
       <div className="labpic" >
@@ -88,7 +88,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/labpic_5.jpg" alt="Lab Pic 5" />
+        }} src="/lab/labpic_5.jpg" alt="Lab Pic 5" />
         <p>Electrophoresis on an agarose gel with Ethidium Bromide</p>
       </div>,
       <div className="labpic" >
@@ -101,7 +101,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/labpic_6.png" alt="Lab Pic 6" />
+        }} src="/lab/labpic_6.png" alt="Lab Pic 6" />
         <p>Quantitative PCR data. Tight curves demonstrate high data and experimental quality.</p>
       </div>,
       <div className="labpic" >
@@ -114,7 +114,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/labpic_7.png" alt="Lab Pic 7" />
+        }} src="/lab/labpic_7.png" alt="Lab Pic 7" />
         <p>Escherichia Coli cultures for plasmid cloning after innoculating the previous day.</p>
       </div>,
       <div className="labpic" >
@@ -127,7 +127,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/labpic_8.png" alt="Lab Pic 8" />
+        }} src="/lab/labpic_8.png" alt="Lab Pic 8" />
         <p>Cell cultures of the 38B9 Pro B Cell line</p>
       </div>,
       <div className="labpic" >
@@ -140,7 +140,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/labpic_9.png" alt="Lab Pic 9" />
+        }} src="/lab/labpic_9.png" alt="Lab Pic 9" />
         <p>Sterile laboratory grade water that looked really refreshing (did not drink though).</p>
       </div>,
     ];
@@ -168,7 +168,7 @@ export default function LabCard() {
           </div>
         </div>
         <div style={{ flex: "0.8 0.8 350px", display: "flex", alignContent: "center", justifyContent: "center", textAlign: "center" }}>
-          <InlinePdf src="/lab_paper.pdf" height={450} />
+          <InlinePdf src="/lab/lab_paper.pdf" height={450} />
         </div>
       </div>
 

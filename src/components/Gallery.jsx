@@ -32,27 +32,27 @@ export default function Gallery() {
       const items = [
         <div>
             <a href="https://devpost.com/software/scriptshield" rel="noopener noreferrer" target="_blank">
-              <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_prescriptify.png' alt="prescriptify" />
+              <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hackathons/hack_logo_prescriptify.png' alt="prescriptify" />
             </a>
         </div>,
         <div>
             <a href="https://devpost.com/software/time-capsule-qfsd9j" rel="noopener noreferrer" target="_blank">
-              <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_freezeframe.png' alt="freezeframe" />
+              <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hackathons/hack_logo_freezeframe.png' alt="freezeframe" />
             </a>
         </div>,
         <div>
             <a href="https://dorahacks.io/buidl/21694" rel="noopener noreferrer" target="_blank">
-              <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_bugshot.png' alt="bugshot" />
+              <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hackathons/hack_logo_bugshot.png' alt="bugshot" />
             </a>
         </div>,
         <div>
             <a href="https://devpost.com/software/expierly" rel="noopener noreferrer" target="_blank">
-              <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_preservia.png' alt="preservia" />
+              <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hackathons/hack_logo_preservia.png' alt="preservia" />
             </a>
         </div>,
         <div>
             <a href="https://devpost.com/software/discovervoice" rel="noopener noreferrer" target="_blank">
-              <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hack_logo_shoebill.jpg' alt="shoebill" />
+              <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hackathons/hack_logo_shoebill.jpg' alt="shoebill" />
             </a>
         </div>,
       ];
@@ -62,11 +62,11 @@ export default function Gallery() {
         // className="scrollFadeBg"
         transitionDuration={0.6}
         images={[
-          // "/minecraft_bg.webp",
-          "/minecraft_bg.webp",
-          "/walle_bg.jpeg",
-          "/hackathons_bg.jpg",
-          "/lab_bg.jpg",
+          // "/imaginecraft/minecraft_bg.webp",
+          "/imaginecraft/minecraft_bg.webp",
+          "/imaginecraft/walle_bg.jpeg",
+          "/hackathons/hackathons_bg.jpg",
+          "/lab/lab_bg.jpg",
         ]}
         breakpointIds={[
           // "Imaginecraft",

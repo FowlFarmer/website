@@ -20,7 +20,7 @@ export default function Navbar() {
         <Link to="/self" style={{textDecoration: "none", color: "inherit"}}>
           <img
             className="navbar-logo"
-            src="/calligraphy_logo.png"
+            src="/site/calligraphy_logo.png"
             alt="MySite Logo"
             style={{
               height: "20px",

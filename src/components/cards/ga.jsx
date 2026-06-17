@@ -17,8 +17,8 @@ export default function GuardianAngel() {
         <div style={{ display: "flex", gap: "0px", marginTop: "-20px", flexWrap: "wrap", }}>
         <div className="flex items-start justify-start" style={{ flex: "1 1 360px", padding: "20px"}}>
             <div style={{ flex: 1, alignItems: "flex-start"}}>
-            <img style={{borderRadius: "10px"}} src="/ga_1.jpg" alt="Guardian Angel Thumbnail" />
-            <img style={{borderRadius: "10px", marginTop: "25px"}} src="/ga_2.png" alt="Guardian Angel Thumbnail" />
+            <img style={{borderRadius: "10px"}} src="/guardian_angel/ga_1.jpg" alt="Guardian Angel Thumbnail" />
+            <img style={{borderRadius: "10px", marginTop: "25px"}} src="/guardian_angel/ga_2.png" alt="Guardian Angel Thumbnail" />
             <p style={{marginTop: "25px"}}>Cal Hacks 11 | October 2024 | Downtown SF @ The Metreon</p>
             <p style={{margin: "0px"}}>Hosted by Google and The University of California, Berkeley</p>
             <a href="https://devpost.com/software/guardian-angel-op49t2" rel="noopener noreferrer" target="_blank">
