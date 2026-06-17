@@ -13,7 +13,7 @@ const projects = [
     description:
       "A macOS menu bar helper that turns highlighted text into quick AI cards. It connects to local Hugging Face models through llama.cpp with a custom streaming parser, the Codex CLI, and Gemini API keys stored in Keychain.",
     action: "Download for Mac",
-    href: "/miku_explains/MikuExplains.dmg",
+    href: "/miku_explains/Install%20Miku%20Explains.dmg",
     download: true,
   },
   {
@@ -119,7 +119,7 @@ export default function MikuUnsubscriberCards() {
               href={project.href}
               target={project.download ? undefined : "_blank"}
               rel={project.download ? undefined : "noopener noreferrer"}
-              download={project.download ? "MikuExplains.dmg" : undefined}
+              download={project.download ? "Install Miku Explains.dmg" : undefined}
               style={{ alignSelf: "center" }}
             >
               <button className="rounded-button" type="button">
