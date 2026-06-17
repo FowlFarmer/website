@@ -134,6 +134,17 @@ body {
   line-height: 0;
 }
 
+.miku-project-carousel .hcyclebarcentered,
+.miku-project-carousel .hcyclebarcentered-track,
+.miku-project-carousel .hcyclebarcentered-item {
+  height: 100%;
+}
+
+.miku-project-carousel .hcyclebarcentered-item {
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
 .hcyclebar {
   overflow: hidden;
   width: 100%; /* or fixed width */

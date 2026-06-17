@@ -146,7 +146,7 @@ export function createFlatGalaxy(count, radius, options = {}) {
     colors[i * 3] = color.r * brightness;
     colors[i * 3 + 1] = color.g * brightness;
     colors[i * 3 + 2] = color.b * brightness;
-    sizes[i] = (options.size || 1.1) * THREE.MathUtils.lerp(0.55, 1.85, Math.random() ** 2.8);
+    sizes[i] = (options.size || 1.1) * THREE.MathUtils.lerp(0.45, 1.35, Math.random() ** 2.8);
   }
 
   const geometry = new THREE.BufferGeometry();
@@ -164,24 +164,29 @@ export function createFlatGalaxy(count, radius, options = {}) {
       vertexColors: true,
       uniforms: {
         opacity: { value: options.opacity ?? 1 },
+        brightnessBoost: { value: options.brightnessBoost ?? 1 },
+        sizeBoost: { value: options.sizeBoost ?? 1 },
       },
       vertexShader: `
         attribute float starSize;
+        uniform float sizeBoost;
         varying vec3 vColor;
         void main() {
           vColor = color;
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          gl_PointSize = starSize;
+          gl_PointSize = min(starSize * sizeBoost, 4.0);
         }
       `,
       fragmentShader: `
         uniform float opacity;
+        uniform float brightnessBoost;
         varying vec3 vColor;
         void main() {
           vec2 centered = gl_PointCoord - vec2(0.5);
           float falloff = smoothstep(0.5, 0.08, length(centered));
           if (falloff <= 0.01) discard;
-          gl_FragColor = vec4(vColor, opacity * falloff);
+          vec3 boostedColor = 1.0 - exp(-vColor * brightnessBoost);
+          gl_FragColor = vec4(boostedColor, opacity * falloff);
         }
       `,
     }),

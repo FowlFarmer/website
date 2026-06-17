@@ -76,8 +76,17 @@ function getPhaseLabel(progress) {
 }
 
 function setMilkyWayDetailOpacity(milkyWay, baseOpacity, zoomProgress) {
-  if (milkyWay.material.uniforms?.opacity) milkyWay.material.uniforms.opacity.value = baseOpacity;
+  const uniforms = milkyWay.material.uniforms;
+  if (uniforms?.opacity) uniforms.opacity.value = baseOpacity;
   else milkyWay.material.opacity = baseOpacity;
+  if (uniforms?.brightnessBoost) {
+    const brightnessProgress = Math.log10(1 + smooth01(zoomProgress) * 99) / 2;
+    uniforms.brightnessBoost.value = THREE.MathUtils.lerp(0.8, 2.35, brightnessProgress);
+  }
+  if (uniforms?.sizeBoost) {
+    const sizeProgress = Math.log10(1 + smooth01(zoomProgress) * 99) / 2;
+    uniforms.sizeBoost.value = THREE.MathUtils.lerp(0.9, 2.6, sizeProgress);
+  }
   const total = milkyWay.userData.totalPointCount || milkyWay.geometry.getAttribute("position").count;
   const initial = milkyWay.userData.initialDrawCount || total;
   const densityProgress = Math.log10(1 + smooth01(zoomProgress) * 99) / 2;
