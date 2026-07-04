@@ -10,6 +10,7 @@ import CADCard from './cards/cad.jsx';
 import LabCard from './cards/lab.jsx';
 import GuardianAngel from './cards/ga.jsx';
 import MikuUnsubscriberCards from './cards/mikuUnsubscriber.jsx';
+import SpectralFrontCard from './cards/spectralfront.jsx';
 import ImaginecraftCard from './cards/imaginecraft.jsx';
 import Gerb2Card from './cards/gerb2.jsx';
 import SmallProjectsCard from './cards/smallProjects.jsx';
@@ -86,6 +87,7 @@ export default function Gallery() {
       <div id="Hackathons"/>
       <GuardianAngel/>
       <MikuUnsubscriberCards/>
+      <SpectralFrontCard/>
       <div id="Imaginecraft"/>
       <ImaginecraftCard/>
       <div className="glass-effect" style={{
