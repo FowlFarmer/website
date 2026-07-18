@@ -26,7 +26,6 @@ export default function ImaginecraftCard({
         width: "90%",
         position: "relative",
         overflow: "hidden",
-        textAlign: "center",
         // backgroundColor: "white",
         // color: "black",
         textAlign: "left",
