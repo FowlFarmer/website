@@ -20,7 +20,7 @@ export default function Avalon() {
     <section className="avalon-blog" aria-label="Avalon blog">
       <header className="avalon-blog-header">
         <p>Avalon</p>
-        <h1>Notes from the edge of engineering, society, and whatever keeps tugging at my sleeve.</h1>
+        <h1>Avalon is the utopia I wish to build, written as I go.</h1>
       </header>
 
       <div className="avalon-blog-layout">
