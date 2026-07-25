@@ -6,6 +6,7 @@ export default function CosplayCard() {
     const [lightbox, setLightbox] = useState(null);
 
     const images = [ // 1 - 12
+      "/cosplay/scissors.png",
       "/cad/lance1.png",
       "/cad/lance2.png",
       "/cad/wallboard.png",
@@ -21,7 +22,6 @@ export default function CosplayCard() {
       "/cosplay/cosplay_10.jpg",
       "/cosplay/cosplay_11.jpg",
       "/cosplay/cosplay_12.jpg",
-      "/cosplay/scissors.png",
     ];
   return (
     <div
