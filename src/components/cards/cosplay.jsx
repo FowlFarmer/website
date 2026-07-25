@@ -21,6 +21,7 @@ export default function CosplayCard() {
       "/cosplay/cosplay_10.jpg",
       "/cosplay/cosplay_11.jpg",
       "/cosplay/cosplay_12.jpg",
+      "/cosplay/scissors.png",
     ];
   return (
     <div
