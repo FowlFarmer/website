@@ -25,6 +25,82 @@ body {
   line-height: 1.6;
 }
 
+.tokyo-home {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  overflow-x: clip;
+  background: #02060c;
+}
+
+.tokyo-rain-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 66% 45%, rgba(24, 77, 112, 0.22), transparent 36%),
+    linear-gradient(180deg, #02050a 0%, #07131d 58%, #03070b 100%);
+}
+
+.tokyo-rain-scene canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: saturate(0.9) contrast(1.06);
+}
+
+.tokyo-rain-scene[data-webgl-fallback="true"] {
+  background:
+    linear-gradient(112deg, transparent 0 48%, rgba(133, 200, 236, 0.08) 49%, transparent 50%),
+    radial-gradient(circle at 68% 58%, rgba(58, 148, 196, 0.28), transparent 25%),
+    linear-gradient(180deg, #01040a 0%, #071824 64%, #02070c 100%);
+}
+
+.tokyo-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(0, 3, 8, 0.42), transparent 42%, rgba(0, 4, 9, 0.08)),
+    radial-gradient(ellipse at center, transparent 46%, rgba(0, 2, 6, 0.38) 100%);
+}
+
+.tokyo-atmosphere::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  background-image:
+    repeating-linear-gradient(
+      113deg,
+      transparent 0,
+      transparent 13px,
+      rgba(190, 226, 245, 0.5) 14px,
+      transparent 15px
+    );
+  mix-blend-mode: screen;
+}
+
+.tokyo-home > :not(.tokyo-rain-scene):not(.tokyo-atmosphere) {
+  position: relative;
+  z-index: 2;
+}
+
+.tokyo-home .mainBlob {
+  background: rgba(2, 10, 18, 0.58);
+  border-color: rgba(133, 193, 226, 0.17);
+  box-shadow:
+    0 26px 80px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.navbar {
+  position: relative;
+  z-index: 50;
+}
+
 
 
 

@@ -10,6 +10,7 @@ import ShipsGalleryCard from './cards/shipsGallery.jsx';
 import Spotify from './jias-react-components/tools/Spotify.jsx';
 import Macbook from './jias-react-components/tools/Macbook.jsx';
 import GitHubProfileCard from './cards/gh.jsx';
+import TokyoRainScene from './TokyoRainScene.jsx';
 
 // Backgrounds moved to public/ — reference via public path
 const bg1 = '/home/first_bg.gif';
@@ -21,7 +22,9 @@ export default function Self() {
     const first_blob_opacity = useScrollThresholdFade(-1, 300, 300);
 
     return (
-        <div className="self" style={{justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
+        <div className="self tokyo-home" style={{justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
+            <TokyoRainScene />
+            <div className="tokyo-atmosphere" aria-hidden="true" />
             <div id="Begin" />
             {/* <ScrollBackground
                 transitionDuration={0.6}
