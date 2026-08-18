@@ -73,12 +73,12 @@ export default function Contact() {
         </div>
 
         <div style={{textAlign: "right"}}>
-          <a href="/contact/Theodore_Resume.pdf" download="Theodore_Resume.pdf" style={{textDecoration: "none", color: "inherit"}}>
+          <a href="/downloads/resume_theodore.pdf" download="resume_theodore.pdf" style={{textDecoration: "none", color: "inherit"}}>
             <img className='resume-download-hover' src="/contact/download-icon.png" alt="Download Icon" style={{height: "25px", left: 0, filter: "invert(100%)"}} />
           </a>
-          <a href="/contact/Theodore_Resume.pdf" style={{textDecoration: "none", color: "inherit"}}>
+          <a href="/downloads/resume_theodore.pdf" style={{textDecoration: "none", color: "inherit"}}>
             <div className='resume-hover' style={{flex: "1 1 400px", maxWidth: "500px", aspectRatio: "8.5/11"}}>
-              <img src="/contact/Resume.jpg" alt="Resume" style={{ width: "100%", height: "100%" }} />
+              <img src="/downloads/resume_theodore.png" alt="Resume" style={{ width: "100%", height: "100%" }} />
             </div>
           </a>
         </div>
