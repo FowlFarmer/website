@@ -10,7 +10,6 @@ import ShipsGalleryCard from './cards/shipsGallery.jsx';
 import Spotify from './jias-react-components/tools/Spotify.jsx';
 import Macbook from './jias-react-components/tools/Macbook.jsx';
 import GitHubProfileCard from './cards/gh.jsx';
-import TokyoRainScene from './TokyoRainScene.jsx';
 
 // Backgrounds moved to public/ — reference via public path
 const bg1 = '/home/first_bg.gif';
@@ -22,9 +21,7 @@ export default function Self() {
     const first_blob_opacity = useScrollThresholdFade(-1, 300, 300);
 
     return (
-        <div className="self tokyo-home" style={{justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
-            <TokyoRainScene />
-            <div className="tokyo-atmosphere" aria-hidden="true" />
+        <div className="self blossom-home" style={{justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
             <div id="Begin" />
             {/* <ScrollBackground
                 transitionDuration={0.6}
@@ -52,7 +49,7 @@ export default function Self() {
                 <div className='current-status' style={{height: "40px", marginLeft: "30px", marginRight: "30px", width: "100%", borderColor: "#55da95ff", borderWidth: "2px", borderStyle: "solid", opacity: 0.8, borderRadius: "8px"}}>
                     <p style={{color: "white", margin: "8px 20px 20px 0px"}}>Current Status</p>
                 </div>
-                <img src="sus.png" alt="" style={{position: "absolute", scale: 0.9, height: "60px", top: "24px", left: "25px"}} />
+                <img src="/macbook/sus.png" alt="" style={{position: "absolute", scale: 0.9, height: "60px", top: "24px", left: "25px"}} />
                 <div style={{height: "10px", width: "100%"}} />
                 <Spotify />
                 <Macbook />

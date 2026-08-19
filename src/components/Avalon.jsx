@@ -18,7 +18,7 @@ export default function Avalon() {
 
   return (
     <section className="avalon-blog" aria-label="Avalon blog">
-      <header className="avalon-blog-header">
+      <header className="avalon-blog-header glass-effect">
         <p>Avalon</p>
         <h1>Avalon is the utopia I wish to build, written as I go.</h1>
       </header>
@@ -29,7 +29,7 @@ export default function Avalon() {
             <button
               key={post.slug}
               type="button"
-              className={post.slug === selectedPost.slug ? "is-active" : ""}
+              className={`glass-effect${post.slug === selectedPost.slug ? " is-active" : ""}`}
               onClick={() => setSelectedSlug(post.slug)}
             >
               <span>{formatPostDate(post.date)}</span>
@@ -39,7 +39,7 @@ export default function Avalon() {
           ))}
         </aside>
 
-        <article className="avalon-post">
+        <article className="avalon-post glass-effect">
           <div className="avalon-post-meta">{formatPostDate(selectedPost.date)}</div>
           <h2>{selectedPost.title}</h2>
           {selectedPost.paragraphs.map((paragraph) => (
