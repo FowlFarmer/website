@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 const EMPTY_POSE = {
@@ -38,13 +39,6 @@ const DEFAULT_SCENE_POSE = {
     target: [-9.679, 15.458, -1.807],
     fov: 31,
   },
-  sign: {
-    position: [-3.025, 9.843, 1.416],
-    rotation: [0, 0, 0],
-    scale: [0.65, 0.65, 1],
-    target: [-9.679, 15.458, -1.807],
-    fov: 31,
-  },
   store: {
     position: [-0.9, 6.508, -1.8],
     rotation: [0, 1.146, 0],
@@ -66,7 +60,6 @@ const OBJECT_LABELS = {
   camera: 'Camera',
   focus: 'Parallax focal point',
   backdrop: 'Mount Fuji backdrop',
-  sign: 'LAWSON sign',
   store: 'Convenience store',
   rider: 'Bicycle rider',
 };
@@ -74,7 +67,6 @@ const TAB_LABELS = {
   camera: 'Camera',
   focus: 'Focus',
   backdrop: 'Backdrop',
-  sign: 'Sign',
   store: 'Store',
   rider: 'Rider',
 };
@@ -138,6 +130,7 @@ const petalVertexShader = `
   varying vec2 vUv;
   varying float vTint;
   varying float vGlow;
+  varying float vFacing;
 
   mat2 rotate2d(float angle) {
     float sine = sin(angle);
@@ -158,16 +151,24 @@ const petalVertexShader = `
       -depth
     );
 
-    vec3 petal = position * aScale;
+    // Keep the nearest flakes from filling the viewport while preserving
+    // normal perspective for the rest of the field.
+    float foregroundScale = smoothstep(1.25, 3.4, depth);
+    vec3 petal = position * aScale * mix(0.56, 1.0, foregroundScale);
+    vec3 petalNormal = normal;
     petal.xy = rotate2d(time * aSpin) * petal.xy;
+    petalNormal.xy = rotate2d(time * aSpin) * petalNormal.xy;
     petal.yz = rotate2d(time * (0.82 + aSpin * 0.22)) * petal.yz;
+    petalNormal.yz = rotate2d(time * (0.82 + aSpin * 0.22)) * petalNormal.yz;
     petal.xz = rotate2d(sin(time * 1.17) * 0.75) * petal.xz;
+    petalNormal.xz = rotate2d(sin(time * 1.17) * 0.75) * petalNormal.xz;
 
     vec4 viewPosition = vec4(center + petal, 1.0);
     gl_Position = projectionMatrix * viewPosition;
     vUv = uv;
     vTint = aTint;
     vGlow = 1.0 - smoothstep(2.0, 55.0, depth);
+    vFacing = abs(normalize(petalNormal).z);
   }
 `;
 
@@ -175,12 +176,22 @@ const petalFragmentShader = `
   varying vec2 vUv;
   varying float vTint;
   varying float vGlow;
+  varying float vFacing;
 
   void main() {
-    vec3 blush = mix(vec3(1.0, 0.66, 0.76), vec3(1.0, 0.90, 0.92), vTint);
-    float softEdge = smoothstep(0.0, 0.18, vUv.y) * smoothstep(0.0, 0.12, 1.0 - vUv.y);
-    float pearly = 0.84 + 0.16 * sin((vUv.x + vUv.y) * 5.4);
-    gl_FragColor = vec4(blush * pearly, softEdge * (0.72 + vGlow * 0.24));
+    vec3 blush = mix(vec3(0.98, 0.68, 0.76), vec3(1.0, 0.88, 0.91), vTint);
+    float baseBlush = 1.0 - smoothstep(0.04, 0.52, vUv.y);
+    float centralVein = exp(-abs(vUv.x - 0.5) * 19.0)
+      * (1.0 - smoothstep(0.12, 0.88, vUv.y));
+    float edgeLight = smoothstep(0.18, 0.48, abs(vUv.x - 0.5));
+    float softTips = smoothstep(0.0, 0.055, vUv.y)
+      * smoothstep(0.0, 0.045, 1.0 - vUv.y);
+    float faceLight = mix(0.76, 1.06, smoothstep(0.08, 0.88, vFacing));
+
+    vec3 color = mix(blush, vec3(0.92, 0.43, 0.57), baseBlush * 0.28);
+    color = mix(color, vec3(0.91, 0.49, 0.61), centralVein * 0.18);
+    color = mix(color, vec3(1.0, 0.94, 0.95), edgeLight * 0.12);
+    gl_FragColor = vec4(color * faceLight, softTips * (0.82 + vGlow * 0.14));
   }
 `;
 
@@ -197,18 +208,31 @@ function seededRandom(seed = 48271) {
 
 function createPetalField(random, count) {
   const shape = new THREE.Shape();
-  shape.moveTo(0, -0.52);
-  shape.bezierCurveTo(-0.42, -0.30, -0.58, 0.12, -0.30, 0.42);
-  shape.bezierCurveTo(-0.12, 0.62, 0, 0.43, 0, 0.34);
-  shape.bezierCurveTo(0, 0.43, 0.12, 0.62, 0.30, 0.42);
-  shape.bezierCurveTo(0.58, 0.12, 0.42, -0.30, 0, -0.52);
+  shape.moveTo(0.012, -0.62);
+  shape.bezierCurveTo(-0.13, -0.57, -0.31, -0.32, -0.35, -0.04);
+  shape.bezierCurveTo(-0.39, 0.24, -0.30, 0.50, -0.14, 0.59);
+  shape.bezierCurveTo(-0.07, 0.63, -0.025, 0.57, 0.002, 0.52);
+  shape.bezierCurveTo(0.035, 0.57, 0.095, 0.62, 0.17, 0.58);
+  shape.bezierCurveTo(0.34, 0.48, 0.39, 0.21, 0.34, -0.07);
+  shape.bezierCurveTo(0.29, -0.34, 0.14, -0.58, 0.012, -0.62);
 
-  const petalShape = new THREE.ShapeGeometry(shape, 4);
+  const petalShape = new THREE.ShapeGeometry(shape, 16);
+  const petalPositions = petalShape.getAttribute('position');
+  for (let index = 0; index < petalPositions.count; index += 1) {
+    const x = petalPositions.getX(index);
+    const y = petalPositions.getY(index);
+    const sideCurl = Math.pow(Math.min(Math.abs(x) / 0.39, 1), 1.7) * 0.095;
+    const tipCurl = Math.pow(Math.max((y - 0.28) / 0.34, 0), 2) * 0.055;
+    petalPositions.setZ(index, sideCurl + tipCurl);
+  }
+  petalPositions.needsUpdate = true;
   petalShape.scale(0.16, 0.16, 0.16);
+  petalShape.computeVertexNormals();
 
   const geometry = new THREE.InstancedBufferGeometry();
   geometry.index = petalShape.index;
   geometry.setAttribute('position', petalShape.getAttribute('position').clone());
+  geometry.setAttribute('normal', petalShape.getAttribute('normal').clone());
   geometry.setAttribute('uv', petalShape.getAttribute('uv').clone());
   geometry.instanceCount = count;
   petalShape.dispose();
@@ -224,7 +248,7 @@ function createPetalField(random, count) {
     offsets[index * 3] = (random() - 0.5) * 2.5;
     offsets[index * 3 + 1] = random() * 2.5;
     offsets[index * 3 + 2] = 1.4 + Math.pow(random(), 0.72) * 56;
-    scales[index] = 0.58 + random() * 1.15;
+    scales[index] = 0.58 + random() * 1.02;
     phases[index] = random() * Math.PI * 2;
     speeds[index] = 0.34 + random() * 0.62;
     spins[index] = (random() - 0.5) * 2.8;
@@ -365,7 +389,7 @@ export default function CherryBlossomScene() {
 
     const random = seededRandom();
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const lowPower = window.innerWidth < 720 || (navigator.deviceMemory && navigator.deviceMemory <= 4);
+    const lowPower = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 720 || (navigator.deviceMemory && navigator.deviceMemory <= 4);
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xb9c5ce);
     scene.fog = new THREE.FogExp2(0xd6c8ca, DEFAULT_FOG_DENSITY);
@@ -463,7 +487,6 @@ export default function CherryBlossomScene() {
     const editableObjects = {
       focus: focusMarker,
       backdrop: null,
-      sign: null,
       store: null,
       rider: null,
     };
@@ -573,7 +596,6 @@ export default function CherryBlossomScene() {
       camera: readPose('camera'),
       focus: readPose('focus'),
       backdrop: readPose('backdrop'),
-      sign: readPose('sign'),
       store: readPose('store'),
       rider: readPose('rider'),
       fogDensity: roundPoseValue(scene.fog.density),
@@ -616,7 +638,6 @@ export default function CherryBlossomScene() {
         focusMarker.position.copy(orbitControls.target);
       }
       applyObjectPose(editableObjects.backdrop, pose.backdrop);
-      applyObjectPose(editableObjects.sign, pose.sign);
       applyObjectPose(editableObjects.store, pose.store);
       applyObjectPose(editableObjects.rider, pose.rider);
       orbitControls.update();
@@ -738,16 +759,16 @@ export default function CherryBlossomScene() {
     dracoLoader.preload();
     const loader = new GLTFLoader();
     loader.setDRACOLoader(dracoLoader);
+    loader.setMeshoptDecoder(MeshoptDecoder);
 
     let disposed = false;
     const textureLoader = new THREE.TextureLoader();
     Promise.all([
       textureLoader.loadAsync('/images/scene/fuji3.jpg'),
-      textureLoader.loadAsync('/images/scene/lawson-sign.png'),
-      loader.loadAsync('/models/convenience-store/convenience-store.glb'),
+      loader.loadAsync('/models/lawson/lawson-mobile.glb'),
       loader.loadAsync('/models/cherry-blossom/bicycle-rider.glb'),
     ])
-      .then(([backdropTexture, signTexture, storeAsset, riderAsset]) => {
+      .then(([backdropTexture, storeAsset, riderAsset]) => {
         if (disposed) return;
 
         const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -800,30 +821,26 @@ export default function CherryBlossomScene() {
         scene.add(backdrop);
         editableObjects.backdrop = backdrop;
 
-        signTexture.colorSpace = THREE.SRGBColorSpace;
-        signTexture.anisotropy = Math.min(maxAnisotropy, 8);
-        const signAspect = signTexture.image.width / signTexture.image.height;
-        const signWidth = 3.5;
-        const sign = new THREE.Mesh(
-          new THREE.PlaneGeometry(signWidth, signWidth / signAspect),
-          new THREE.MeshBasicMaterial({
-            map: signTexture,
-            transparent: true,
-            alphaTest: 0.02,
-            side: THREE.DoubleSide,
-            toneMapped: false,
-          }),
-        );
-        sign.position.set(3.05, 4.65, 0.7);
-        sign.renderOrder = 3;
-        scene.add(sign);
-        editableObjects.sign = sign;
-
-        const store = storeAsset.scene;
-        scaleAndGround(store, 4.2);
-        store.position.set(-0.9, -0.35, -1.8);
-        store.rotation.y = 0.02;
-        prepareMaterials(store, maxAnisotropy);
+        // Normalize to the previous asset's local width so existing saved poses
+        // keep their scale and framing. The detailed model includes its own sign.
+        const building = storeAsset.scene;
+        const bounds = new THREE.Box3().setFromObject(building);
+        const size = bounds.getSize(new THREE.Vector3());
+        const center = bounds.getCenter(new THREE.Vector3());
+        const scale = 0.98618 / size.x;
+        building.scale.setScalar(scale);
+        building.position.set(-center.x * scale, -bounds.min.y * scale, -center.z * scale);
+        const store = new THREE.Group();
+        store.add(building);
+        prepareMaterials(store, lowPower ? 2 : Math.min(maxAnisotropy, 4));
+        store.traverse((object) => {
+          if (!object.isMesh) return;
+          const material = object.material;
+          if (material.transparent) {
+            material.depthWrite = false;
+            object.renderOrder = 1;
+          }
+        });
         modelGroup.add(store);
         editableObjects.store = store;
 
@@ -892,9 +909,12 @@ export default function CherryBlossomScene() {
     window.addEventListener('resize', handleResize);
     document.addEventListener('visibilitychange', handleVisibility);
 
-    const animate = () => {
+    let lastRenderedAt = 0;
+    const frameInterval = lowPower ? 1000 / 30 : 0;
+    const animate = (now = performance.now()) => {
       animationFrame = window.requestAnimationFrame(animate);
-      if (!visible) return;
+      if (!visible || now - lastRenderedAt < frameInterval) return;
+      lastRenderedAt = now - ((now - lastRenderedAt) % (frameInterval || 1));
 
       const elapsed = (performance.now() - startTime) / 1000;
       const motionTime = reduceMotion ? 0.5 : elapsed;
@@ -1039,7 +1059,7 @@ export default function CherryBlossomScene() {
           </header>
 
           <div className="scene-editor-tabs" role="group" aria-label="Object selection">
-            {['camera', 'focus', 'backdrop', 'sign', 'store', 'rider'].map((name) => (
+            {['camera', 'focus', 'backdrop', 'store', 'rider'].map((name) => (
               <button
                 type="button"
                 key={name}
