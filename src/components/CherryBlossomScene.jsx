@@ -19,7 +19,7 @@ const DEFAULT_FOG_DENSITY = 0.032;
 const DEFAULT_BACKDROP_FOG_DENSITY = 0.032;
 const DEFAULT_SCENE_POSE = {
   camera: {
-    position: [2.34, 7.824, 28.774],
+    position: [-0.053, 8.252, 29.71],
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
     target: [-9.679, 15.458, -1.807],
@@ -33,9 +33,9 @@ const DEFAULT_SCENE_POSE = {
     fov: 31,
   },
   backdrop: {
-    position: [-13.966, 20.339, -27.561],
+    position: [-13.966, 11.447, -27.561],
     rotation: [0, 20, 0],
-    scale: [3, 3, 3],
+    scale: [0.5, 0.5, 0],
     target: [-9.679, 15.458, -1.807],
     fov: 31,
   },
@@ -49,11 +49,11 @@ const DEFAULT_SCENE_POSE = {
   rider: {
     position: [-3.588, 7.761, 5.788],
     rotation: [0, -70.125, 0],
-    scale: [2.5, 2.5, 2.5],
+    scale: [2, 2, 2],
     target: [-9.679, 15.458, -1.807],
     fov: 31,
   },
-  fogDensity: 0.018,
+  fogDensity: 0.016,
   backdropFogDensity: 0,
 };
 const OBJECT_LABELS = {
@@ -70,7 +70,13 @@ const TAB_LABELS = {
   store: 'Store',
   rider: 'Rider',
 };
-const POSE_STORAGE_KEY = 'convenience-store-scene-pose-v4';
+const POSE_STORAGE_KEY = 'convenience-store-scene-pose-v5';
+const PARALLAX_CAMERA_SWAY = { x: 0.78, y: 0.27, bob: 0.035 };
+const PARALLAX_FOCUS_SWAY = { x: 0.33, y: 0.18 };
+const BACKDROP_COVER_OVERSCAN = 1.045;
+const BACKDROP_COVER_MAX_SCALE = 32;
+const BACKDROP_COVER_POINTER_STEPS = [-1, 0, 1];
+const BACKDROP_COVER_BOB_STEPS = [-1, 0, 1];
 
 function SceneVectorInput({ label, values, step, onChange }) {
   const numericStep = Number(step);
@@ -509,12 +515,15 @@ export default function CherryBlossomScene() {
       new THREE.Vector2(),
     ];
     const viewportCoverCorners = [
-      new THREE.Vector2(-1.045, -1.045),
-      new THREE.Vector2(1.045, -1.045),
-      new THREE.Vector2(1.045, 1.045),
-      new THREE.Vector2(-1.045, 1.045),
+      new THREE.Vector2(-BACKDROP_COVER_OVERSCAN, -BACKDROP_COVER_OVERSCAN),
+      new THREE.Vector2(BACKDROP_COVER_OVERSCAN, -BACKDROP_COVER_OVERSCAN),
+      new THREE.Vector2(BACKDROP_COVER_OVERSCAN, BACKDROP_COVER_OVERSCAN),
+      new THREE.Vector2(-BACKDROP_COVER_OVERSCAN, BACKDROP_COVER_OVERSCAN),
     ];
     const backdropProjectedPoint = new THREE.Vector3();
+    const coverCamera = new THREE.PerspectiveCamera();
+    const coverLookAt = new THREE.Vector3();
+    let backdropCoverState = '';
 
     const projectedPolygonContains = (point, polygon) => {
       let windingSign = 0;
@@ -531,40 +540,102 @@ export default function CherryBlossomScene() {
       return windingSign !== 0;
     };
 
+    const applyParallaxSample = (sampleCamera, pointerX, pointerY, bob) => {
+      sampleCamera.position.set(
+        baseCameraPosition.x + pointerX * PARALLAX_CAMERA_SWAY.x,
+        baseCameraPosition.y - pointerY * PARALLAX_CAMERA_SWAY.y + bob * PARALLAX_CAMERA_SWAY.bob,
+        baseCameraPosition.z,
+      );
+      coverLookAt.set(
+        baseCameraTarget.x - pointerX * PARALLAX_FOCUS_SWAY.x,
+        baseCameraTarget.y + pointerY * PARALLAX_FOCUS_SWAY.y,
+        baseCameraTarget.z,
+      );
+      sampleCamera.up.set(0, 1, 0);
+      sampleCamera.lookAt(coverLookAt);
+      sampleCamera.updateMatrixWorld(true);
+    };
+
+    const projectBackdropCorners = (sampleCamera) => {
+      const bounds = backdropPlane.geometry.boundingBox;
+      backdropPlane.updateMatrixWorld(true);
+      backdropLocalCorners[0].set(bounds.min.x, bounds.min.y, 0);
+      backdropLocalCorners[1].set(bounds.max.x, bounds.min.y, 0);
+      backdropLocalCorners[2].set(bounds.max.x, bounds.max.y, 0);
+      backdropLocalCorners[3].set(bounds.min.x, bounds.max.y, 0);
+      backdropLocalCorners.forEach((corner, index) => {
+        backdropProjectedPoint
+          .copy(corner)
+          .applyMatrix4(backdropPlane.matrixWorld)
+          .project(sampleCamera);
+        backdropProjectedCorners[index].set(
+          backdropProjectedPoint.x,
+          backdropProjectedPoint.y,
+        );
+      });
+    };
+
+    const sampleCoversViewport = (sampleCamera) => {
+      projectBackdropCorners(sampleCamera);
+      return viewportCoverCorners.every((corner) => (
+        projectedPolygonContains(corner, backdropProjectedCorners)
+      ));
+    };
+
+    const envelopeCoversViewport = () => {
+      coverCamera.fov = camera.fov;
+      coverCamera.aspect = camera.aspect;
+      coverCamera.near = camera.near;
+      coverCamera.far = camera.far;
+      coverCamera.updateProjectionMatrix();
+      for (const pointerX of BACKDROP_COVER_POINTER_STEPS) {
+        for (const pointerY of BACKDROP_COVER_POINTER_STEPS) {
+          for (const bob of BACKDROP_COVER_BOB_STEPS) {
+            applyParallaxSample(coverCamera, pointerX, pointerY, bob);
+            if (!sampleCoversViewport(coverCamera)) return false;
+          }
+        }
+      }
+      return true;
+    };
+
     const updateBackdropCover = () => {
-      if (!backdropPlane) return;
+      if (!backdropPlane || !editableObjects.backdrop) return;
       const bounds = backdropPlane.geometry.boundingBox;
       if (!bounds) return;
 
-      camera.updateMatrixWorld(true);
+      editableObjects.backdrop.updateMatrixWorld(true);
+      const nextState = [
+        camera.aspect.toFixed(5),
+        camera.fov.toFixed(4),
+        ...baseCameraPosition.toArray().map((value) => value.toFixed(4)),
+        ...baseCameraTarget.toArray().map((value) => value.toFixed(4)),
+        ...editableObjects.backdrop.matrixWorld.elements.map((value) => value.toFixed(5)),
+      ].join('|');
+      if (nextState === backdropCoverState) return;
+
+      // Size the hidden inner plane for the full parallax/bob envelope around
+      // the saved camera, not the live wiggling camera. That keeps coverage
+      // during resize without the image jumping as the pointer moves.
       backdropPlane.scale.setScalar(1);
-      // A rotated perspective plane projects as a trapezoid. Bounding-box checks
-      // can say it covers the screen while still exposing a viewport corner, so
-      // grow the hidden inner plane until every overscanned corner is contained.
-      for (let pass = 0; pass < 24; pass += 1) {
-        backdropPlane.updateMatrixWorld(true);
-        backdropLocalCorners[0].set(bounds.min.x, bounds.min.y, 0);
-        backdropLocalCorners[1].set(bounds.max.x, bounds.min.y, 0);
-        backdropLocalCorners[2].set(bounds.max.x, bounds.max.y, 0);
-        backdropLocalCorners[3].set(bounds.min.x, bounds.max.y, 0);
+      if (!envelopeCoversViewport()) {
+        let high = 1;
+        do {
+          high *= 1.25;
+          backdropPlane.scale.setScalar(high);
+        } while (high < BACKDROP_COVER_MAX_SCALE && !envelopeCoversViewport());
 
-        backdropLocalCorners.forEach((corner, index) => {
-          backdropProjectedPoint
-            .copy(corner)
-            .applyMatrix4(backdropPlane.matrixWorld)
-            .project(camera);
-          backdropProjectedCorners[index].set(
-            backdropProjectedPoint.x,
-            backdropProjectedPoint.y,
-          );
-        });
-
-        const coversViewport = viewportCoverCorners.every((corner) => (
-          projectedPolygonContains(corner, backdropProjectedCorners)
-        ));
-        if (coversViewport) break;
-        backdropPlane.scale.multiplyScalar(1.18);
+        let low = high / 1.25;
+        for (let pass = 0; pass < 10; pass += 1) {
+          const mid = (low + high) * 0.5;
+          backdropPlane.scale.setScalar(mid);
+          if (envelopeCoversViewport()) high = mid;
+          else low = mid;
+        }
+        backdropPlane.scale.setScalar(Math.min(high * 1.02, BACKDROP_COVER_MAX_SCALE));
       }
+
+      backdropCoverState = nextState;
     };
 
     const roundPoseValue = (value) => Number(value.toFixed(3));
@@ -903,6 +974,7 @@ export default function CherryBlossomScene() {
       );
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.1 : 1.55));
       renderer.setSize(width, height);
+      updateBackdropCover();
     };
 
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
@@ -924,15 +996,16 @@ export default function CherryBlossomScene() {
         modelGroup.rotation.y = 0;
       } else {
         camera.position.set(
-          baseCameraPosition.x + pointer.x * 0.78,
-          baseCameraPosition.y - pointer.y * 0.27 + Math.sin(motionTime * 0.18) * 0.035,
+          baseCameraPosition.x + pointer.x * PARALLAX_CAMERA_SWAY.x,
+          baseCameraPosition.y - pointer.y * PARALLAX_CAMERA_SWAY.y
+            + Math.sin(motionTime * 0.18) * PARALLAX_CAMERA_SWAY.bob,
           baseCameraPosition.z,
         );
         // Translate with the pointer, then counter-rotate around the scene's
         // saved focal point. This produces depth without losing the subject.
         parallaxFocalPoint.set(
-          baseCameraTarget.x - pointer.x * 0.33,
-          baseCameraTarget.y + pointer.y * 0.18,
+          baseCameraTarget.x - pointer.x * PARALLAX_FOCUS_SWAY.x,
+          baseCameraTarget.y + pointer.y * PARALLAX_FOCUS_SWAY.y,
           baseCameraTarget.z,
         );
         camera.lookAt(parallaxFocalPoint);
