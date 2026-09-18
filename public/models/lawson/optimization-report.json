@@ -1,0 +1,58 @@
+{
+  "source": "lawson.glb",
+  "bytes": 1626620,
+  "originalTriangles": 136056,
+  "triangles": 63528,
+  "productLabelTriangles": 2298,
+  "materials": 32,
+  "textures": [
+    {
+      "name": "Concrete_roof_edge_base",
+      "width": 256,
+      "height": 256,
+      "bytes": 2978
+    },
+    {
+      "name": "Warm_porcelain_cladding_base",
+      "width": 256,
+      "height": 256,
+      "bytes": 1018
+    },
+    {
+      "name": "Roof_waterproof_membrane_base",
+      "width": 256,
+      "height": 256,
+      "bytes": 472
+    },
+    {
+      "name": "Entrance_ceramic_tile_base",
+      "width": 256,
+      "height": 256,
+      "bytes": 1284
+    },
+    {
+      "name": "retail-atlas",
+      "width": 1152,
+      "height": 768,
+      "bytes": 356716
+    },
+    {
+      "name": "lawson-wordmark",
+      "width": 1536,
+      "height": 606,
+      "bytes": 16412
+    },
+    {
+      "name": "photo-campaign-banners",
+      "width": 640,
+      "height": 1280,
+      "bytes": 127168
+    },
+    {
+      "name": "Product labels 96x128 per tile",
+      "width": 384,
+      "height": 256,
+      "bytes": 45228
+    }
+  ]
+}
