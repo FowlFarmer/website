@@ -764,7 +764,7 @@ export default function CherryBlossomScene() {
     let disposed = false;
     const textureLoader = new THREE.TextureLoader();
     Promise.all([
-      textureLoader.loadAsync('/images/scene/fuji3.jpg'),
+      textureLoader.loadAsync('/images/scene/fuji_hd.jpg'),
       loader.loadAsync('/models/lawson/lawson-mobile.glb'),
       loader.loadAsync('/models/cherry-blossom/bicycle-rider.glb'),
     ])
