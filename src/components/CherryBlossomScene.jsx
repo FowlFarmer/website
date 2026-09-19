@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
@@ -830,11 +829,7 @@ export default function CherryBlossomScene() {
       },
     };
 
-    const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath('/draco/');
-    dracoLoader.preload();
     const loader = new GLTFLoader();
-    loader.setDRACOLoader(dracoLoader);
     loader.setMeshoptDecoder(MeshoptDecoder);
 
     let disposed = false;
@@ -852,7 +847,7 @@ export default function CherryBlossomScene() {
     Promise.all([
       textureLoader.loadAsync('/images/scene/fuji_hd.jpg'),
       loader.loadAsync('/models/lawson/lawson-mobile.glb'),
-      loader.loadAsync('/models/cherry-blossom/bicycle-rider.glb'),
+      loader.loadAsync('/models/cherry-blossom/bicycle-rider-mobile.glb'),
     ])
       .then(([backdropTexture, storeAsset, riderAsset]) => {
         if (disposed) return;
@@ -1092,7 +1087,6 @@ export default function CherryBlossomScene() {
           });
         }
       });
-      dracoLoader.dispose();
       environmentTarget?.dispose();
       pmrem.dispose();
       renderer.dispose();
