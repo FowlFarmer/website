@@ -399,7 +399,7 @@ export default function CherryBlossomScene() {
     const lowPower = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 720 || (navigator.deviceMemory && navigator.deviceMemory <= 4);
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xb9c5ce);
-    scene.fog = new THREE.FogExp2(0xd6c8ca, DEFAULT_FOG_DENSITY);
+    scene.fog = new THREE.FogExp2(0x777294, DEFAULT_FOG_DENSITY);
 
     const camera = new THREE.PerspectiveCamera(
       43,
@@ -438,7 +438,7 @@ export default function CherryBlossomScene() {
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.18;
+    renderer.toneMappingExposure = 0.94;
     renderer.transmissionResolutionScale = lowPower ? 0.5 : 1;
     mount.appendChild(renderer.domElement);
 
@@ -448,13 +448,16 @@ export default function CherryBlossomScene() {
     transformHelper.visible = false;
     scene.add(transformHelper);
 
-    const hemisphere = new THREE.HemisphereLight(0xb8d4ef, 0x48515a, 0.7);
+    // Lavender skylight and a low peach-pink key match the sunset photograph.
+    const hemisphere = new THREE.HemisphereLight(0xa4aee8, 0x44394e, 0.48);
     scene.add(hemisphere);
-    const sun = new THREE.DirectionalLight(0xffd9c4, 1.25);
-    sun.position.set(-6, 11, 8);
+    const sun = new THREE.DirectionalLight(0xffa9b5, 1.1);
+    sun.position.set(14, 12, 6);
+    sun.target.position.set(-1, 8, 0);
+    scene.add(sun.target);
     scene.add(sun);
-    const roseFill = new THREE.PointLight(0xff9fb5, 12, 17, 2);
-    roseFill.position.set(4.5, 5.2, 3.5);
+    const roseFill = new THREE.DirectionalLight(0x8c9ee9, 0.22);
+    roseFill.position.set(-10, 15, 4);
     scene.add(roseFill);
 
     const ground = new THREE.Mesh(
@@ -841,7 +844,7 @@ export default function CherryBlossomScene() {
       if (disposed) { hdr.dispose(); return; }
       environmentTarget = pmrem.fromEquirectangular(hdr);
       scene.environment = environmentTarget.texture;
-      scene.environmentIntensity = 0.35;
+      scene.environmentIntensity = 0.18;
       hdr.dispose();
       pmrem.dispose();
     }, undefined, () => pmrem.dispose());
@@ -919,6 +922,16 @@ export default function CherryBlossomScene() {
         store.traverse((object) => {
           if (!object.isMesh) return;
           const material = object.material;
+          // Printed surfaces should pick up scene lighting rather than glow.
+          if (/Printed Japanese|Small product labels|Photo reference|Interior ivory|Refrigerator/.test(material.name)) {
+            material.emissiveIntensity = 0.3;
+          }
+          if (material.name === 'Lightbox opal white') {
+            material.emissive.setRGB(0.58, 0.48, 0.52);
+          }
+          if (material.name === 'Fluorescent diffusers') {
+            material.emissive.setRGB(1, 0.88, 0.84);
+          }
           if (material.transmission > 0) {
             material.thickness = 0.025;
             material.ior = 1.46;
@@ -940,7 +953,7 @@ export default function CherryBlossomScene() {
         const lightScale = scale * DEFAULT_SCENE_POSE.store.scale[0];
         for (const x of [-4.5, 4.5]) {
           for (const z of [2, -2.8]) {
-            const light = new THREE.PointLight(0xe8f4ff, 24 * lightScale ** 2, 12 * lightScale, 2);
+            const light = new THREE.PointLight(0xffe6df, 16 * lightScale ** 2, 12 * lightScale, 2);
             light.position.set((x - center.x) * scale, (3.1 - bounds.min.y) * scale, (z - center.z) * scale);
             store.add(light);
           }
