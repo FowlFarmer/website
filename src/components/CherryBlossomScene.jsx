@@ -136,7 +136,7 @@ const petalVertexShader = `
   varying vec2 vUv;
   varying float vTint;
   varying float vGlow;
-  varying float vFacing;
+  varying vec3 vNormal;
 
   mat2 rotate2d(float angle) {
     float sine = sin(angle);
@@ -161,7 +161,10 @@ const petalVertexShader = `
     // normal perspective for the rest of the field.
     float foregroundScale = smoothstep(1.25, 3.4, depth);
     vec3 petal = position * aScale * mix(0.56, 1.0, foregroundScale);
-    vec3 petalNormal = normal;
+    // Small variations keep the shared mesh from looking stamped out.
+    float widthVariation = mix(0.90, 1.10, aTint);
+    petal.x *= widthVariation;
+    vec3 petalNormal = normalize(normal / vec3(widthVariation, 1.0, 1.0));
     petal.xy = rotate2d(time * aSpin) * petal.xy;
     petalNormal.xy = rotate2d(time * aSpin) * petalNormal.xy;
     petal.yz = rotate2d(time * (0.82 + aSpin * 0.22)) * petal.yz;
@@ -174,7 +177,7 @@ const petalVertexShader = `
     vUv = uv;
     vTint = aTint;
     vGlow = 1.0 - smoothstep(2.0, 55.0, depth);
-    vFacing = abs(normalize(petalNormal).z);
+    vNormal = normalize(petalNormal);
   }
 `;
 
@@ -182,22 +185,31 @@ const petalFragmentShader = `
   varying vec2 vUv;
   varying float vTint;
   varying float vGlow;
-  varying float vFacing;
+  varying vec3 vNormal;
 
   void main() {
-    vec3 blush = mix(vec3(0.98, 0.68, 0.76), vec3(1.0, 0.88, 0.91), vTint);
-    float baseBlush = 1.0 - smoothstep(0.04, 0.52, vUv.y);
-    float centralVein = exp(-abs(vUv.x - 0.5) * 19.0)
-      * (1.0 - smoothstep(0.12, 0.88, vUv.y));
-    float edgeLight = smoothstep(0.18, 0.48, abs(vUv.x - 0.5));
-    float softTips = smoothstep(0.0, 0.055, vUv.y)
-      * smoothstep(0.0, 0.045, 1.0 - vUv.y);
-    float faceLight = mix(0.76, 1.06, smoothstep(0.08, 0.88, vFacing));
+    float height = vUv.y;
+    float baseBlush = exp(-height * 5.5);
+    float edge = pow(abs(vUv.x - 0.5) * 2.0, 3.0);
+    vec3 ivoryPink = mix(vec3(1.0, 0.88, 0.90), vec3(1.0, 0.95, 0.94), vTint);
+    vec3 color = mix(ivoryPink, vec3(0.91, 0.51, 0.62), baseBlush * 0.48);
 
-    vec3 color = mix(blush, vec3(0.92, 0.43, 0.57), baseBlush * 0.28);
-    color = mix(color, vec3(0.91, 0.49, 0.61), centralVein * 0.18);
-    color = mix(color, vec3(1.0, 0.94, 0.95), edgeLight * 0.12);
-    gl_FragColor = vec4(color * faceLight, softTips * (0.82 + vGlow * 0.14));
+    // Fine, fanning veins emerge from the narrow attachment point.
+    float fan = (vUv.x - 0.5) / (0.16 + height * 0.84);
+    float veinWave = abs(sin(fan * 24.0 + sin(height * 5.0 + fan * 3.0) * 0.32));
+    float veinAA = max(fwidth(veinWave), 0.035);
+    float veins = 1.0 - smoothstep(0.035, 0.035 + veinAA, veinWave);
+    veins *= smoothstep(0.03, 0.22, height) * (1.0 - smoothstep(0.55, 0.98, height));
+    color = mix(color, vec3(0.84, 0.49, 0.58), veins * 0.065);
+    color = mix(color, vec3(1.0, 0.96, 0.95), edge * 0.22);
+
+    // Soft two-sided light gives the thin, cupped surface a translucent feel.
+    vec3 surfaceNormal = normalize(vNormal);
+    float light = abs(dot(surfaceNormal, normalize(vec3(-0.35, 0.65, 0.85))));
+    float transmission = pow(1.0 - abs(surfaceNormal.z), 2.0);
+    color *= 0.86 + light * 0.14;
+    color += vec3(0.045, 0.025, 0.025) * transmission;
+    gl_FragColor = vec4(color, mix(0.86, 0.96, vGlow));
   }
 `;
 
@@ -214,26 +226,73 @@ function seededRandom(seed = 48271) {
 
 function createPetalField(random, count) {
   const shape = new THREE.Shape();
-  shape.moveTo(0.012, -0.62);
-  shape.bezierCurveTo(-0.13, -0.57, -0.31, -0.32, -0.35, -0.04);
-  shape.bezierCurveTo(-0.39, 0.24, -0.30, 0.50, -0.14, 0.59);
-  shape.bezierCurveTo(-0.07, 0.63, -0.025, 0.57, 0.002, 0.52);
-  shape.bezierCurveTo(0.035, 0.57, 0.095, 0.62, 0.17, 0.58);
-  shape.bezierCurveTo(0.34, 0.48, 0.39, 0.21, 0.34, -0.07);
-  shape.bezierCurveTo(0.29, -0.34, 0.14, -0.58, 0.012, -0.62);
+  // A narrow attachment opens into broad, unequal shoulders and a small
+  // apical notch: the characteristic silhouette of a single sakura petal.
+  shape.moveTo(0.015, -0.60);
+  shape.bezierCurveTo(-0.10, -0.51, -0.37, -0.22, -0.43, 0.10);
+  shape.bezierCurveTo(-0.49, 0.37, -0.33, 0.62, -0.14, 0.60);
+  shape.bezierCurveTo(-0.065, 0.60, -0.035, 0.52, 0.005, 0.475);
+  shape.bezierCurveTo(0.05, 0.53, 0.09, 0.61, 0.18, 0.585);
+  shape.bezierCurveTo(0.40, 0.55, 0.47, 0.31, 0.415, 0.075);
+  shape.bezierCurveTo(0.35, -0.22, 0.12, -0.52, 0.015, -0.60);
 
-  const petalShape = new THREE.ShapeGeometry(shape, 16);
-  const petalPositions = petalShape.getAttribute('position');
-  for (let index = 0; index < petalPositions.count; index += 1) {
-    const x = petalPositions.getX(index);
-    const y = petalPositions.getY(index);
-    const sideCurl = Math.pow(Math.min(Math.abs(x) / 0.39, 1), 1.7) * 0.095;
-    const tipCurl = Math.pow(Math.max((y - 0.28) / 0.34, 0), 2) * 0.055;
-    petalPositions.setZ(index, sideCurl + tipCurl);
+  const outline = new THREE.ShapeGeometry(shape, 10);
+  const outlinePositions = outline.getAttribute('position');
+  const positions = [];
+  const uvs = [];
+  const indices = [];
+  const vertices = new Map();
+  const midpoint = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  const addTriangle = (a, b, c, subdivisions) => {
+    if (subdivisions > 0) {
+      const ab = midpoint(a, b);
+      const bc = midpoint(b, c);
+      const ca = midpoint(c, a);
+      addTriangle(a, ab, ca, subdivisions - 1);
+      addTriangle(ab, b, bc, subdivisions - 1);
+      addTriangle(ca, bc, c, subdivisions - 1);
+      addTriangle(ab, bc, ca, subdivisions - 1);
+      return;
+    }
+    for (const [x, y] of [a, b, c]) {
+      const key = `${x.toFixed(7)},${y.toFixed(7)}`;
+      let vertex = vertices.get(key);
+      if (vertex === undefined) {
+        vertex = positions.length / 3;
+        vertices.set(key, vertex);
+        positions.push(x, y, 0);
+        // ShapeGeometry supplies raw XY coordinates, not normalized UVs.
+        uvs.push(x + 0.5, (y + 0.60) / 1.22);
+      }
+      indices.push(vertex);
+    }
+  };
+  for (let index = 0; index < outline.index.count; index += 3) {
+    const triangle = [0, 1, 2].map((corner) => {
+      const vertex = outline.index.getX(index + corner);
+      return [outlinePositions.getX(vertex), outlinePositions.getY(vertex)];
+    });
+    addTriangle(...triangle, 1);
   }
-  petalPositions.needsUpdate = true;
+  outline.dispose();
+
+  // Interior vertices allow a smooth cup instead of a flat polygon whose
+  // boundary alone has been bent. Analytic normals avoid triangulation seams.
+  const normals = [];
+  for (let index = 0; index < positions.length; index += 3) {
+    const x = positions[index];
+    const y = positions[index + 1];
+    const tip = Math.max(y - 0.22, 0);
+    positions[index + 2] = 0.40 * x * x + 0.10 * x * y + 0.24 * tip * tip;
+    const normal = new THREE.Vector3(-0.80 * x - 0.10 * y, -0.10 * x - 0.48 * tip, 1).normalize();
+    normals.push(normal.x, normal.y, normal.z);
+  }
+  const petalShape = new THREE.BufferGeometry();
+  petalShape.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  petalShape.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+  petalShape.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  petalShape.setIndex(indices);
   petalShape.scale(0.16, 0.16, 0.16);
-  petalShape.computeVertexNormals();
 
   const geometry = new THREE.InstancedBufferGeometry();
   geometry.index = petalShape.index;
