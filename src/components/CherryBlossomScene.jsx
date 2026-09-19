@@ -423,7 +423,7 @@ export default function CherryBlossomScene() {
     let renderer;
     try {
       renderer = new THREE.WebGLRenderer({
-        antialias: !lowPower,
+        antialias: true,
         alpha: false,
         powerPreference: 'high-performance',
       });

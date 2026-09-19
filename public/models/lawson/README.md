@@ -24,7 +24,7 @@ Three.js MeshoptDecoder.
 The web copy uses alpha glazing instead of transmission, and a modest emissive
 interior contribution instead of adding interior lights. This is not a lightmap
 bake. The website retains its existing lighting and avoids bloom and shadow maps.
-Touch devices use the low-power rendering path (1.1 pixel ratio cap, no MSAA,
+Touch devices use the low-power rendering path (1.1 pixel ratio cap, native antialiasing,
 30 fps cap); hidden tabs pause rendering. The original scene pose is retained by
 normalizing the model to the old building's local width, including saved poses.
 The previous separate sign overlay is removed because the model has its own.
