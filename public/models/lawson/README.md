@@ -21,9 +21,11 @@ geometry remain. Full float positions prevent z-fighting between sign layers.
 Meshopt compresses geometry; WebP compresses textures. The runtime requires the
 Three.js MeshoptDecoder.
 
-The web copy uses alpha glazing instead of transmission, and a modest emissive
-interior contribution instead of adding interior lights. This is not a lightmap
-bake. The website retains its existing lighting and avoids bloom and shadow maps.
+The web copy retains physical glass transmission and frosted lower panes.
+The viewer's dawn HDR environment supplies reflections, with four interior lights
+and a softer exterior key light. Mobile transmission renders at half resolution.
+There is no full-screen bloom or shadow map pass. The HDR is Poly Haven's
+Kiara 1 Dawn environment (CC0), shared with the original standalone viewer.
 Touch devices use the low-power rendering path (1.1 pixel ratio cap, native antialiasing,
 30 fps cap); hidden tabs pause rendering. The original scene pose is retained by
 normalizing the model to the old building's local width, including saved poses.

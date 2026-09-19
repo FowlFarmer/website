@@ -5,6 +5,7 @@ import { TransformControls } from 'three/examples/jsm/controls/TransformControls
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 
 const EMPTY_POSE = {
   position: [0, 0, 0],
@@ -438,6 +439,7 @@ export default function CherryBlossomScene() {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.18;
+    renderer.transmissionResolutionScale = lowPower ? 0.5 : 1;
     mount.appendChild(renderer.domElement);
 
     const transformControls = new TransformControls(camera, renderer.domElement);
@@ -446,9 +448,9 @@ export default function CherryBlossomScene() {
     transformHelper.visible = false;
     scene.add(transformHelper);
 
-    const hemisphere = new THREE.HemisphereLight(0xf8e9ed, 0x2f3b37, 2.35);
+    const hemisphere = new THREE.HemisphereLight(0xb8d4ef, 0x48515a, 0.7);
     scene.add(hemisphere);
-    const sun = new THREE.DirectionalLight(0xffe1d0, 3.25);
+    const sun = new THREE.DirectionalLight(0xffd9c4, 1.25);
     sun.position.set(-6, 11, 8);
     scene.add(sun);
     const roseFill = new THREE.PointLight(0xff9fb5, 12, 17, 2);
@@ -833,6 +835,16 @@ export default function CherryBlossomScene() {
     loader.setMeshoptDecoder(MeshoptDecoder);
 
     let disposed = false;
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    let environmentTarget;
+    new HDRLoader().load('/models/lawson/dawn-environment.hdr', (hdr) => {
+      if (disposed) { hdr.dispose(); return; }
+      environmentTarget = pmrem.fromEquirectangular(hdr);
+      scene.environment = environmentTarget.texture;
+      scene.environmentIntensity = 0.35;
+      hdr.dispose();
+      pmrem.dispose();
+    }, undefined, () => pmrem.dispose());
     const textureLoader = new THREE.TextureLoader();
     Promise.all([
       textureLoader.loadAsync('/images/scene/fuji_hd.jpg'),
@@ -907,6 +919,15 @@ export default function CherryBlossomScene() {
         store.traverse((object) => {
           if (!object.isMesh) return;
           const material = object.material;
+          if (material.transmission > 0) {
+            material.thickness = 0.025;
+            material.ior = 1.46;
+            material.roughness = material.name === 'Frosted lower panels' ? 0.52 : 0.045;
+            material.envMapIntensity = 0.7;
+            material.transparent = false;
+            material.opacity = 1;
+            material.depthWrite = true;
+          }
           if (material.transparent) {
             material.depthWrite = false;
             object.renderOrder = 1;
@@ -914,6 +935,16 @@ export default function CherryBlossomScene() {
         });
         modelGroup.add(store);
         editableObjects.store = store;
+        // Lights follow the building's editable pose. Convert their positions
+        // from source metres into the normalized store's local coordinates.
+        const lightScale = scale * DEFAULT_SCENE_POSE.store.scale[0];
+        for (const x of [-4.5, 4.5]) {
+          for (const z of [2, -2.8]) {
+            const light = new THREE.PointLight(0xe8f4ff, 24 * lightScale ** 2, 12 * lightScale, 2);
+            light.position.set((x - center.x) * scale, (3.1 - bounds.min.y) * scale, (z - center.z) * scale);
+            store.add(light);
+          }
+        }
 
         const rider = riderAsset.scene;
         scaleAndGround(rider, 3.25);
@@ -1049,6 +1080,8 @@ export default function CherryBlossomScene() {
         }
       });
       dracoLoader.dispose();
+      environmentTarget?.dispose();
+      pmrem.dispose();
       renderer.dispose();
       renderer.domElement.remove();
     };

@@ -103,20 +103,8 @@ for (const mesh of root.listMeshes()) for (const p of mesh.listPrimitives()) {
 }
 await doc.transform(weld());
 
-// Alpha glazing avoids the full-scene transmission render pass on phones.
-// A small emissive contribution keeps the interior readable without extra lights.
-for (const m of root.listMaterials()) {
-  const name = m.getName();
-  if (/glass|Frosted lower panels/i.test(name)) {
-    for (const e of m.listExtensions()) if (/transmission|volume|ior/.test(e.extensionName)) m.setExtension(e.extensionName, null);
-    const frosted = name === 'Frosted lower panels';
-    m.setBaseColorFactor(frosted ? [.57, .61, .62, .76] : [.57, .76, .8, .12]);
-    m.setAlphaMode('BLEND').setMetallicFactor(0).setRoughnessFactor(frosted ? .7 : .18).setDoubleSided(false);
-  }
-  if (/Packaging|Poster cream|Interior ivory|Refrigerator/.test(name)) {
-    const c = m.getBaseColorFactor(); m.setEmissiveFactor(c.slice(0, 3).map(v => v * .12));
-  }
-}
+// Preserve the source's physical glazing and emissive light fixtures.
+// The renderer scales transmission resolution on phones instead of removing it.
 const textures = [];
 for (const texture of root.listTextures()) {
   const name = texture.getName();
