@@ -15,7 +15,7 @@ import { Link } from "react-router-dom";
  */
 export default function ImaginecraftCard({
   primaryImg = "/imaginecraft/imaginecraft_1.png",
-  secondaryImg = "/imaginecraft/imaginecraft_2.png",
+  secondaryImg = "/imaginecraft/imaginecraft_2.webp",
   githubUrl = "https://github.com/FowlFarmer/AutoSpriteTransform",
 }) {
   return (

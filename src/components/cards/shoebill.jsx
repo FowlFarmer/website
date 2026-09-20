@@ -1,5 +1,5 @@
 import React from 'react';
-
+import LazyYouTube from '../LazyYouTube.jsx';
 
 export default function Shoebill() {
   return (
@@ -27,15 +27,7 @@ export default function Shoebill() {
             <p>Shoebill is a web application that tracks, detects, documents and provides solutions to gaming addiction. Its analytics are able to track your mental stability, mood and emotions while you game through interfacing with Hume AI voice and facial expression categorizer and Zepp smartwatch biometric data.</p>
             <p>Achieved an Honorable Mention by Cal Hacks sponsor Zepp Health</p>
             <p>Built with Python, Django, Mediapipe, OpenCV, Vite, React, MySQL, HTML,  Multithreading, and Hume & Zepp APIs.</p>
-            <iframe
-                        src="https://www.youtube.com/embed/qP-S0vukCM4"
-                        title="YouTube video"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className="glass-effect"
-                        style={{ width: "100%", aspectRatio: "16/9" }}
-                    ></iframe>
+            <LazyYouTube videoId="qP-S0vukCM4" title="Shoebill demo" className="media-frame" />
             </div>
         </div>
         <div style={{ flex: 1, padding: "20px", alignContent: "center" }}>

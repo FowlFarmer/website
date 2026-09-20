@@ -44,7 +44,7 @@ export default function Gallery() {
         </div>,
         <div>
             <a href="https://dorahacks.io/buidl/21694" rel="noopener noreferrer" target="_blank">
-              <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hackathons/hack_logo_bugshot.png' alt="bugshot" />
+              <img className="glass-effect" style={{width: "90%", aspectRatio: "16/9", objectFit: "cover", objectPosition: "center"}} src='/hackathons/hack_logo_bugshot.webp' alt="bugshot" />
             </a>
         </div>,
         <div>
@@ -66,9 +66,9 @@ export default function Gallery() {
         images={[
           // "/imaginecraft/minecraft_bg.webp",
           "/imaginecraft/minecraft_bg.webp",
-          "/imaginecraft/walle_bg.jpeg",
-          "/hackathons/hackathons_bg.jpg",
-          "/lab/lab_bg.jpg",
+          "/imaginecraft/walle_bg.webp",
+          "/hackathons/hackathons_bg.webp",
+          "/lab/lab_bg.webp",
         ]}
         breakpointIds={[
           // "Imaginecraft",

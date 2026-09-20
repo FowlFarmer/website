@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'; // ← you use useState/useEffect
 import useScrollThresholdFade from '../jias-react-components/tools/useScrollThresholdFade.jsx';
 import TextFader from '../jias-react-components/tools/TextFader.jsx';
+import LazyYouTube from '../LazyYouTube.jsx';
 
 export default function DBHCard() {
   const dbh_blob_opacity = useScrollThresholdFade(80, 8000000, 300);
@@ -43,20 +44,11 @@ export default function DBHCard() {
 
         {/* RIGHT COLUMN */}
         <div style={{ flex: "1 1 320px", minWidth: 0, maxWidth: "100%", alignContent: "center" }}>
-          <iframe
-            src="https://www.youtube.com/embed/c0F4bFpVJVI"
-            title="YouTube video"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="glass-effect"
-            style={{
-              width: "100%",          // ← important on mobile
-              maxWidth: "100%",       // ← belt-and-suspenders
-              display: "block",       // ← avoid inline gap/overflow quirks
-              aspectRatio: "16 / 9",
-              minWidth: 0
-            }}
+          <LazyYouTube
+            videoId="c0F4bFpVJVI"
+            title="Detroit: Become Human opening theme cover"
+            className="media-frame"
+            style={{ maxWidth: "100%", minWidth: 0 }}
           />
         </div>
       </div>

@@ -5,9 +5,9 @@ const projects = [
   {
     title: "Miku Explains",
     images: [
-      "/miku_explains/add_calendar_functionality.png",
-      "/miku_explains/history_list.png",
-      "/miku_explains/summarization_functionality.png",
+      "/miku_explains/add_calendar_functionality.webp",
+      "/miku_explains/history_list.webp",
+      "/miku_explains/summarization_functionality.webp",
     ],
     alt: "Miku Explains app artwork",
     description:
@@ -18,7 +18,7 @@ const projects = [
   },
   {
     title: "YouTube Subscription Sweeper",
-    image: "/unsubscriber/main_ui.png",
+    image: "/unsubscriber/main_ui.webp",
     alt: "YouTube Subscription Sweeper logo",
     description:
       "A web tool for loading YouTube subscriptions, filtering them locally with regex, and safely unsubscribing from selected channels with exact-count confirmation. [p.s. the project is yet to be approved by google cloud, so auth looks sketchy]",

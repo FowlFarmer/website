@@ -1,6 +1,7 @@
 import React from 'react';
 import HorizontalCycleBarCentered from '../jias-react-components/tools/itemscycleCentered.jsx';
 import TextFader from '../jias-react-components/tools/TextFader.jsx';
+import LazyYouTube from '../LazyYouTube.jsx';
 
 export default function GuardianAngel() {
   const _images = [
@@ -41,7 +42,7 @@ export default function GuardianAngel() {
         <p style={{textAlign: "left", marginTop: "20px", marginLeft: "20px", fontWeight: "bold"}}>Featured Hackathon Project</p>
         <div style={{ display: "flex", gap: "0px", marginTop: "-20px", flexWrap: "wrap", }}>
           <div style={{ flex: "1 1 400px", padding: "20px", alignContent: "flex-start", textAlign: "left" }}>
-              <img style={{ borderRadius: "0px", marginTop: "25px" }} src="/ross/htn_banner.png" alt="HTN Banner" />
+              <img style={{ borderRadius: "0px", marginTop: "25px" }} src="/ross/htn_banner.webp" alt="HTN Banner" />
             <p style={{ fontWeight: "bold", textAlign: "center" }}>Hack The North 2025 Finalist Project</p>
             <p style={{ fontWeight: "bold", textAlign: "center" }}>
               By Theodore Zhu, Jonathan Shan, Tian Yao, and Andre Ke
@@ -81,8 +82,8 @@ export default function GuardianAngel() {
 
         <div className="flex items-start justify-start" style={{ flex: "1 1 400px", padding: "20px"}}>
               <div style={{ flex: 1, alignItems: "flex-start"}}>
-              <img style={{borderRadius: "0px", marginTop: "25px"}} src="/ross/rosskeynote.png" alt="Ross Keynote" />
-              <iframe style={{width: "100%", aspectRatio: "16/9"}} src="https://www.youtube.com/embed/FP0lBdZkyqI" title="Ross" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+              <img style={{borderRadius: "0px", marginTop: "25px"}} src="/ross/rosskeynote.webp" alt="Ross Keynote" />
+              <LazyYouTube videoId="FP0lBdZkyqI" title="Ross" />
               </div>
           </div>
 

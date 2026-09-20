@@ -80,6 +80,9 @@ const BACKDROP_COVER_MAX_SCALE = 256;
 const BACKDROP_COVER_POINTER_STEPS = [-1, 0, 1];
 const BACKDROP_COVER_BOB_STEPS = [-1, 0, 1];
 const MOBILE_SCENE_QUERY = '(max-width: 767px), (pointer: coarse) and (max-width: 1024px)';
+// The scene shares the GPU with page compositing while scrolling. On a 2x
+// display 1.25 keeps the background crisp enough while leaving headroom.
+const DESKTOP_PIXEL_RATIO_CAP = 1.25;
 
 function SceneVectorInput({ label, values, step, onChange }) {
   const numericStep = Number(step);
@@ -508,7 +511,7 @@ export default function CherryBlossomScene() {
       return undefined;
     }
 
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.1 : 1.55));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.1 : DESKTOP_PIXEL_RATIO_CAP));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1169,7 +1172,7 @@ export default function CherryBlossomScene() {
       petalField.material.uniforms.uTanHalfFov.value = Math.tan(
         THREE.MathUtils.degToRad(camera.fov / 2),
       );
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.1 : 1.55));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.1 : DESKTOP_PIXEL_RATIO_CAP));
       renderer.setSize(width, height);
       if (mobileLayout) frameMobileBackdrop();
       updateBackdropCover();

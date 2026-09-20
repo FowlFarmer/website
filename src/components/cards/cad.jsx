@@ -9,7 +9,9 @@ const Slide = ({ images, title, caption }) => (
           key={i}
           src={src}
           alt={title}
-          className="glass-effect"
+          className="media-frame"
+          loading="lazy"
+          decoding="async"
           style={{ height: '280px', width: 'auto', maxWidth: images.length > 1 ? `calc(50% - 5px)` : '100%', objectFit: 'contain', borderRadius: '8px', flexShrink: 1 }}
         />
       ))}
@@ -23,17 +25,17 @@ const Slide = ({ images, title, caption }) => (
 
 const items = [
   <Slide
-    images={['/cad/fork1.png', '/cad/fork2.png']}
+    images={['/cad/fork1.jpg', '/cad/fork2.jpg']}
     title="Ergonomic Fork"
     caption="Somehow my friend and I ended up in a situation with some buldak, a 3d printer and no forks... and hungry bellies. So we did the only logical thing and designed and printed our own forks, using pencils for handles. Don't ask about the microplastics..."
   />,
   <Slide
-    images={['/cad/lance1.png', '/cad/lance2.png']}
+    images={['/cad/lance1.jpg', '/cad/lance2.webp']}
     title="Cool stick"
     caption="Lance that is wielded by a certain Fate Grand Order character. Looks even more awesomer in person."
   />,
   <Slide
-    images={['/cad/wallboard.png']}
+    images={['/cad/wallboard.jpg']}
     title="Wall-Mounted Board"
     caption="A selection of anime stuff I designed and printed."
   />,

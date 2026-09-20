@@ -32,7 +32,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/lab/labpic_3.png" alt="Lab Pic 3" />
+        }} src="/lab/labpic_3.webp" alt="Lab Pic 3" />
         <p>Mammalian cell culture in a biocabinet</p>
       </div>,
       <div className="labpic">
@@ -45,7 +45,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/lab/labpic_4.png" alt="Lab Pic 4" />
+        }} src="/lab/labpic_4.webp" alt="Lab Pic 4" />
         <p>Observing cell health in a microscope</p>
       </div>,
       <div className="labpic">
@@ -58,7 +58,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/lab/labpic_10.png" alt="Lab Pic 10" />
+        }} src="/lab/labpic_10.webp" alt="Lab Pic 10" />
         <p>Electrophoresis Gel Imaging</p>
       </div>,
     ];
@@ -75,7 +75,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/lab/labpic_2.png" alt="Lab Pic 2" />
+        }} src="/lab/labpic_2.webp" alt="Lab Pic 2" />
         <p>Flow Cytometry data (My plasmid cloning was successful!)</p>
       </div>,
       <div className="labpic" >
@@ -101,7 +101,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/lab/labpic_6.png" alt="Lab Pic 6" />
+        }} src="/lab/labpic_6.webp" alt="Lab Pic 6" />
         <p>Quantitative PCR data. Tight curves demonstrate high data and experimental quality.</p>
       </div>,
       <div className="labpic" >
@@ -114,7 +114,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/lab/labpic_7.png" alt="Lab Pic 7" />
+        }} src="/lab/labpic_7.webp" alt="Lab Pic 7" />
         <p>Escherichia Coli cultures for plasmid cloning after innoculating the previous day.</p>
       </div>,
       <div className="labpic" >
@@ -127,7 +127,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/lab/labpic_8.png" alt="Lab Pic 8" />
+        }} src="/lab/labpic_8.webp" alt="Lab Pic 8" />
         <p>Cell cultures of the 38B9 Pro B Cell line</p>
       </div>,
       <div className="labpic" >
@@ -140,7 +140,7 @@ export default function LabCard() {
           display: "block",
           minWidth: "0px",
           minHeight: "0px"
-        }} src="/lab/labpic_9.png" alt="Lab Pic 9" />
+        }} src="/lab/labpic_9.webp" alt="Lab Pic 9" />
         <p>Sterile laboratory grade water that looked really refreshing (did not drink though).</p>
       </div>,
     ];

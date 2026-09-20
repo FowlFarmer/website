@@ -610,6 +610,67 @@ body {
   max-width: 20%; */
 }
 
+/* The glass card frame for opaque media. Photos and video players fully
+   cover their backdrop, so a backdrop-filter on them only costs a blur pass
+   per element per frame while scrolling. Keep the border and hover lift. */
+.media-frame {
+  border: 3px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  box-shadow: 0 3px 4px 3px rgba(150, 150, 150, 0.05);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.media-frame:hover {
+  transform: scale(1.01);
+  box-shadow: 0 3px 5px 4px rgba(0, 0, 0, 0.06);
+}
+
+.lazy-youtube {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
+  cursor: pointer;
+}
+
+.lazy-youtube img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 0;
+}
+
+.lazy-youtube-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 68px;
+  height: 48px;
+  transform: translate(-50%, -50%);
+  border-radius: 14px;
+  background: rgba(20, 20, 20, 0.82);
+  transition: background 0.2s ease-in-out;
+}
+
+.lazy-youtube-play::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-40%, -50%);
+  border-style: solid;
+  border-width: 11px 0 11px 19px;
+  border-color: transparent transparent transparent #fff;
+}
+
+.lazy-youtube:hover .lazy-youtube-play {
+  background: #ff0033;
+}
+
 
 /* Outer container clips overflow */
 .hcyclebarcentered {

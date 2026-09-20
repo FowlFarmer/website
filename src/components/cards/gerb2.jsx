@@ -1,6 +1,7 @@
 import React from 'react';
 import useScrollThresholdFade from '../jias-react-components/tools/useScrollThresholdFade.jsx';
 import TextFader from '../jias-react-components/tools/TextFader.jsx';
+import LazyYouTube from '../LazyYouTube.jsx';
 
 export default function Gerb2Card() {
 //   const dbh_blob_opacity = useScrollThresholdFade(80, 800, 300);
@@ -32,15 +33,7 @@ export default function Gerb2Card() {
             />
         </div>
         <div style={{ flex: "1 1 360px", padding: "20px", alignContent: "center", textAlign: "center" }}>
-          <iframe
-            src="https://www.youtube.com/embed/LWBjHgwYJAU"
-            title="YouTube video"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="glass-effect"
-            style={{ width: "100%", aspectRatio: "16/9" }}
-          ></iframe>
+          <LazyYouTube videoId="LWBjHgwYJAU" title="Gerb II demo" className="media-frame" />
           <div style={{marginTop: "10px"}} />
           {/*dssdfdsfgfhjtyr
           dsfdfd

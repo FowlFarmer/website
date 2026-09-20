@@ -7,16 +7,16 @@ import InlinePdf from '../jias-react-components/tools/pdf.jsx';
 export default function SmallProjectsCard() {
   const _bedmaker_images = [
     <div>
-      <img src="/bedmaker/bedmaker_2.png" alt="Bedmaker 2" />
+      <img src="/bedmaker/bedmaker_2.webp" alt="Bedmaker 2" />
     </div>,
     <div>
-      <img src="/bedmaker/bedmaker_3.png" alt="Bedmaker 3" />
+      <img src="/bedmaker/bedmaker_3.webp" alt="Bedmaker 3" />
     </div>,
     <div>
-      <img src="/bedmaker/bedmaker_4.png" alt="Bedmaker 4" />
+      <img src="/bedmaker/bedmaker_4.webp" alt="Bedmaker 4" />
     </div>,
     <div>
-      <img src="/bedmaker/bedmaker_5.png" alt="Bedmaker 5" />
+      <img src="/bedmaker/bedmaker_5.webp" alt="Bedmaker 5" />
     </div>
   ];
 
@@ -43,15 +43,16 @@ export default function SmallProjectsCard() {
 
           <div style={{ flex: "0.7 0.7 350px", display: 'flex', gap: '10px', alignItems: 'stretch', justifyContent: "center" }}>
             <img
-              src="/breathmentor/breathmentor_1.png"
+              src="/breathmentor/breathmentor_1.webp"
               alt="BreathMentor"
               style={{ width: 'auto', height: '300px', objectFit: 'cover', display: 'block' }}
             />
 
-            <img
-              src="/breathmentor/breathmentor_2.gif"
-              alt="BreathMentor_2"
-              style={{ width: 'auto', height: '300px', objectFit: 'cover', display: 'block' }}
+            <video
+              src="/breathmentor/breathmentor_2.mp4"
+              aria-label="BreathMentor_2"
+              autoPlay loop muted playsInline preload="metadata"
+              style={{ width: 'auto', height: '300px', objectFit: 'cover', display: 'block', borderRadius: '8px' }}
             />
           </div>
         </div>
@@ -92,10 +93,11 @@ export default function SmallProjectsCard() {
           </div>
 
           <div style={{ flex: "0.5 0.5 200px" }}>
-            <img
-              src="/bedmaker/bedmaker_loop.gif"
-              alt="Bedmaker Gif"
-              style={{ width: '100%', height: 'auto', borderRadius: "12px" }}
+            <video
+              src="/bedmaker/bedmaker_loop.mp4"
+              aria-label="Bedmaker loop"
+              autoPlay loop muted playsInline preload="metadata"
+              style={{ width: '100%', height: 'auto', borderRadius: "12px", display: 'block' }}
             />
             <div
               style={{

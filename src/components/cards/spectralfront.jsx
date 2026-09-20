@@ -44,7 +44,7 @@ export default function SpectralFrontCard() {
             }}
           >
             <img
-              src="/spectralfront/spectralfront.png"
+              src="/spectralfront/spectralfront.webp"
               alt="Spectral Front gameplay screenshot"
               style={{
                 width: "100%",

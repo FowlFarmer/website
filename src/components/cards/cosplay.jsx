@@ -6,10 +6,10 @@ export default function CosplayCard() {
     const [lightbox, setLightbox] = useState(null);
 
     const images = [ // 1 - 12
-      "/cosplay/scissors.png",
-      "/cad/lance1.png",
-      "/cad/lance2.png",
-      "/cad/wallboard.png",
+      "/cosplay/scissors.jpg",
+      "/cad/lance1.jpg",
+      "/cad/lance2.webp",
+      "/cad/wallboard.jpg",
       "/cosplay/cosplay_1.jpg",
       "/cosplay/cosplay_2.jpg",
       "/cosplay/cosplay_3.jpg",
@@ -53,8 +53,10 @@ export default function CosplayCard() {
             <img
             src={src}
             alt={`Image ${idx}`}
-            className="cosplay-item glass-effect"
+            className="cosplay-item media-frame"
             style={{ cursor: "pointer" }}
+            loading="lazy"
+            decoding="async"
             onClick={() => setLightbox(src)}
             />
             </div>

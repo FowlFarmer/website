@@ -8,7 +8,7 @@ const experiences = [
     headline: 'Test Systems Engineering: Optimus Reliability & HV Software Integration',
     dateRange: 'January - April 2026',
     location: 'Sunnyvale, California',
-    images: ['/work_experience/tesla/tesla_1.png', '/work_experience/tesla/tesla_2.png', '/work_experience/tesla/tesla_3.png', '/work_experience/tesla/tesla_4.png', '/work_experience/tesla/tesla_5.png', '/work_experience/tesla/tesla_6.png'],
+    images: ['/work_experience/tesla/tesla_1.webp', '/work_experience/tesla/tesla_2.webp', '/work_experience/tesla/tesla_3.webp', '/work_experience/tesla/tesla_4.webp', '/work_experience/tesla/tesla_5.webp', '/work_experience/tesla/tesla_6.webp'],
   },
   {
     id: 'watonomous',
@@ -17,7 +17,7 @@ const experiences = [
     headline: 'Software and Hardware Platforms for Self-Driving Cars',
     dateRange: 'January 2025 - Present',
     location: 'Student Design Team @ University of Waterloo',
-    images: ['/work_experience/watonomous/watonomous_1.png'],
+    images: ['/work_experience/watonomous/watonomous_1.webp'],
   },
   {
     id: 'independent-robotics',
@@ -26,7 +26,7 @@ const experiences = [
     headline: 'Software Integration for Aquatic Robotics',
     dateRange: 'May - August 2025',
     location: 'Montreal, Quebec',
-    images: ['/work_experience/independent_robotics/ir_1.png', '/work_experience/independent_robotics/ir_2.png'],
+    images: ['/work_experience/independent_robotics/ir_1.webp', '/work_experience/independent_robotics/ir_2.webp'],
   },
   {
     id: 'rapyuta',
@@ -35,7 +35,7 @@ const experiences = [
     headline: 'Firmware for Autonomous Storage and Retrieval Systems (ASRS)',
     dateRange: 'June - December 2024',
     location: 'Tokyo, Japan',
-    images: ['/work_experience/rapyuta/rapyuta_1.png', '/work_experience/rapyuta/rapyuta_2.PNG'],
+    images: ['/work_experience/rapyuta/rapyuta_1.webp', '/work_experience/rapyuta/rapyuta_2.webp'],
   },
 ];
 
@@ -57,6 +57,8 @@ function CyclingImage({ images, alt }) {
           key={i}
           src={src}
           alt={`${alt} ${i + 1}`}
+          loading="lazy"
+          decoding="async"
           style={{
             position: 'absolute', inset: 0,
             width: '100%', height: '100%',

@@ -13,9 +13,9 @@ import GitHubProfileCard from './cards/gh.jsx';
 
 // Backgrounds moved to public/ — reference via public path
 const bg1 = '/home/first_bg.gif';
-const bg2 = '/home/dbh_bg.jpg';
+const bg2 = '/home/dbh_bg.webp';
 const bg3 = '/home/shrine_bg.jpg';
-const bg4 = '/home/mc_shipbuilding_bg.png';
+const bg4 = '/home/mc_shipbuilding_bg.webp';
 
 export default function Self() {
     const first_blob_opacity = useScrollThresholdFade(-1, 300, 300);
