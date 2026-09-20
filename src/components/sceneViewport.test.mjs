@@ -1,44 +1,57 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { sceneViewport } from './sceneViewport.mjs';
-const bounds = { minX: 0.4, maxX: 1.3, minY: -1.15, maxY: -0.5, storeWidth: 0.9 };
+// Authored store: extends past the right edge and below the bottom edge.
+const bounds = { storeMinX: 0.1, storeMaxX: 1.2 };
+const referenceAspect = 1.7683956574185766;
 
-test('desktop view is unchanged until the store crosses 60% width', () => {
-  const desktop = sceneViewport(1440, 900, 1.6, bounds);
-  assert.equal(desktop.scale, 1);
-  assert.equal(desktop.width, 1440);
-  assert.equal(desktop.height, 900);
-  const narrower = sceneViewport(1200, 900, 1.6, bounds);
-  assert.equal(narrower.scale, 1);
-  assert.equal(narrower.storeWidth, desktop.storeWidth);
+test('authored aspect at scale 1 reproduces the editor frame exactly', () => {
+  const height = 900;
+  const width = height * referenceAspect;
+  const view = sceneViewport(width, height, referenceAspect, bounds);
+  assert.equal(view.scale, 1);
+  assert.ok(Math.abs(view.x) < 1e-9);
+  assert.equal(view.y, 0);
+  assert.ok(Math.abs(view.width - width) < 1e-9);
+  assert.equal(view.height, height);
 });
 
-test('phone through ultrawide maintains angle, width cap and bottom-right anchor', () => {
+test('wider screens keep the authored frame pinned bottom-right at full size', () => {
+  const view = sceneViewport(2560, 1080, referenceAspect, bounds);
+  assert.equal(view.scale, 1);
+  assert.equal(view.height, 1080);
+  assert.ok(Math.abs(view.x + view.width - 2560) < 1e-9);
+  assert.equal(view.y, 0);
+});
+
+test('phone through ultrawide keeps aspect, 60% cap and the bottom-right corner', () => {
   for (const [width, height] of [[320, 568], [390, 844], [768, 1024], [844, 390], [1440, 900], [2560, 1080]]) {
-    const view = sceneViewport(width, height, 1.6, bounds, 24);
+    const inset = 24;
+    const view = sceneViewport(width, height, referenceAspect, bounds, inset);
     assert.ok(view.storeWidth <= width * 0.6 + 1e-9);
-    const right = view.x + (bounds.maxX * view.projectionScale + view.shiftX + 1) * view.width / 2;
-    const bottom = view.y + (bounds.minY * view.projectionScale + view.shiftY + 1) * view.height / 2;
-    const left = right - view.storeWidth;
-    assert.ok(Math.abs(right - (width - 12)) < 1e-9);
-    assert.ok(Math.abs(bottom - 36) < 1e-9);
-    assert.ok(left >= 0);
-    assert.ok(Math.abs(view.width / view.height - 1.6) < 1e-9);
+    assert.ok(Math.abs(view.x + view.width - width) < 1e-9);
+    assert.equal(view.y, inset);
+    assert.ok(Math.abs(view.width / view.height - referenceAspect) < 1e-9);
     assert.ok(view.scale <= 1);
+    assert.ok(view.height <= height - inset + 1e-9);
   }
 });
 
-test('size is continuous at the threshold', () => {
-  const threshold = 900 * 1.6 * 0.9 / 2 / 0.6;
-  const above = sceneViewport(threshold + 0.01, 900, 1.6, bounds);
-  const below = sceneViewport(threshold - 0.01, 900, 1.6, bounds);
-  assert.equal(above.scale, 1);
-  assert.ok(Math.abs(above.width - below.width) < 0.02);
+test('cropped store geometry is never revealed by the cap', () => {
+  const view = sceneViewport(390, 844, referenceAspect, bounds);
+  // The right edge of the authored frame is the right edge of the screen, so
+  // anything the author placed past NDC x = 1 stays off screen.
+  const frameRight = view.x + view.width;
+  const storeRight = view.x + (bounds.storeMaxX + 1) * view.width / 2;
+  assert.ok(storeRight > frameRight);
+  assert.ok(Math.abs(frameRight - 390) < 1e-9);
 });
 
-test('oversized authored models are fully inside the render frustum', () => {
-  const large = { minX: -2, maxX: 2, minY: -3, maxY: 1, storeWidth: 4 };
-  const view = sceneViewport(390, 844, 1.6, large);
-  for (const x of [large.minX, large.maxX]) assert.ok(Math.abs(x * view.projectionScale + view.shiftX) <= 1);
-  for (const y of [large.minY, large.maxY]) assert.ok(Math.abs(y * view.projectionScale + view.shiftY) <= 1);
+test('size is continuous at the threshold', () => {
+  const visibleSpan = Math.min(bounds.storeMaxX, 1) - Math.max(bounds.storeMinX, -1);
+  const threshold = 900 * referenceAspect * visibleSpan / 2 / 0.6;
+  const above = sceneViewport(threshold + 0.01, 900, referenceAspect, bounds);
+  const below = sceneViewport(threshold - 0.01, 900, referenceAspect, bounds);
+  assert.equal(above.scale, 1);
+  assert.ok(Math.abs(above.width - below.width) < 0.02);
 });

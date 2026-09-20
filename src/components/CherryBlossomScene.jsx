@@ -19,6 +19,7 @@ const AXES = ['X', 'Y', 'Z'];
 const DEFAULT_FOG_DENSITY = 0.032;
 const DEFAULT_BACKDROP_FOG_DENSITY = 0.032;
 const DEFAULT_SCENE_POSE = {
+  referenceAspect: 1.7683956574185766,
   camera: {
     position: [-2.632, 8.496, 31.296],
     rotation: [0, 0, 0],
@@ -482,7 +483,7 @@ export default function CherryBlossomScene() {
     const baseCameraTarget = new THREE.Vector3(0, 1.88, -2.8);
     const modelCamera = new THREE.PerspectiveCamera();
     let referenceAspect = 1.6;
-    let modelBounds = { minX: -1, maxX: 1, minY: -1, maxY: 1, storeWidth: 2 };
+    let modelBounds = { storeMinX: -1, storeMaxX: 1 };
     const parallaxFocalPoint = new THREE.Vector3();
 
     const orbitControls = new OrbitControls(camera, mount);
@@ -765,7 +766,9 @@ export default function CherryBlossomScene() {
 
     const applyFullPose = (pose) => {
       if (!pose) return;
-      referenceAspect = pose.referenceAspect || 1.6;
+      if (Number.isFinite(pose.referenceAspect) && pose.referenceAspect > 0) {
+        referenceAspect = pose.referenceAspect;
+      }
       if (Number.isFinite(pose.fogDensity)) {
         scene.fog.density = THREE.MathUtils.clamp(pose.fogDensity, 0, 0.12);
         setFogDensity(scene.fog.density);
@@ -1101,11 +1104,10 @@ export default function CherryBlossomScene() {
       modelCamera.aspect = referenceAspect;
       modelCamera.updateProjectionMatrix();
       modelCamera.updateMatrixWorld(true);
-      const projected = new THREE.Box2();
+      // Only the store's horizontal span in the authored frame matters: the
+      // frame itself is what gets pinned, so its crop is preserved as-is.
       const projectedStore = new THREE.Box2();
-      const storeMeshes = new Set();
-      editableObjects.store.traverse((object) => storeMeshes.add(object));
-      modelGroup.traverseVisible((object) => {
+      editableObjects.store.traverse((object) => {
         if (!object.isMesh) return;
         if (!object.geometry.boundingBox) object.geometry.computeBoundingBox();
         const bounds = object.geometry.boundingBox;
@@ -1113,17 +1115,12 @@ export default function CherryBlossomScene() {
           for (const y of [bounds.min.y, bounds.max.y]) {
             for (const z of [bounds.min.z, bounds.max.z]) {
               const point = new THREE.Vector3(x, y, z).applyMatrix4(object.matrixWorld).project(modelCamera);
-              projected.expandByPoint(new THREE.Vector2(point.x, point.y));
-              if (storeMeshes.has(object)) projectedStore.expandByPoint(new THREE.Vector2(point.x, point.y));
+              projectedStore.expandByPoint(new THREE.Vector2(point.x, point.y));
             }
           }
         }
       });
-      modelBounds = {
-        minX: projected.min.x, maxX: projected.max.x,
-        minY: projected.min.y, maxY: projected.max.y,
-        storeWidth: projectedStore.max.x - projectedStore.min.x,
-      };
+      modelBounds = { storeMinX: projectedStore.min.x, storeMaxX: projectedStore.max.x };
     };
     const frameMobileBackdrop = () => {
       if (!editableObjects.store || !editableObjects.rider || !backdropPlane) return;
@@ -1223,8 +1220,10 @@ export default function CherryBlossomScene() {
         camera.layers.enableAll();
         renderer.render(scene, camera);
       } else {
-        // Background and petals fill the screen. The models retain the
-        // authored desktop projection in a bottom-right anchored viewport.
+        // Background and petals fill the screen. The models render with the
+        // authored camera and aspect into a viewport whose bottom-right corner
+        // is pinned to the screen's bottom-right corner, so the editor's
+        // framing and crop are reproduced exactly and only scale down.
         camera.layers.set(0);
         renderer.render(scene, camera);
         const background = scene.background;
@@ -1237,13 +1236,6 @@ export default function CherryBlossomScene() {
         modelCamera.aspect = referenceAspect;
         modelCamera.layers.set(1);
         modelCamera.updateProjectionMatrix();
-        // Only translate/scale the projected image; keep the authored camera
-        // position, direction, model transforms, and lighting untouched.
-        modelCamera.projectionMatrix.elements[0] *= view.projectionScale;
-        modelCamera.projectionMatrix.elements[5] *= view.projectionScale;
-        modelCamera.projectionMatrix.elements[8] -= view.shiftX;
-        modelCamera.projectionMatrix.elements[9] -= view.shiftY;
-        modelCamera.projectionMatrixInverse.copy(modelCamera.projectionMatrix).invert();
         renderer.setViewport(view.x, view.y, view.width, view.height);
         renderer.render(scene, modelCamera);
         renderer.setViewport(0, 0, viewportWidth, viewportHeight);
