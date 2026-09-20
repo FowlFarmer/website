@@ -482,7 +482,7 @@ export default function CherryBlossomScene() {
     const baseCameraTarget = new THREE.Vector3(0, 1.88, -2.8);
     const modelCamera = new THREE.PerspectiveCamera();
     let referenceAspect = 1.6;
-    let storeWidthNdc = 0;
+    let modelBounds = { minX: -1, maxX: 1, minY: -1, maxY: 1, storeWidth: 2 };
     const parallaxFocalPoint = new THREE.Vector3();
 
     const orbitControls = new OrbitControls(camera, mount);
@@ -1102,7 +1102,10 @@ export default function CherryBlossomScene() {
       modelCamera.updateProjectionMatrix();
       modelCamera.updateMatrixWorld(true);
       const projected = new THREE.Box2();
-      editableObjects.store.traverseVisible((object) => {
+      const projectedStore = new THREE.Box2();
+      const storeMeshes = new Set();
+      editableObjects.store.traverse((object) => storeMeshes.add(object));
+      modelGroup.traverseVisible((object) => {
         if (!object.isMesh) return;
         if (!object.geometry.boundingBox) object.geometry.computeBoundingBox();
         const bounds = object.geometry.boundingBox;
@@ -1111,13 +1114,16 @@ export default function CherryBlossomScene() {
             for (const z of [bounds.min.z, bounds.max.z]) {
               const point = new THREE.Vector3(x, y, z).applyMatrix4(object.matrixWorld).project(modelCamera);
               projected.expandByPoint(new THREE.Vector2(point.x, point.y));
+              if (storeMeshes.has(object)) projectedStore.expandByPoint(new THREE.Vector2(point.x, point.y));
             }
           }
         }
       });
-      // The authored desktop pose intentionally crops the right edge. Measure
-      // its visible footprint, so the 60% rule concerns what is on screen.
-      storeWidthNdc = Math.max(0, Math.min(1, projected.max.x) - Math.max(-1, projected.min.x));
+      modelBounds = {
+        minX: projected.min.x, maxX: projected.max.x,
+        minY: projected.min.y, maxY: projected.max.y,
+        storeWidth: projectedStore.max.x - projectedStore.min.x,
+      };
     };
     const frameMobileBackdrop = () => {
       if (!editableObjects.store || !editableObjects.rider || !backdropPlane) return;
@@ -1226,11 +1232,18 @@ export default function CherryBlossomScene() {
         renderer.autoClear = false;
         renderer.clearDepth();
         const inset = mobileLayout ? Math.max(0, viewportHeight - safeViewportHeight) : 0;
-        const view = sceneViewport(viewportWidth, viewportHeight, referenceAspect, storeWidthNdc, inset);
+        const view = sceneViewport(viewportWidth, viewportHeight, referenceAspect, modelBounds, inset);
         modelCamera.copy(camera);
         modelCamera.aspect = referenceAspect;
         modelCamera.layers.set(1);
         modelCamera.updateProjectionMatrix();
+        // Only translate/scale the projected image; keep the authored camera
+        // position, direction, model transforms, and lighting untouched.
+        modelCamera.projectionMatrix.elements[0] *= view.projectionScale;
+        modelCamera.projectionMatrix.elements[5] *= view.projectionScale;
+        modelCamera.projectionMatrix.elements[8] -= view.shiftX;
+        modelCamera.projectionMatrix.elements[9] -= view.shiftY;
+        modelCamera.projectionMatrixInverse.copy(modelCamera.projectionMatrix).invert();
         renderer.setViewport(view.x, view.y, view.width, view.height);
         renderer.render(scene, modelCamera);
         renderer.setViewport(0, 0, viewportWidth, viewportHeight);
