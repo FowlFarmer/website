@@ -77,6 +77,7 @@ const BACKDROP_COVER_OVERSCAN = 1.045;
 const BACKDROP_COVER_MAX_SCALE = 32;
 const BACKDROP_COVER_POINTER_STEPS = [-1, 0, 1];
 const BACKDROP_COVER_BOB_STEPS = [-1, 0, 1];
+const MOBILE_SCENE_QUERY = '(max-width: 767px), (pointer: coarse) and (max-width: 1024px)';
 
 function SceneVectorInput({ label, values, step, onChange }) {
   const numericStep = Number(step);
@@ -428,6 +429,13 @@ function SceneLoadingScreen({ ready }) {
 }
 
 export default function CherryBlossomScene() {
+  const [mobileLayout, setMobileLayout] = useState(() => window.matchMedia(MOBILE_SCENE_QUERY).matches);
+  useEffect(() => {
+    const query = window.matchMedia(MOBILE_SCENE_QUERY);
+    const update = () => setMobileLayout(query.matches);
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
   const mountRef = useRef(null);
   const editorApiRef = useRef(null);
   const [editing, setEditing] = useState(false);
@@ -449,6 +457,9 @@ export default function CherryBlossomScene() {
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount) return undefined;
+    // Freeze the large viewport in pixels as well, including browsers whose
+    // viewport units resize with browser chrome. Re-measure on width changes.
+    if (mobileLayout) mount.style.height = `${mount.clientHeight}px`;
     const loadingStartedAt = performance.now();
     let readyTimer;
 
@@ -463,7 +474,7 @@ export default function CherryBlossomScene() {
       43,
       mount.clientWidth / Math.max(mount.clientHeight, 1),
       0.1,
-      80,
+      250,
     );
     camera.position.set(0, 2.6, 9.2);
     const baseCameraPosition = new THREE.Vector3(0, 2.6, 9.2);
@@ -663,6 +674,7 @@ export default function CherryBlossomScene() {
     };
 
     const updateBackdropCover = () => {
+      if (mobileLayout) return;
       if (!backdropPlane || !editableObjects.backdrop) return;
       const bounds = backdropPlane.geometry.boundingBox;
       if (!bounds) return;
@@ -904,7 +916,7 @@ export default function CherryBlossomScene() {
     }, undefined, () => pmrem.dispose());
     const textureLoader = new THREE.TextureLoader();
     Promise.all([
-      textureLoader.loadAsync('/images/scene/fuji_hd.jpg'),
+      textureLoader.loadAsync(mobileLayout ? '/images/scene/fuji-mobile.jpg' : '/images/scene/fuji_hd.jpg'),
       loader.loadAsync('/models/lawson/lawson-mobile.glb'),
       loader.loadAsync('/models/cherry-blossom/bicycle-rider-mobile.glb'),
     ])
@@ -1023,7 +1035,7 @@ export default function CherryBlossomScene() {
 
         initialPose = DEFAULT_SCENE_POSE;
         applyFullPose(initialPose);
-        const savedPose = window.localStorage.getItem(POSE_STORAGE_KEY);
+        const savedPose = mobileLayout ? null : window.localStorage.getItem(POSE_STORAGE_KEY);
         if (savedPose) {
           try {
             applyFullPose(JSON.parse(savedPose));
@@ -1032,6 +1044,7 @@ export default function CherryBlossomScene() {
           }
         }
         attachSelection(activeSelection);
+        if (mobileLayout) frameMobileScene();
 
         mount.dataset.sceneLoaded = 'true';
         readyTimer = window.setTimeout(
@@ -1055,15 +1068,71 @@ export default function CherryBlossomScene() {
     let visible = !document.hidden;
 
     const handlePointerMove = (event) => {
+      if (mobileLayout || event.pointerType === 'touch') return;
       targetPointer.x = (event.clientX / window.innerWidth - 0.5) * 2;
       targetPointer.y = (event.clientY / window.innerHeight - 0.5) * 2;
     };
     const handleVisibility = () => {
       visible = !document.hidden;
     };
+    // svh/lvh remain stable while Safari expands/collapses its toolbar.
+    const safeViewport = document.createElement('div');
+    safeViewport.style.cssText = 'position:absolute;height:100svh;width:0;visibility:hidden;pointer-events:none';
+    mount.appendChild(safeViewport);
+    const frameMobileScene = () => {
+      if (!editableObjects.store || !editableObjects.rider || !backdropPlane) return;
+      modelGroup.rotation.y = 0;
+      modelGroup.updateMatrixWorld(true);
+      const bounds = new THREE.Box3().setFromObject(modelGroup);
+      const size = bounds.getSize(new THREE.Vector3());
+      const center = bounds.getCenter(new THREE.Vector3());
+      camera.fov = 35;
+      const tangent = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+      // Fit the complete store/rider pair with side margins. Keep their base
+      // above the largest toolbar footprint, even when browser chrome is open.
+      const viewWidth = size.x * 1.12;
+      const viewHeight = viewWidth / camera.aspect;
+      const distance = viewHeight / (2 * tangent);
+      const safeHeight = safeViewport.clientHeight || mount.clientHeight;
+      const bottomInset = Math.max(0, mount.clientHeight - safeHeight) + 24;
+      const targetY = bounds.min.y + viewHeight * (0.5 - bottomInset / mount.clientHeight);
+      baseCameraPosition.set(center.x, targetY, bounds.max.z + distance);
+      baseCameraTarget.set(center.x, targetY, center.z);
+      camera.position.copy(baseCameraPosition);
+      camera.lookAt(baseCameraTarget);
+      camera.updateProjectionMatrix();
+      orbitControls.target.copy(baseCameraTarget);
+      focusMarker.position.copy(baseCameraTarget);
+      // The portrait image faces the camera: uniform cover scaling preserves
+      // its proportions and never inherits the desktop backdrop's tilted pose.
+      const depth = 140;
+      const backdrop = editableObjects.backdrop;
+      backdrop.position.set(camera.position.x, camera.position.y, camera.position.z - depth);
+      backdrop.rotation.set(0, 0, 0);
+      backdrop.scale.setScalar(1);
+      const imageAspect = backdropPlane.material.map.image.width / backdropPlane.material.map.image.height;
+      const coverHeight = 2 * tangent * depth * Math.max(1, camera.aspect / imageAspect);
+      backdropPlane.scale.setScalar(coverHeight / 16);
+      // Keep Fuji in view when landscape orientation crops the tall image.
+      backdrop.position.y += (coverHeight - 2 * tangent * depth) / 2;
+      ground.visible = false;
+      scene.fog.density = DEFAULT_SCENE_POSE.fogDensity * 30 / distance;
+      if (import.meta.env.DEV) mount.dataset.mobileCamera = JSON.stringify(baseCameraPosition.toArray());
+    };
+    let viewportWidth = mount.clientWidth;
+    let viewportHeight = mount.clientHeight;
     const handleResize = () => {
       const width = mount.clientWidth;
+      // Height-only toolbar and keyboard events do not change the composition.
+      if (mobileLayout && width === viewportWidth) return;
+      if (mobileLayout) {
+        mount.style.height = '';
+        mount.style.height = `${mount.clientHeight}px`;
+      }
       const height = Math.max(mount.clientHeight, 1);
+      if (width === viewportWidth && height === viewportHeight) return;
+      viewportWidth = width;
+      viewportHeight = height;
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       petalField.material.uniforms.uAspect.value = camera.aspect;
@@ -1072,6 +1141,7 @@ export default function CherryBlossomScene() {
       );
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.1 : 1.55));
       renderer.setSize(width, height);
+      if (mobileLayout) frameMobileScene();
       updateBackdropCover();
     };
 
@@ -1091,6 +1161,10 @@ export default function CherryBlossomScene() {
       pointer.lerp(targetPointer, 0.035);
       if (editingActive) {
         orbitControls.update();
+        modelGroup.rotation.y = 0;
+      } else if (mobileLayout) {
+        camera.position.copy(baseCameraPosition);
+        camera.lookAt(baseCameraTarget);
         modelGroup.rotation.y = 0;
       } else {
         camera.position.set(
@@ -1150,8 +1224,11 @@ export default function CherryBlossomScene() {
       pmrem.dispose();
       renderer.dispose();
       renderer.domElement.remove();
+      safeViewport.remove();
+      mount.style.height = '';
+      delete mount.dataset.mobileCamera;
     };
-  }, []);
+  }, [mobileLayout]);
 
   const toggleEditing = () => {
     const nextEditing = !editing;

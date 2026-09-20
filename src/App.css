@@ -59,6 +59,21 @@ body {
   transition: opacity 900ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+@media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
+  .cherry-blossom-scene {
+    bottom: auto;
+    height: 100vh;
+    height: 100lvh;
+    overflow: hidden;
+  }
+
+  /* Scene posing remains a desktop tool; mobile uses its own fitted camera. */
+  .scene-editor-toggle,
+  .scene-editor-panel {
+    display: none;
+  }
+}
+
 .cherry-blossom-scene[data-scene-loaded="true"] canvas {
   opacity: 1;
 }
