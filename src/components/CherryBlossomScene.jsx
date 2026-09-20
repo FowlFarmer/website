@@ -19,41 +19,41 @@ const DEFAULT_FOG_DENSITY = 0.032;
 const DEFAULT_BACKDROP_FOG_DENSITY = 0.032;
 const DEFAULT_SCENE_POSE = {
   camera: {
-    position: [-0.053, 8.252, 29.71],
+    position: [-2.632, 8.496, 31.296],
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
-    target: [-9.679, 15.458, -1.807],
-    fov: 31,
+    target: [-11.179, 15.989, -1.807],
+    fov: 32,
   },
   focus: {
-    position: [-9.679, 15.458, -1.807],
+    position: [-11.179, 15.989, -1.807],
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
-    target: [-9.679, 15.458, -1.807],
-    fov: 31,
+    target: [-11.179, 15.989, -1.807],
+    fov: 32,
   },
   backdrop: {
-    position: [-13.966, 11.447, -27.561],
-    rotation: [0, 20, 0],
-    scale: [0.5, 0.5, 0],
-    target: [-9.679, 15.458, -1.807],
-    fov: 31,
+    position: [-15.528, 23.785, -24.933],
+    rotation: [0, 12, 0],
+    scale: [0.08, 0.08, 0],
+    target: [-11.179, 15.989, -1.807],
+    fov: 32,
   },
   store: {
-    position: [-0.9, 6.508, -1.8],
+    position: [-0.9, 6.468, -1.8],
     rotation: [0, 1.146, 0],
-    scale: [17.568, 17.568, 17.568],
-    target: [-9.679, 15.458, -1.807],
-    fov: 31,
+    scale: [13, 13, 13],
+    target: [-11.179, 15.989, -1.807],
+    fov: 32,
   },
   rider: {
-    position: [-3.588, 7.761, 5.788],
+    position: [-3.588, 7.56, 5.788],
     rotation: [0, -70.125, 0],
-    scale: [2, 2, 2],
-    target: [-9.679, 15.458, -1.807],
-    fov: 31,
+    scale: [1.5, 1.5, 1.5],
+    target: [-11.179, 15.989, -1.807],
+    fov: 32,
   },
-  fogDensity: 0.016,
+  fogDensity: 0,
   backdropFogDensity: 0,
 };
 const OBJECT_LABELS = {
@@ -70,11 +70,11 @@ const TAB_LABELS = {
   store: 'Store',
   rider: 'Rider',
 };
-const POSE_STORAGE_KEY = 'convenience-store-scene-pose-v5';
+const POSE_STORAGE_KEY = 'convenience-store-scene-pose-v6';
 const PARALLAX_CAMERA_SWAY = { x: 0.78, y: 0.27, bob: 0.035 };
 const PARALLAX_FOCUS_SWAY = { x: 0.33, y: 0.18 };
 const BACKDROP_COVER_OVERSCAN = 1.045;
-const BACKDROP_COVER_MAX_SCALE = 32;
+const BACKDROP_COVER_MAX_SCALE = 256;
 const BACKDROP_COVER_POINTER_STEPS = [-1, 0, 1];
 const BACKDROP_COVER_BOB_STEPS = [-1, 0, 1];
 const MOBILE_SCENE_QUERY = '(max-width: 767px), (pointer: coarse) and (max-width: 1024px)';
@@ -430,11 +430,23 @@ function SceneLoadingScreen({ ready }) {
 
 export default function CherryBlossomScene() {
   const [mobileLayout, setMobileLayout] = useState(() => window.matchMedia(MOBILE_SCENE_QUERY).matches);
+  const [portraitBackdrop, setPortraitBackdrop] = useState(() => window.innerWidth < window.innerHeight);
   useEffect(() => {
     const query = window.matchMedia(MOBILE_SCENE_QUERY);
     const update = () => setMobileLayout(query.matches);
+    let previousWidth = window.innerWidth;
+    const updateBackdrop = () => {
+      const width = window.innerWidth;
+      if (query.matches && width === previousWidth) return;
+      previousWidth = width;
+      setPortraitBackdrop(width < window.innerHeight);
+    };
     query.addEventListener('change', update);
-    return () => query.removeEventListener('change', update);
+    window.addEventListener('resize', updateBackdrop);
+    return () => {
+      query.removeEventListener('change', update);
+      window.removeEventListener('resize', updateBackdrop);
+    };
   }, []);
   const mountRef = useRef(null);
   const editorApiRef = useRef(null);
@@ -661,6 +673,8 @@ export default function CherryBlossomScene() {
       coverCamera.aspect = camera.aspect;
       coverCamera.near = camera.near;
       coverCamera.far = camera.far;
+      coverCamera.zoom = camera.zoom;
+      coverCamera.view = camera.view ? { ...camera.view } : null;
       coverCamera.updateProjectionMatrix();
       for (const pointerX of BACKDROP_COVER_POINTER_STEPS) {
         for (const pointerY of BACKDROP_COVER_POINTER_STEPS) {
@@ -674,7 +688,7 @@ export default function CherryBlossomScene() {
     };
 
     const updateBackdropCover = () => {
-      if (mobileLayout) return;
+      if (portraitBackdrop) return;
       if (!backdropPlane || !editableObjects.backdrop) return;
       const bounds = backdropPlane.geometry.boundingBox;
       if (!bounds) return;
@@ -683,6 +697,8 @@ export default function CherryBlossomScene() {
       const nextState = [
         camera.aspect.toFixed(5),
         camera.fov.toFixed(4),
+        camera.zoom.toFixed(5),
+        JSON.stringify(camera.view),
         ...baseCameraPosition.toArray().map((value) => value.toFixed(4)),
         ...baseCameraTarget.toArray().map((value) => value.toFixed(4)),
         ...editableObjects.backdrop.matrixWorld.elements.map((value) => value.toFixed(5)),
@@ -828,6 +844,9 @@ export default function CherryBlossomScene() {
       setEditing(value) {
         editingActive = value;
         if (value) {
+          camera.clearViewOffset();
+          camera.zoom = 1;
+          camera.updateProjectionMatrix();
           camera.position.copy(baseCameraPosition);
           orbitControls.target.copy(baseCameraTarget);
         } else {
@@ -839,6 +858,7 @@ export default function CherryBlossomScene() {
         transformControls.enabled = value;
         mount.dataset.editing = String(value);
         attachSelection(activeSelection);
+        if (!value) frameResponsiveScene();
       },
       select(name) {
         attachSelection(name);
@@ -916,7 +936,7 @@ export default function CherryBlossomScene() {
     }, undefined, () => pmrem.dispose());
     const textureLoader = new THREE.TextureLoader();
     Promise.all([
-      textureLoader.loadAsync(mobileLayout ? '/images/scene/fuji-mobile.jpg' : '/images/scene/fuji_hd.jpg'),
+      textureLoader.loadAsync(portraitBackdrop ? '/images/scene/fuji-mobile.jpg' : '/images/scene/fuji_hd.jpg'),
       loader.loadAsync('/models/lawson/lawson-mobile.glb'),
       loader.loadAsync('/models/cherry-blossom/bicycle-rider-mobile.glb'),
     ])
@@ -1044,7 +1064,7 @@ export default function CherryBlossomScene() {
           }
         }
         attachSelection(activeSelection);
-        if (mobileLayout) frameMobileScene();
+        frameResponsiveScene();
 
         mount.dataset.sceneLoaded = 'true';
         readyTimer = window.setTimeout(
@@ -1068,7 +1088,7 @@ export default function CherryBlossomScene() {
     let visible = !document.hidden;
 
     const handlePointerMove = (event) => {
-      if (mobileLayout || event.pointerType === 'touch') return;
+      if (mobileLayout || portraitBackdrop || event.pointerType === 'touch') return;
       targetPointer.x = (event.clientX / window.innerWidth - 0.5) * 2;
       targetPointer.y = (event.clientY / window.innerHeight - 0.5) * 2;
     };
@@ -1079,45 +1099,74 @@ export default function CherryBlossomScene() {
     const safeViewport = document.createElement('div');
     safeViewport.style.cssText = 'position:absolute;height:100svh;width:0;visibility:hidden;pointer-events:none';
     mount.appendChild(safeViewport);
-    const frameMobileScene = () => {
+    const frameResponsiveScene = () => {
       if (!editableObjects.store || !editableObjects.rider || !backdropPlane) return;
+      if (editingActive) return;
       modelGroup.rotation.y = 0;
       modelGroup.updateMatrixWorld(true);
-      const bounds = new THREE.Box3().setFromObject(modelGroup);
-      const size = bounds.getSize(new THREE.Vector3());
-      const center = bounds.getCenter(new THREE.Vector3());
-      camera.fov = 35;
-      const tangent = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-      // Fit the complete store/rider pair with side margins. Keep their base
-      // above the largest toolbar footprint, even when browser chrome is open.
-      const viewWidth = size.x * 1.12;
-      const viewHeight = viewWidth / camera.aspect;
-      const distance = viewHeight / (2 * tangent);
-      const safeHeight = safeViewport.clientHeight || mount.clientHeight;
-      const bottomInset = Math.max(0, mount.clientHeight - safeHeight) + 24;
-      const targetY = bounds.min.y + viewHeight * (0.5 - bottomInset / mount.clientHeight);
-      baseCameraPosition.set(center.x, targetY, bounds.max.z + distance);
-      baseCameraTarget.set(center.x, targetY, center.z);
       camera.position.copy(baseCameraPosition);
       camera.lookAt(baseCameraTarget);
+      camera.zoom = 1;
+      camera.clearViewOffset();
       camera.updateProjectionMatrix();
-      orbitControls.target.copy(baseCameraTarget);
-      focusMarker.position.copy(baseCameraTarget);
-      // The portrait image faces the camera: uniform cover scaling preserves
-      // its proportions and never inherits the desktop backdrop's tilted pose.
+      camera.updateMatrixWorld(true);
+      // Fit projected geometry, rather than moving the camera higher as a
+      // phone gets taller. This retains the reference viewing angle and depth.
+      const projected = new THREE.Box2();
+      modelGroup.traverseVisible((object) => {
+        if (!object.isMesh) return;
+        if (!object.geometry.boundingBox) object.geometry.computeBoundingBox();
+        const bounds = object.geometry.boundingBox;
+        for (const x of [bounds.min.x, bounds.max.x]) {
+          for (const y of [bounds.min.y, bounds.max.y]) {
+            for (const z of [bounds.min.z, bounds.max.z]) {
+              const p = new THREE.Vector3(x, y, z).applyMatrix4(object.matrixWorld).project(camera);
+              projected.expandByPoint(new THREE.Vector2(p.x, p.y));
+            }
+          }
+        }
+      });
+      const size = projected.getSize(new THREE.Vector2());
+      const center = projected.getCenter(new THREE.Vector2());
+      // Keep the reference's bottom-right anchor on every screen. Both width
+      // and height constrain the fit, continuously across aspect ratios.
+      const landscape = THREE.MathUtils.smoothstep(camera.aspect, 0.7, 1.65);
+      const widthFraction = THREE.MathUtils.lerp(0.76, 0.57, landscape);
+      const heightFraction = THREE.MathUtils.lerp(0.24, 0.32, landscape);
+      camera.zoom = Math.min(2 * widthFraction / size.x, 2 * heightFraction / size.y);
+      const fittedWidth = size.x * camera.zoom;
+      const fittedHeight = size.y * camera.zoom;
+      const safeHeight = mobileLayout ? (safeViewport.clientHeight || mount.clientHeight) : mount.clientHeight;
+      const bottomInset = Math.max(0, mount.clientHeight - safeHeight) + 24;
+      const centerX = 0.94 - fittedWidth / 2;
+      const centerY = -1 + 2 * bottomInset / mount.clientHeight + fittedHeight / 2;
+      camera.setViewOffset(
+        mount.clientWidth, mount.clientHeight,
+        (center.x * camera.zoom - centerX) * mount.clientWidth / 2,
+        (centerY - center.y * camera.zoom) * mount.clientHeight / 2,
+        mount.clientWidth, mount.clientHeight,
+      );
+      ground.visible = false;
+      if (import.meta.env.DEV) {
+        mount.dataset.sceneFraming = JSON.stringify({ aspect: camera.aspect, zoom: camera.zoom, centerX, centerY, fittedWidth, fittedHeight });
+      }
+      if (!portraitBackdrop) { updateBackdropCover(); return; }
+      // Place the portrait image in the fitted camera's actual frustum,
+      // accounting for the off-center lens without changing image proportions.
       const depth = 140;
+      const tangent = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / camera.zoom;
       const backdrop = editableObjects.backdrop;
-      backdrop.position.set(camera.position.x, camera.position.y, camera.position.z - depth);
-      backdrop.rotation.set(0, 0, 0);
+      const ray = new THREE.Vector3(0, 0, 0.5).unproject(camera).sub(camera.position);
+      const forward = camera.getWorldDirection(new THREE.Vector3());
+      backdrop.position.copy(camera.position).addScaledVector(ray, depth / ray.dot(forward));
+      backdrop.quaternion.copy(camera.quaternion);
       backdrop.scale.setScalar(1);
       const imageAspect = backdropPlane.material.map.image.width / backdropPlane.material.map.image.height;
       const coverHeight = 2 * tangent * depth * Math.max(1, camera.aspect / imageAspect);
-      backdropPlane.scale.setScalar(coverHeight / 16);
+      backdropPlane.scale.setScalar(coverHeight * 1.08 / 16);
       // Keep Fuji in view when landscape orientation crops the tall image.
-      backdrop.position.y += (coverHeight - 2 * tangent * depth) / 2;
-      ground.visible = false;
-      scene.fog.density = DEFAULT_SCENE_POSE.fogDensity * 30 / distance;
-      if (import.meta.env.DEV) mount.dataset.mobileCamera = JSON.stringify(baseCameraPosition.toArray());
+      const up = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+      backdrop.position.addScaledVector(up, (coverHeight - 2 * tangent * depth) / 2);
     };
     let viewportWidth = mount.clientWidth;
     let viewportHeight = mount.clientHeight;
@@ -1141,7 +1190,7 @@ export default function CherryBlossomScene() {
       );
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.1 : 1.55));
       renderer.setSize(width, height);
-      if (mobileLayout) frameMobileScene();
+      frameResponsiveScene();
       updateBackdropCover();
     };
 
@@ -1158,11 +1207,22 @@ export default function CherryBlossomScene() {
 
       const elapsed = (performance.now() - startTime) / 1000;
       const motionTime = reduceMotion ? 0.5 : elapsed;
+      if (reduceMotion) {
+        targetPointer.set(0, 0);
+      } else if (mobileLayout || portraitBackdrop) {
+        // Bounded scroll displacement, never viewport-height dependent. The
+        // existing interpolation smooths both scrolling and the slow drift.
+        const scrollShift = Math.tanh(window.scrollY / 1200) * 0.18;
+        targetPointer.set(
+          Math.sin(elapsed * 0.12) * 0.28,
+          Math.sin(elapsed * 0.09) * 0.12 + scrollShift,
+        );
+      }
       pointer.lerp(targetPointer, 0.035);
       if (editingActive) {
         orbitControls.update();
         modelGroup.rotation.y = 0;
-      } else if (mobileLayout) {
+      } else if (reduceMotion) {
         camera.position.copy(baseCameraPosition);
         camera.lookAt(baseCameraTarget);
         modelGroup.rotation.y = 0;
@@ -1170,7 +1230,7 @@ export default function CherryBlossomScene() {
         camera.position.set(
           baseCameraPosition.x + pointer.x * PARALLAX_CAMERA_SWAY.x,
           baseCameraPosition.y - pointer.y * PARALLAX_CAMERA_SWAY.y
-            + Math.sin(motionTime * 0.18) * PARALLAX_CAMERA_SWAY.bob,
+            + (mobileLayout || portraitBackdrop ? 0 : Math.sin(motionTime * 0.18) * PARALLAX_CAMERA_SWAY.bob),
           baseCameraPosition.z,
         );
         // Translate with the pointer, then counter-rotate around the scene's
@@ -1226,9 +1286,9 @@ export default function CherryBlossomScene() {
       renderer.domElement.remove();
       safeViewport.remove();
       mount.style.height = '';
-      delete mount.dataset.mobileCamera;
+      delete mount.dataset.sceneFraming;
     };
-  }, [mobileLayout]);
+  }, [mobileLayout, portraitBackdrop]);
 
   const toggleEditing = () => {
     const nextEditing = !editing;
