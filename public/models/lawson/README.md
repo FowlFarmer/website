@@ -14,7 +14,7 @@ npm run optimize:lawson -- /absolute/path/to/lawson.glb
 ```
 
 The optimizer splits small package labels from the shared poster atlas, resizes
-product tiles to 96x128 and poster tiles to 288x384, reduces surface maps to 256px,
+product tiles to 12x16 and poster tiles to 42x56, reduces surface maps to 256px,
 and preserves more resolution for the logo and standing banners. Tiny beveled
 package solids become closed boxes; their printed faces and all facade/sign
 geometry remain. Full float positions prevent z-fighting between sign layers.

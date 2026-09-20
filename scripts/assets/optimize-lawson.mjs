@@ -23,7 +23,7 @@ const before = triangles();
 // The original print atlas serves both tiny packages and large posters. Split
 // its disconnected label quads by physical size, preserving each label's UVs.
 const printed = root.listMaterials().find(m => m.getName() === 'Printed Japanese retail campaigns');
-const productTexture = printed.getBaseColorTexture().clone().setName('Product labels 96x128 per tile');
+const productTexture = printed.getBaseColorTexture().clone().setName('Product labels 12x16 per tile');
 const productMaterial = printed.clone().setName('Small product labels').setBaseColorTexture(productTexture);
 let productTriangles = 0;
 for (const mesh of root.listMeshes()) {
@@ -112,9 +112,12 @@ for (const texture of root.listTextures()) {
   const isPoster = texture === printed.getBaseColorTexture();
   const isWordmark = /wordmark/i.test(name);
   const isBanner = /campaign-banners/i.test(name);
-  const width = isProduct ? 384 : isPoster ? 1152 : isWordmark ? 1536 : isBanner ? 640 : 256;
+  // Both print atlases are 4x2 tile grids. At background scale a product
+  // label is a few pixels and a poster a few dozen, so shrink each tile to
+  // 12x16 and 42x56 (integer grid boundaries avoid bleed between tiles).
+  const width = isProduct ? 48 : isPoster ? 168 : isWordmark ? 1536 : isBanner ? 640 : 256;
   const input = texture.getImage();
-  const image = await sharp(input).resize({ width, withoutEnlargement: true }).webp({ quality: isProduct ? 68 : isPoster ? 80 : 86 }).toBuffer();
+  const image = await sharp(input).resize({ width, withoutEnlargement: true }).webp({ quality: isProduct || isPoster ? 90 : 86 }).toBuffer();
   const meta = await sharp(image).metadata();
   texture.setImage(image).setMimeType('image/webp');
   textures.push({ name, width: meta.width, height: meta.height, bytes: image.length });

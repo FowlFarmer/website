@@ -1,6 +1,6 @@
 {
   "source": "lawson.glb",
-  "bytes": 1626352,
+  "bytes": 1242156,
   "originalTriangles": 136056,
   "triangles": 63528,
   "productLabelTriangles": 2298,
@@ -32,9 +32,9 @@
     },
     {
       "name": "retail-atlas",
-      "width": 1152,
-      "height": 768,
-      "bytes": 356716
+      "width": 168,
+      "height": 112,
+      "bytes": 15910
     },
     {
       "name": "lawson-wordmark",
@@ -49,10 +49,10 @@
       "bytes": 127168
     },
     {
-      "name": "Product labels 96x128 per tile",
-      "width": 384,
-      "height": 256,
-      "bytes": 45228
+      "name": "Product labels 12x16 per tile",
+      "width": 48,
+      "height": 32,
+      "bytes": 1866
     }
   ]
 }
