@@ -104,7 +104,7 @@ for (const mesh of root.listMeshes()) for (const p of mesh.listPrimitives()) {
 await doc.transform(weld());
 
 // Preserve the source's physical glazing and emissive light fixtures.
-// The renderer scales transmission resolution on phones instead of removing it.
+// The website renders the glazing as alpha-blended glass; see the README.
 const textures = [];
 for (const texture of root.listTextures()) {
   const name = texture.getName();

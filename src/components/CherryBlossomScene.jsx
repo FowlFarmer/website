@@ -513,7 +513,6 @@ export default function CherryBlossomScene() {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.94;
-    renderer.transmissionResolutionScale = lowPower ? 0.5 : 1;
     mount.appendChild(renderer.domElement);
 
     const transformControls = new TransformControls(camera, renderer.domElement);
@@ -913,6 +912,10 @@ export default function CherryBlossomScene() {
       },
     };
 
+    if (import.meta.env.DEV) {
+      window.__cherryScene = { renderer, scene, camera, modelCamera, editableObjects };
+    }
+
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
 
@@ -1011,14 +1014,16 @@ export default function CherryBlossomScene() {
           if (material.name === 'Fluorescent diffusers') {
             material.emissive.setRGB(1, 0.88, 0.84);
           }
+          // Physical transmission re-renders the whole store into a texture
+          // every frame and halved the frame rate. Alpha-blended glass with
+          // the same environment reflections reads the same at this scale.
           if (material.transmission > 0) {
-            material.thickness = 0.025;
-            material.ior = 1.46;
-            material.roughness = material.name === 'Frosted lower panels' ? 0.52 : 0.045;
+            const frosted = material.name === 'Frosted lower panels';
+            material.transmission = 0;
+            material.roughness = frosted ? 0.52 : 0.045;
             material.envMapIntensity = 0.7;
-            material.transparent = false;
-            material.opacity = 1;
-            material.depthWrite = true;
+            material.transparent = true;
+            material.opacity = frosted ? 0.78 : 0.24;
           }
           if (material.transparent) {
             material.depthWrite = false;

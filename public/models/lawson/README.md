@@ -21,9 +21,11 @@ geometry remain. Full float positions prevent z-fighting between sign layers.
 Meshopt compresses geometry; WebP compresses textures. The runtime requires the
 Three.js MeshoptDecoder.
 
-The web copy retains physical glass transmission and frosted lower panes.
+The GLB keeps the source's physical glass materials, but the website renders them
+as alpha-blended glass: transmission re-renders the whole store into a texture every
+frame and halved the frame rate for no visible gain at background scale.
 The viewer's dawn HDR environment supplies reflections, with four interior lights
-and a softer exterior key light. Mobile transmission renders at half resolution.
+and a softer exterior key light.
 There is no full-screen bloom or shadow map pass. The HDR is Poly Haven's
 Kiara 1 Dawn environment (CC0), shared with the original standalone viewer.
 Touch devices use the low-power rendering path (1.1 pixel ratio cap, native antialiasing,
