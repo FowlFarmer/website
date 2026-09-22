@@ -76,7 +76,7 @@ const POSE_STORAGE_KEY = 'convenience-store-scene-pose-v5';
 const PARALLAX_CAMERA_SWAY = { x: 0.78, y: 0.27, bob: 0.035 };
 const PARALLAX_FOCUS_SWAY = { x: 0.33, y: 0.18 };
 // One full left-right-left cycle. Amplitude 1 matches the farthest desktop mouse.
-const MOBILE_YAW_PERIOD = 8;
+const MOBILE_YAW_PERIOD = 16;
 const BACKDROP_COVER_OVERSCAN = 1.045;
 const BACKDROP_COVER_MAX_SCALE = 256;
 const BACKDROP_COVER_POINTER_STEPS = [-1, 0, 1];
