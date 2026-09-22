@@ -1332,7 +1332,7 @@ text-align: left;
 .main-content [id] { scroll-margin-top: 84px; }
 .main-content :is(video, iframe, embed, img) { max-width: 100%; }
 .glass-effect:not(:has(.current-status)) {
-  background: rgba(15, 21, 36, 0.42);
+  background: rgba(5, 5, 5, 0.15);
   font-family: inherit;
   font-weight: 300;
   cursor: default;
