@@ -140,6 +140,8 @@ const petalVertexShader = `
   uniform float uTime;
   uniform float uAspect;
   uniform float uTanHalfFov;
+  uniform vec2 uMouse;
+  uniform vec2 uWind;
   attribute vec3 aOffset;
   attribute float aScale;
   attribute float aPhase;
@@ -164,9 +166,12 @@ const petalVertexShader = `
     float halfWidth = halfHeight * uAspect;
     float fall = mod(aOffset.y - uTime * aSpeed * 0.18 + 1.25, 2.5) - 1.25;
     float horizontalDrift = sin(time * 0.72 + depth) * 0.075 + cos(time * 0.23) * 0.028;
+    vec2 petalNdc = vec2(aOffset.x + horizontalDrift, fall);
+    vec2 fromMouse = petalNdc - uMouse;
+    float blow = exp(-dot(fromMouse, fromMouse) * 3.4);
     vec3 center = vec3(
-      (aOffset.x + horizontalDrift) * halfWidth,
-      fall * halfHeight,
+      (petalNdc.x + uWind.x * blow) * halfWidth,
+      (petalNdc.y + uWind.y * blow) * halfHeight,
       -depth
     );
 
@@ -347,6 +352,8 @@ function createPetalField(random, count) {
       uTime: { value: 0 },
       uAspect: { value: 1 },
       uTanHalfFov: { value: Math.tan(THREE.MathUtils.degToRad(43 / 2)) },
+      uMouse: { value: new THREE.Vector2() },
+      uWind: { value: new THREE.Vector2() },
     },
     transparent: true,
     depthWrite: false,
@@ -1092,6 +1099,10 @@ export default function CherryBlossomScene() {
 
     const pointer = new THREE.Vector2();
     const targetPointer = new THREE.Vector2();
+    const petalWind = new THREE.Vector2();
+    let lastPetalPointerX = 0;
+    let lastPetalPointerY = 0;
+    let lastPetalPointerAt = performance.now();
     const startTime = performance.now();
     let animationFrame;
     let visible = !document.hidden;
@@ -1229,6 +1240,25 @@ export default function CherryBlossomScene() {
       const elapsed = (performance.now() - startTime) / 1000;
       const motionTime = reduceMotion ? 0.5 : elapsed;
       pointer.lerp(targetPointer, 0.035);
+      if (mobileLayout || reduceMotion) {
+        petalWind.set(0, 0);
+        lastPetalPointerX = targetPointer.x;
+        lastPetalPointerY = targetPointer.y;
+        lastPetalPointerAt = now;
+      } else {
+        const gustDt = Math.min(Math.max((now - lastPetalPointerAt) / 1000, 0), 0.05);
+        if (gustDt > 0 && now - lastPetalPointerAt < 80) {
+          petalWind.x += (targetPointer.x - lastPetalPointerX) * 0.38;
+          petalWind.y -= (targetPointer.y - lastPetalPointerY) * 0.38;
+        }
+        lastPetalPointerX = targetPointer.x;
+        lastPetalPointerY = targetPointer.y;
+        lastPetalPointerAt = now;
+        petalWind.multiplyScalar(Math.exp(-7 * Math.max(gustDt, 1 / 60)));
+        if (petalWind.lengthSq() > 0.42 * 0.42) petalWind.setLength(0.42);
+      }
+      petalField.material.uniforms.uMouse.value.set(targetPointer.x, -targetPointer.y);
+      petalField.material.uniforms.uWind.value.copy(petalWind);
       if (editingActive) {
         orbitControls.update();
         modelGroup.rotation.y = 0;
