@@ -14,13 +14,15 @@ export default function Self() {
     return (
         <div className="self blossom-home" style={{justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
             <div id="Begin" />
-            <div className="mainBlob glass-effect" style={{ ...first_blob_opacity }}>
+            <div className="mainBlob glass-effect" style={{ width: "60%", padding: "20px", marginTop: "100px", ...first_blob_opacity }}>
                 <div style={{ justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <img style={{filter: "invert(100%)"}} src="/site/calligraphy_logo.png" alt="朱加宇 — Theodore Zhu" />
+                    <img style={{filter: "invert(100%)"}} src="/site/calligraphy_logo.png" alt="Profile" />
                     <span>Hi, I'm Theodore.</span>
                     <span>I also go by Jia.</span>
                     <p style={{ textAlign: "center" }}>I code, make cool projects, and nerd out about random things.</p>
-                    <Link to="/gallery" className="rounded-button">Feel free to look at my work</Link>
+                    <Link to="/gallery">
+                        <button className="rounded-button">Feel free to look at my work</button>
+                    </Link>
                     <p style={{ textAlign: "center" }}>Or scroll down to have a peek into who I am :) </p>
                 </div>
             </div>
