@@ -88,6 +88,8 @@ const MOBILE_SCENE_QUERY = '(max-width: 767px), (pointer: coarse) and (max-width
 // The scene shares the GPU with page compositing while scrolling. On a 2x
 // display 1.25 keeps the background crisp enough while leaving headroom.
 const DESKTOP_PIXEL_RATIO_CAP = 1.25;
+const SCENE_EDITOR_ENABLED =
+  import.meta.env.DEV || import.meta.env.VITE_VERCEL_ENV === 'preview';
 
 function SceneVectorInput({ label, values, step, onChange }) {
   const numericStep = Number(step);
@@ -1415,7 +1417,7 @@ export default function CherryBlossomScene() {
     <>
       <div ref={mountRef} className="cherry-blossom-scene" aria-hidden="true" />
       {showLoadingScreen && <SceneLoadingScreen ready={sceneReady} />}
-      {sceneReady && <button
+      {SCENE_EDITOR_ENABLED && sceneReady && <button
         type="button"
         className="scene-editor-toggle"
         aria-pressed={editing}
@@ -1424,7 +1426,7 @@ export default function CherryBlossomScene() {
         {editing ? 'Exit scene edit' : 'Edit 3D scene'}
       </button>}
 
-      {sceneReady && editing && (
+      {SCENE_EDITOR_ENABLED && sceneReady && editing && (
         <aside className="scene-editor-panel" aria-label="3D scene editor">
           <header>
             <div>

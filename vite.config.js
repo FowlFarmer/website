@@ -6,6 +6,9 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/ for more details.
 export default defineConfig({
   plugins: [react()],
+  define: {
+    'import.meta.env.VITE_VERCEL_ENV': JSON.stringify(process.env.VERCEL_ENV || ''),
+  },
   build: {
     outDir: 'dist',
     sourcemap: true
