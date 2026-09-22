@@ -168,10 +168,13 @@ const petalVertexShader = `
     float horizontalDrift = sin(time * 0.72 + depth) * 0.075 + cos(time * 0.23) * 0.028;
     vec2 petalNdc = vec2(aOffset.x + horizontalDrift, fall);
     vec2 fromMouse = petalNdc - uMouse;
-    float blow = exp(-dot(fromMouse, fromMouse) * 3.4);
+    float blow = exp(-dot(fromMouse, fromMouse) * 18.0) * smoothstep(24.0, 5.0, depth);
+    float unique = mix(0.2, 1.4, aTint) * mix(0.35, 1.25, fract(aPhase * 1.618));
+    vec2 side = vec2(-uWind.y, uWind.x) * (fract(aPhase * 7.13) - 0.5) * 1.6;
+    vec2 push = (uWind * unique + side) * blow;
     vec3 center = vec3(
-      (petalNdc.x + uWind.x * blow) * halfWidth,
-      (petalNdc.y + uWind.y * blow) * halfHeight,
+      (petalNdc.x + push.x) * halfWidth,
+      (petalNdc.y + push.y) * halfHeight,
       -depth
     );
 
@@ -1248,14 +1251,14 @@ export default function CherryBlossomScene() {
       } else {
         const gustDt = Math.min(Math.max((now - lastPetalPointerAt) / 1000, 0), 0.05);
         if (gustDt > 0 && now - lastPetalPointerAt < 80) {
-          petalWind.x += (targetPointer.x - lastPetalPointerX) * 0.38;
-          petalWind.y -= (targetPointer.y - lastPetalPointerY) * 0.38;
+          petalWind.x += (targetPointer.x - lastPetalPointerX) * 0.18;
+          petalWind.y -= (targetPointer.y - lastPetalPointerY) * 0.18;
         }
         lastPetalPointerX = targetPointer.x;
         lastPetalPointerY = targetPointer.y;
         lastPetalPointerAt = now;
-        petalWind.multiplyScalar(Math.exp(-7 * Math.max(gustDt, 1 / 60)));
-        if (petalWind.lengthSq() > 0.42 * 0.42) petalWind.setLength(0.42);
+        petalWind.multiplyScalar(Math.exp(-11 * Math.max(gustDt, 1 / 60)));
+        if (petalWind.lengthSq() > 0.14 * 0.14) petalWind.setLength(0.14);
       }
       petalField.material.uniforms.uMouse.value.set(targetPointer.x, -targetPointer.y);
       petalField.material.uniforms.uWind.value.copy(petalWind);
