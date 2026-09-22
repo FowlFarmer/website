@@ -8,6 +8,7 @@ export function createPetalWind(offsets, phases, tints, speeds) {
   const velocity = new Float32Array(count * 2);
   const gusts = [];
   let previousPointer = null;
+  let lastSimTime = null;
   let aspect = 1;
   let active = false;
   let dirty = false;
@@ -17,8 +18,35 @@ export function createPetalWind(offsets, phases, tints, speeds) {
     dirty = true;
     gusts.length = 0;
     previousPointer = null;
+    lastSimTime = null;
     displacement.fill(0);
     velocity.fill(0);
+  }
+
+  // The fall cycle is the only respawn. Clear wind so a petal that left the
+  // frame re-enters at its authored top-of-field slot, not a wrapped leftover.
+  function recycle(time) {
+    const prev = lastSimTime;
+    lastSimTime = time;
+    if (prev == null || time <= prev) return false;
+    const elapsed = time - prev;
+    let changed = false;
+    for (let i = 0; i < count; i++) {
+      const j = i * 3, k = i * 2;
+      if (!displacement[j] && !displacement[j + 1] && !displacement[j + 2] && !velocity[k] && !velocity[k + 1]) continue;
+      const rate = speeds[i] * 0.18;
+      const fallNow = wrap(offsets[j + 1] - time * rate, 2.5);
+      const fallThen = wrap(offsets[j + 1] - prev * rate, 2.5);
+      if (elapsed * rate >= 2.5 || fallNow - fallThen > 1) {
+        displacement[j] = 0;
+        displacement[j + 1] = 0;
+        displacement[j + 2] = 0;
+        velocity[k] = 0;
+        velocity[k + 1] = 0;
+        changed = true;
+      }
+    }
+    return changed;
   }
 
   function move(x, y, seconds, nextAspect) {
@@ -57,7 +85,8 @@ export function createPetalWind(offsets, phases, tints, speeds) {
 
   function step(delta, time, nextAspect) {
     if (Math.abs(nextAspect - aspect) > 0.01) { reset(); aspect = nextAspect; }
-    if (!active) { const changed = dirty; dirty = false; return changed; }
+    const recycled = recycle(time);
+    if (!active) { const changed = dirty || recycled; dirty = false; return changed; }
     dirty = false;
     // Avoid a large jump when resuming a hidden tab. Small integration steps
     // keep drag and trajectories consistent on 30, 60 and 120 Hz displays.
@@ -78,8 +107,8 @@ export function createPetalWind(offsets, phases, tints, speeds) {
         const depth = offsets[j + 2];
         const phase = time + phases[i];
         const fall = wrap(offsets[j + 1] - time * speeds[i] * .18, 2.5);
-        const x = wrap((offsets[j] + Math.sin(phase * .72 + depth) * .075 + Math.cos(phase * .23) * .028) * aspect + displacement[j], 2.5 * aspect);
-        const y = wrap(fall + displacement[j + 1], 2.5);
+        const x = (offsets[j] + Math.sin(phase * .72 + depth) * .075 + Math.cos(phase * .23) * .028) * aspect + displacement[j];
+        const y = fall + displacement[j + 1];
         let airX = 0, airY = 0;
         for (const gust of gusts) {
           const dx = x - gust.x, dy = y - gust.y;
@@ -105,8 +134,8 @@ export function createPetalWind(offsets, phases, tints, speeds) {
         const magnitude = Math.max(1, Math.hypot(airX, airY) / 1.5);
         velocity[k] += (airX / magnitude * depthResponse - velocity[k]) * drag;
         velocity[k + 1] += (airY / magnitude * depthResponse - velocity[k + 1]) * drag;
-        displacement[j] = wrap(displacement[j] + velocity[k] * dt, 2.5 * aspect);
-        displacement[j + 1] = wrap(displacement[j + 1] + velocity[k + 1] * dt, 2.5);
+        displacement[j] += velocity[k] * dt;
+        displacement[j + 1] += velocity[k + 1] * dt;
         const tilt = (velocity[k] * .8 + velocity[k + 1] * .3) * (0.7 + tints[i]);
         displacement[j + 2] += (tilt - displacement[j + 2]) * (1 - Math.exp(-4 * dt));
       }

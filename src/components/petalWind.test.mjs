@@ -38,7 +38,7 @@ test('wake fades without snapping displacement back to origin', () => {
   for (let n = 0; n < 30; n++) { wind.move(-.4 + n / 30 * .8, 0, n / 60, 1); wind.step(1 / 60, n / 60, 1); }
   for (let n = 30; n < 600; n++) wind.step(1 / 60, n / 60, 1);
   const settled = wind.displacement[0];
-  for (let n = 600; n < 900; n++) wind.step(1 / 60, n / 60, 1);
+  for (let n = 600; n < 800; n++) wind.step(1 / 60, n / 60, 1);
   assert.ok(settled > .02);
   assert.ok(Math.abs(wind.displacement[0] - settled) < .001);
 });
@@ -61,6 +61,16 @@ test('tap puffs send petals outward and then dissipate', () => {
   assert.ok(wind.displacement[3] > .02);
   for (let i = 60; i < 2000; i++) wind.step(1 / 60, i / 60, 1);
   assert.equal(wind.step(1 / 60, 34, 1), false, 'idle simulation should sleep');
+});
+test('fall wrap restores the authored top-of-field slot', () => {
+  const offsets = new Float32Array([0.4, -1.2, 3]);
+  const wind = createPetalWind(offsets, new Float32Array([0]), new Float32Array([.5]), new Float32Array([.5]));
+  for (let n = 0; n < 20; n++) { wind.move(.2 + n / 20 * .4, -1.15, n / 60, 1); wind.step(1 / 60, n / 60, 1); }
+  assert.ok(Math.abs(wind.displacement[0]) > 0.01);
+  for (let n = 20; n < 90; n++) wind.step(1 / 60, n / 60, 1);
+  assert.equal(wind.displacement[0], 0);
+  assert.equal(wind.displacement[1], 0);
+  assert.equal(wind.displacement[2], 0);
 });
 test('resizing notifies the GPU even when reset leaves the simulation idle', () => {
   const wind = field();

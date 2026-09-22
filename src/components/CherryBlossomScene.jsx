@@ -5,6 +5,7 @@ import { TransformControls } from 'three/examples/jsm/controls/TransformControls
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
+import { createScenePerformanceMonitor } from './scenePerformance.mjs';
 import { createPetalWind } from './petalWind.mjs';
 import { sceneViewport } from './sceneViewport.mjs';
 
@@ -170,7 +171,6 @@ const petalVertexShader = `
     float horizontalDrift = sin(time * 0.72 + depth) * 0.075 + cos(time * 0.23) * 0.028;
     vec2 petalNdc = vec2(aOffset.x + horizontalDrift, fall);
     petalNdc += vec2(aWindMotion.x / uAspect, aWindMotion.y);
-    petalNdc = mod(petalNdc + 1.25, 2.5) - 1.25;
     vec3 center = vec3(
       petalNdc.x * halfWidth,
       petalNdc.y * halfHeight,
@@ -450,7 +450,12 @@ function SceneLoadingScreen({ ready }) {
   );
 }
 
-export default function CherryBlossomScene() {
+export default function CherryBlossomScene({ onLowPerformance }) {
+  const captureMode = import.meta.env.DEV && new URLSearchParams(window.location.search).has('sceneCapture');
+  const captureRequested = useRef(false);
+  const [captureStatus, setCaptureStatus] = useState('Save background snapshot');
+  const lowPerformanceRef = useRef(onLowPerformance);
+  lowPerformanceRef.current = onLowPerformance;
   const [mobileLayout, setMobileLayout] = useState(() => window.matchMedia(MOBILE_SCENE_QUERY).matches);
   useEffect(() => {
     const query = window.matchMedia(MOBILE_SCENE_QUERY);
@@ -486,8 +491,9 @@ export default function CherryBlossomScene() {
     let readyTimer;
 
     const random = seededRandom();
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduceMotion = captureMode || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const lowPower = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 720 || (navigator.deviceMemory && navigator.deviceMemory <= 4);
+    const performanceMonitor = createScenePerformanceMonitor(lowPower ? 30 : 60);
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xb9c5ce);
     scene.fog = new THREE.FogExp2(0x777294, DEFAULT_FOG_DENSITY);
@@ -528,7 +534,7 @@ export default function CherryBlossomScene() {
       return undefined;
     }
 
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.1 : DESKTOP_PIXEL_RATIO_CAP));
+    renderer.setPixelRatio(captureMode ? (mobileLayout ? 2 : 1) : Math.min(window.devicePixelRatio, lowPower ? 1.1 : DESKTOP_PIXEL_RATIO_CAP));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1076,7 +1082,7 @@ export default function CherryBlossomScene() {
         initialPose = DEFAULT_SCENE_POSE;
         applyFullPose(initialPose);
         const savedPose = window.localStorage.getItem(POSE_STORAGE_KEY);
-        if (savedPose) {
+        if (savedPose && !captureMode) {
           try {
             applyFullPose(JSON.parse(savedPose));
           } catch {
@@ -1157,6 +1163,7 @@ export default function CherryBlossomScene() {
       );
     };
     const handleVisibility = () => {
+      performanceMonitor.reset();
       visible = !document.hidden;
     };
     // svh/lvh remain stable while Safari expands/collapses its toolbar.
@@ -1251,6 +1258,7 @@ export default function CherryBlossomScene() {
     };
     updateModelAnchor();
     const handleResize = () => {
+      performanceMonitor.reset();
       updateModelAnchor();
       const width = mount.clientWidth;
       // Toolbar changes move only the model anchor, not the background or scale.
@@ -1271,7 +1279,7 @@ export default function CherryBlossomScene() {
       petalField.material.uniforms.uTanHalfFov.value = Math.tan(
         THREE.MathUtils.degToRad(camera.fov / 2),
       );
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.1 : DESKTOP_PIXEL_RATIO_CAP));
+      renderer.setPixelRatio(captureMode ? (mobileLayout ? 2 : 1) : Math.min(window.devicePixelRatio, lowPower ? 1.1 : DESKTOP_PIXEL_RATIO_CAP));
       renderer.setSize(width, height);
       if (mobileLayout) frameMobileBackdrop();
       updateBackdropCover();
@@ -1297,9 +1305,13 @@ export default function CherryBlossomScene() {
       if (!visible || now - lastRenderedAt < frameInterval) return;
       lastRenderedAt = now - ((now - lastRenderedAt) % (frameInterval || 1));
 
+      if (mount.dataset.sceneLoaded === 'true' && !editingActive && !captureMode) {
+        if (performanceMonitor.sample(now)) lowPerformanceRef.current?.();
+      } else performanceMonitor.reset();
       const elapsed = (performance.now() - startTime) / 1000;
       const motionTime = reduceMotion ? 0.5 : elapsed;
       pointer.lerp(targetPointer, 0.035);
+      if (captureMode) pointer.set(0, 0);
       const windDt = (now - lastWindFrameAt) / 1000;
       lastWindFrameAt = now;
       if (!reduceMotion) {
@@ -1394,6 +1406,15 @@ export default function CherryBlossomScene() {
         scene.background = background;
         if (import.meta.env.DEV) mount.dataset.modelViewport = JSON.stringify(view);
       }
+      if (captureMode && captureRequested.current) {
+        captureRequested.current = false;
+        renderer.domElement.toBlob(async blob => {
+          try {
+            const response = await fetch(`/__scene-snapshot?kind=${mobileLayout ? 'mobile' : 'desktop'}`, { method: 'POST', body: blob });
+            setCaptureStatus(response.ok ? 'Snapshot saved' : 'Snapshot failed');
+          } catch { setCaptureStatus('Snapshot failed'); }
+        }, 'image/webp', .88);
+      }
     };
 
     animate();
@@ -1436,6 +1457,7 @@ export default function CherryBlossomScene() {
       environmentTarget?.dispose();
       pmrem.dispose();
       renderer.dispose();
+      renderer.forceContextLoss();
       renderer.domElement.remove();
       safeViewport.remove();
       mount.style.height = '';
@@ -1499,6 +1521,7 @@ export default function CherryBlossomScene() {
 
   return (
     <>
+      {captureMode && sceneReady && <button style={{ position: 'fixed', bottom: 16, right: 16, zIndex: 3000 }} onClick={() => { captureRequested.current = true; setCaptureStatus('Saving snapshot…'); }}>{captureStatus}</button>}
       <div ref={mountRef} className="cherry-blossom-scene" aria-hidden="true" />
       {showLoadingScreen && <SceneLoadingScreen ready={sceneReady} />}
       {SCENE_EDITOR_ENABLED && sceneReady && <button
