@@ -963,7 +963,22 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       loader.loadAsync('/models/cherry-blossom/bicycle-rider-mobile.glb'),
     ])
       .then(([backdropTexture, storeAsset, riderAsset]) => {
-        if (disposed) return;
+        if (disposed) {
+          backdropTexture.dispose();
+          for (const asset of [storeAsset, riderAsset]) {
+            asset.scene.traverse((object) => {
+              object.geometry?.dispose();
+              const materials = object.material
+                ? (Array.isArray(object.material) ? object.material : [object.material])
+                : [];
+              materials.forEach((material) => {
+                Object.values(material).forEach((value) => { if (value?.isTexture) value.dispose(); });
+                material.dispose();
+              });
+            });
+          }
+          return;
+        }
 
         const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
         backdropTexture.colorSpace = THREE.SRGBColorSpace;
@@ -1100,6 +1115,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         );
       })
       .catch((error) => {
+        if (disposed) return;
         console.error('Unable to load the convenience store scene.', error);
         mount.dataset.assetFallback = 'true';
         readyTimer = window.setTimeout(
@@ -1462,6 +1478,8 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       safeViewport.remove();
       mount.style.height = '';
       delete mount.dataset.modelViewport;
+      delete mount.dataset.sceneLoaded;
+      if (import.meta.env.DEV) delete window.__cherryScene;
     };
   }, [mobileLayout]);
 

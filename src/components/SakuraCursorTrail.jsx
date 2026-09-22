@@ -138,6 +138,9 @@ export default function SakuraCursorTrail() {
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('resize', resize);
       window.removeEventListener('pointermove', handlePointerMove);
+      particles.length = 0;
+      canvas.width = 0;
+      canvas.height = 0;
     };
   }, []);
 
