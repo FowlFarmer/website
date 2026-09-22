@@ -6,8 +6,7 @@ import Gallery from './components/Gallery.jsx';
 import Self from './components/Self.jsx';
 import Contact from './components/Contact.jsx';
 import Avalon from './components/Avalon.jsx';
-import CherryBlossomScene from './components/CherryBlossomScene.jsx';
-import SakuraCursorTrail from './components/SakuraCursorTrail.jsx';
+import SceneBackground from './components/SceneBackground.jsx';
 
 import { Analytics } from "@vercel/analytics/react"
 
@@ -49,9 +48,8 @@ export default function App() {
   return (
     <Router>
       <div className="app-container" id="popup-root">
-        <CherryBlossomScene />
+        <SceneBackground />
         <div className="blossom-atmosphere" aria-hidden="true" />
-        <SakuraCursorTrail />
         <FadeRoutes />
         <NavBar />
       </div>
