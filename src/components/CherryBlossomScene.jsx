@@ -1257,8 +1257,8 @@ export default function CherryBlossomScene() {
         lastPetalPointerX = targetPointer.x;
         lastPetalPointerY = targetPointer.y;
         lastPetalPointerAt = now;
-        petalWind.multiplyScalar(Math.exp(-11 * Math.max(gustDt, 1 / 60)));
-        if (petalWind.lengthSq() > 0.14 * 0.14) petalWind.setLength(0.14);
+        petalWind.multiplyScalar(Math.exp(-2.2 * Math.max(gustDt, 1 / 60)));
+        if (petalWind.lengthSq() > 0.18 * 0.18) petalWind.setLength(0.18);
       }
       petalField.material.uniforms.uMouse.value.set(targetPointer.x, -targetPointer.y);
       petalField.material.uniforms.uWind.value.copy(petalWind);
