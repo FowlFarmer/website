@@ -5,6 +5,7 @@ import { TransformControls } from 'three/examples/jsm/controls/TransformControls
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
+import { createPetalWind } from './petalWind.mjs';
 import { sceneViewport } from './sceneViewport.mjs';
 
 const EMPTY_POSE = {
@@ -140,8 +141,7 @@ const petalVertexShader = `
   uniform float uTime;
   uniform float uAspect;
   uniform float uTanHalfFov;
-  uniform vec2 uMouse;
-  uniform vec2 uWind;
+  attribute vec3 aWindMotion;
   attribute vec3 aOffset;
   attribute float aScale;
   attribute float aPhase;
@@ -167,14 +167,11 @@ const petalVertexShader = `
     float fall = mod(aOffset.y - uTime * aSpeed * 0.18 + 1.25, 2.5) - 1.25;
     float horizontalDrift = sin(time * 0.72 + depth) * 0.075 + cos(time * 0.23) * 0.028;
     vec2 petalNdc = vec2(aOffset.x + horizontalDrift, fall);
-    vec2 fromMouse = petalNdc - uMouse;
-    float blow = exp(-dot(fromMouse, fromMouse) * 18.0) * smoothstep(24.0, 5.0, depth);
-    float unique = mix(0.2, 1.4, aTint) * mix(0.35, 1.25, fract(aPhase * 1.618));
-    vec2 side = vec2(-uWind.y, uWind.x) * (fract(aPhase * 7.13) - 0.5) * 1.6;
-    vec2 push = (uWind * unique + side) * blow;
+    petalNdc += vec2(aWindMotion.x / uAspect, aWindMotion.y);
+    petalNdc = mod(petalNdc + 1.25, 2.5) - 1.25;
     vec3 center = vec3(
-      (petalNdc.x + push.x) * halfWidth,
-      (petalNdc.y + push.y) * halfHeight,
+      petalNdc.x * halfWidth,
+      petalNdc.y * halfHeight,
       -depth
     );
 
@@ -186,8 +183,8 @@ const petalVertexShader = `
     float widthVariation = mix(0.90, 1.10, aTint);
     petal.x *= widthVariation;
     vec3 petalNormal = normalize(normal / vec3(widthVariation, 1.0, 1.0));
-    petal.xy = rotate2d(time * aSpin) * petal.xy;
-    petalNormal.xy = rotate2d(time * aSpin) * petalNormal.xy;
+    petal.xy = rotate2d(time * aSpin + aWindMotion.z) * petal.xy;
+    petalNormal.xy = rotate2d(time * aSpin + aWindMotion.z) * petalNormal.xy;
     petal.yz = rotate2d(time * (0.82 + aSpin * 0.22)) * petal.yz;
     petalNormal.yz = rotate2d(time * (0.82 + aSpin * 0.22)) * petalNormal.yz;
     petal.xz = rotate2d(sin(time * 1.17) * 0.75) * petal.xz;
@@ -347,6 +344,8 @@ function createPetalField(random, count) {
   geometry.setAttribute('aSpeed', new THREE.InstancedBufferAttribute(speeds, 1));
   geometry.setAttribute('aSpin', new THREE.InstancedBufferAttribute(spins, 1));
   geometry.setAttribute('aTint', new THREE.InstancedBufferAttribute(tints, 1));
+  const wind = createPetalWind(offsets, phases, tints, speeds);
+  geometry.setAttribute('aWindMotion', new THREE.InstancedBufferAttribute(wind.displacement, 3).setUsage(THREE.DynamicDrawUsage));
 
   const material = new THREE.ShaderMaterial({
     vertexShader: petalVertexShader,
@@ -355,8 +354,6 @@ function createPetalField(random, count) {
       uTime: { value: 0 },
       uAspect: { value: 1 },
       uTanHalfFov: { value: Math.tan(THREE.MathUtils.degToRad(43 / 2)) },
-      uMouse: { value: new THREE.Vector2() },
-      uWind: { value: new THREE.Vector2() },
     },
     transparent: true,
     depthWrite: false,
@@ -364,6 +361,7 @@ function createPetalField(random, count) {
   });
 
   const petals = new THREE.Mesh(geometry, material);
+  petals.userData.wind = wind;
   petals.frustumCulled = false;
   petals.renderOrder = 4;
   return petals;
@@ -1102,18 +1100,40 @@ export default function CherryBlossomScene() {
 
     const pointer = new THREE.Vector2();
     const targetPointer = new THREE.Vector2();
-    const petalWind = new THREE.Vector2();
-    let lastPetalPointerX = 0;
-    let lastPetalPointerY = 0;
-    let lastPetalPointerAt = performance.now();
+    const petalWind = petalField.userData.wind;
+    let lastWindFrameAt = performance.now();
+    const handlePointerLeave = () => petalWind.leave();
     const startTime = performance.now();
     let animationFrame;
     let visible = !document.hidden;
 
     const handlePointerMove = (event) => {
+      if (backgroundTap && Math.hypot(event.clientX - backgroundTap.x, event.clientY - backgroundTap.y) > 10) backgroundTap = null;
       if (mobileLayout || event.pointerType === 'touch') return;
       targetPointer.x = (event.clientX / window.innerWidth - 0.5) * 2;
       targetPointer.y = (event.clientY / window.innerHeight - 0.5) * 2;
+      if (!reduceMotion && !editingActive && event.pointerType === 'mouse') {
+        petalWind.move(targetPointer.x, -targetPointer.y, performance.now() / 1000, camera.aspect);
+      }
+    };
+    let backgroundTap = null;
+    const handleTapStart = (event) => {
+      backgroundTap = null;
+      if (!mobileLayout || reduceMotion || editingActive || !event.isPrimary || event.pointerType !== 'touch') return;
+      if (event.target.closest('a, button, input, textarea, select, video, iframe, dialog, [role="button"], [contenteditable], .media-frame, .glass-effect, .glass-effect-2, .scene-editor-panel, .navbar')) return;
+      backgroundTap = { id: event.pointerId, x: event.clientX, y: event.clientY, at: performance.now(), scroll: window.scrollY };
+    };
+    const cancelTap = () => { backgroundTap = null; };
+    const handleTapEnd = (event) => {
+      const tap = backgroundTap;
+      backgroundTap = null;
+      if (!tap || event.pointerId !== tap.id || performance.now() - tap.at > 350 ||
+          Math.hypot(event.clientX - tap.x, event.clientY - tap.y) > 10 || Math.abs(window.scrollY - tap.scroll) > 5) return;
+      // Use the actual canvas rectangle: Safari's toolbar can change the visible
+      // area while the stable background canvas remains taller than the screen.
+      const bounds = renderer.domElement.getBoundingClientRect();
+      petalWind.burst((event.clientX - bounds.left) / bounds.width * 2 - 1,
+        1 - (event.clientY - bounds.top) / bounds.height * 2, camera.aspect);
     };
     let lastScrollY = window.scrollY;
     let lastScrollAt = performance.now();
@@ -1227,11 +1247,17 @@ export default function CherryBlossomScene() {
     };
 
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('pointerdown', handleTapStart, { passive: true });
+    window.addEventListener('pointerup', handleTapEnd, { passive: true });
+    window.addEventListener('pointercancel', cancelTap, { passive: true });
+    document.addEventListener('pointerleave', handlePointerLeave);
+    window.addEventListener('blur', handlePointerLeave);
     window.addEventListener('scroll', handleScrollPitch, { passive: true });
     window.addEventListener('resize', handleResize);
     visualViewport?.addEventListener('resize', updateModelAnchor, { passive: true });
     visualViewport?.addEventListener('scroll', updateModelAnchor, { passive: true });
     document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('scroll', cancelTap, { passive: true });
 
     let lastRenderedAt = 0;
     const frameInterval = lowPower ? 1000 / 30 : 0;
@@ -1243,25 +1269,13 @@ export default function CherryBlossomScene() {
       const elapsed = (performance.now() - startTime) / 1000;
       const motionTime = reduceMotion ? 0.5 : elapsed;
       pointer.lerp(targetPointer, 0.035);
-      if (mobileLayout || reduceMotion) {
-        petalWind.set(0, 0);
-        lastPetalPointerX = targetPointer.x;
-        lastPetalPointerY = targetPointer.y;
-        lastPetalPointerAt = now;
-      } else {
-        const gustDt = Math.min(Math.max((now - lastPetalPointerAt) / 1000, 0), 0.05);
-        if (gustDt > 0 && now - lastPetalPointerAt < 80) {
-          petalWind.x += (targetPointer.x - lastPetalPointerX) * 0.18;
-          petalWind.y -= (targetPointer.y - lastPetalPointerY) * 0.18;
+      const windDt = (now - lastWindFrameAt) / 1000;
+      lastWindFrameAt = now;
+      if (!reduceMotion) {
+        if (petalWind.step(windDt, motionTime, camera.aspect)) {
+          petalField.geometry.attributes.aWindMotion.needsUpdate = true;
         }
-        lastPetalPointerX = targetPointer.x;
-        lastPetalPointerY = targetPointer.y;
-        lastPetalPointerAt = now;
-        petalWind.multiplyScalar(Math.exp(-2.2 * Math.max(gustDt, 1 / 60)));
-        if (petalWind.lengthSq() > 0.18 * 0.18) petalWind.setLength(0.18);
       }
-      petalField.material.uniforms.uMouse.value.set(targetPointer.x, -targetPointer.y);
-      petalField.material.uniforms.uWind.value.copy(petalWind);
       if (editingActive) {
         orbitControls.update();
         modelGroup.rotation.y = 0;
@@ -1358,11 +1372,17 @@ export default function CherryBlossomScene() {
       window.clearTimeout(readyTimer);
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerdown', handleTapStart);
+      window.removeEventListener('pointerup', handleTapEnd);
+      window.removeEventListener('pointercancel', cancelTap);
+      document.removeEventListener('pointerleave', handlePointerLeave);
+      window.removeEventListener('blur', handlePointerLeave);
       window.removeEventListener('scroll', handleScrollPitch);
       window.removeEventListener('resize', handleResize);
       visualViewport?.removeEventListener('resize', updateModelAnchor);
       visualViewport?.removeEventListener('scroll', updateModelAnchor);
       document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('scroll', cancelTap);
       orbitControls.removeEventListener('change', handleOrbitChange);
       transformControls.removeEventListener('objectChange', handleObjectChange);
       transformControls.removeEventListener('dragging-changed', handleDraggingChanged);
