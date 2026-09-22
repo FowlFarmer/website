@@ -1324,7 +1324,6 @@ text-align: left;
 .main-content {
   width: 100%;
   padding-top: max(2rem, calc(env(safe-area-inset-top) + 1.5rem));
-  padding-bottom: 80px;
 }
 .main-content .self { min-width: 0; width: 100%; }
 .main-content .self div, .main-content .self article { min-width: 0; }
@@ -1355,6 +1354,12 @@ button.glass-effect { cursor: pointer; }
 a:focus-visible, button:focus-visible, summary:focus-visible {
   outline: 3px solid #ffb8d0;
   outline-offset: 4px;
+}
+.navbar {
+  padding: 0;
+  background: transparent;
+  height: 0;
+  overflow: visible;
 }
 .text-fader { display: grid; }
 .content-switcher-controls { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 20px; }
