@@ -1,6 +1,6 @@
 // SmallProjectsCard.jsx
 import React from 'react';
-import AnyFader from '../jias-react-components/tools/AnyFader.jsx';
+import AnyFader from '../ProjectSwitcher.jsx';
 import HorizontalCycleBarCentered from '../jias-react-components/tools/itemscycleCentered.jsx';
 import InlinePdf from '../jias-react-components/tools/pdf.jsx';
 
@@ -41,7 +41,7 @@ export default function SmallProjectsCard() {
             </p>
           </div>
 
-          <div style={{ flex: "0.7 0.7 350px", display: 'flex', gap: '10px', alignItems: 'stretch', justifyContent: "center" }}>
+          <div className="breathmentor-media" style={{ flex: "0.7 0.7 350px", display: 'flex', gap: '10px', alignItems: 'stretch', justifyContent: "center" }}>
             <img
               src="/breathmentor/breathmentor_1.webp"
               alt="BreathMentor"
@@ -156,6 +156,7 @@ export default function SmallProjectsCard() {
       <AnyFader
         interval={[8000, 8000, 5000]}
         items={_items}
+        labels={["BreathMentor", "Bedmaker", "Ethereum paper"]}
       />
     </div>
   );

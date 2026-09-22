@@ -1,10 +1,7 @@
 import React from 'react';
-import useScrollThresholdFade from '../jias-react-components/tools/useScrollThresholdFade.jsx';
-import TextFader from '../jias-react-components/tools/TextFader.jsx';
 import InlinePdf from '../jias-react-components/tools/pdf.jsx';
-import AnyFaderInline from '../jias-react-components/tools/AnyFaderInline.jsx';
+import AnyFaderInline from '../ProjectSwitcher.jsx';
 import HorizontalCycleBar from '../jias-react-components/tools/itemscycle.jsx';
-import { m } from 'framer-motion';
 
 export default function LabCard() {
 //   const dbh_blob_opacity = useScrollThresholdFade(80, 800, 300);
@@ -177,6 +174,7 @@ export default function LabCard() {
         <div className="flex items-start justify-start" style={{ flex: "1 1 350px"}}>            
           <h3>Projects</h3>
               <AnyFaderInline
+              labels={["Plasmid cloning", "Immunoblotting", "DNA binding"]}
               items={[
                   <div><p>Plasmid cloning was performed to create a plasmid that had a specific intronic enhancer and a GFP gene. Electrophoresis, PCR, and bacterial cell culture were performed to cleave and ligate DNA strands using restriction enzymes and ligase. Flow cytometry data showed exceptionally high GFP presence in cells which harbored the plasmid versus control cells without the enhancer inserted plasmid, implying proper cloning of both inserts.</p></div>,
                   <div><p>An antibody that recognized a specific transcription factor was tested by immunoblotting using an acrylamide gel. The gel was then imaged and the results showed that the antibody's engineered function was defective.</p></div>,
@@ -187,7 +185,7 @@ export default function LabCard() {
               // heights={[300, 300, 300]}
               />
         </div>
-        <div style={{
+        <div className="lab-photo-pair" style={{
           flex: "1.2 1.2 350px", 
           // padding: "20px", 
           alignContent: "flex-start", 
@@ -195,7 +193,7 @@ export default function LabCard() {
           justifyContent: "center",
           display: "flex", 
           gap: "20px",
-          maxWidth: "57%",
+
           }}>
             <div style={{flex:1, borderRadius: "12px", minWidth: "0px", minHeight: "0px"}}>
             <HorizontalCycleBar

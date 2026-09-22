@@ -29,6 +29,7 @@ export default function Avalon() {
             <button
               key={post.slug}
               type="button"
+              aria-pressed={post.slug === selectedPost.slug}
               className={`glass-effect${post.slug === selectedPost.slug ? " is-active" : ""}`}
               onClick={() => setSelectedSlug(post.slug)}
             >

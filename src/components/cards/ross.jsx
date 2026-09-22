@@ -66,9 +66,9 @@ export default function GuardianAngel() {
               @University of Waterloo | Sponsored by Y Combinator, Shopify, Amazon
             </span>
             <a href="https://devpost.com/software/ross-42pnvi" rel="noopener noreferrer" target="_blank">
-              <button className="rounded-button" style={{ textAlign: "center", marginTop: "15px", marginBottom: "15px" }} onClick={() => console.log('Button clicked!')}>
+              <span className="rounded-button" style={{ textAlign: "center", marginTop: "15px", marginBottom: "15px" }}>
                 Find on Devpost
-              </button>
+              </span>
             </a>
             </div>
             <HorizontalCycleBarCentered

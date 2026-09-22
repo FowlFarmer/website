@@ -122,9 +122,9 @@ export default function MikuUnsubscriberCards() {
               download={project.download ? "Install Miku Explains.dmg" : undefined}
               style={{ alignSelf: "center" }}
             >
-              <button className="rounded-button" type="button">
+              <span className="rounded-button">
                 {project.action}
-              </button>
+              </span>
             </a>
           </div>
         </article>

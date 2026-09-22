@@ -67,9 +67,9 @@ export default function SpectralFrontCard() {
             WebRTC live matches, and a local bot-training mode.
           </p>
           <a href="https://spectralfront.com" target="_blank" rel="noopener noreferrer">
-            <button className="rounded-button" type="button">
+            <span className="rounded-button">
               play @ spectralfront.com
-            </button>
+            </span>
           </a>
         </div>
       </div>

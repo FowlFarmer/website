@@ -133,7 +133,7 @@ export default function WorkExperienceCard() {
               </div>
 
               <div style={{ flex: '1 1 320px', minWidth: 0 }}>
-                <p style={{ margin: '0 0 6px 0', fontSize: '0.82rem', color: 'rgba(255,255,255,0.48)', fontWeight: 400 }}>
+                <p style={{ margin: '0 0 6px 0', fontSize: '0.82rem', color: 'rgba(255,255,255,0.78)', fontWeight: 400 }}>
                   {exp.dateRange}
                 </p>
                 <h3 style={{ margin: '0 0 6px 0', fontSize: '1.14rem', fontWeight: 500 }}>
@@ -142,12 +142,12 @@ export default function WorkExperienceCard() {
                 <p style={{ margin: '0 0 6px 0', fontSize: '0.92rem', lineHeight: 1.4, opacity: 0.82, fontWeight: 400 }}>
                   {exp.headline}
                 </p>
-                <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(255,255,255,0.48)', fontWeight: 400 }}>
+                <p style={{ margin: 0, fontSize: '0.82rem', color: 'rgba(255,255,255,0.78)', fontWeight: 400 }}>
                   {exp.location}
                 </p>
               </div>
 
-              <div style={{ flex: '0 0 208px', width: '208px', marginLeft: 'auto' }}>
+              <div className="experience-media" style={{ flex: '0 1 208px', width: '208px', maxWidth: '100%', minWidth: 0, marginLeft: 'auto' }}>
                 <CyclingImage images={exp.images} alt={exp.company} />
               </div>
             </div>

@@ -23,6 +23,7 @@ export default function WaterlooRouletteCard() {
         }}
       >
         <div
+          className="roulette-intro"
           style={{
             display: "flex",
             alignItems: "center",
@@ -56,9 +57,9 @@ export default function WaterlooRouletteCard() {
         </div>
 
         <a href="https://waterloo.careers" target="_blank" rel="noopener noreferrer">
-          <button className="rounded-button" type="button">
+          <span className="rounded-button">
             play @ waterloo.careers
-          </button>
+          </span>
         </a>
       </div>
     </div>

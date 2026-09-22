@@ -79,7 +79,7 @@ export default function ImaginecraftCard({
               target="_blank"
               rel="noopener noreferrer"
             >
-              <button className="rounded-button" onClick={() => console.log('Button clicked!')}>Analyze Results on GitHub</button>
+              <span className="rounded-button">Analyze Results on GitHub</span>
             </a>
 
             {/* Optional internal link example */}

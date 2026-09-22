@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'; // ← you use useState/useEffect
 import useScrollThresholdFade from '../jias-react-components/tools/useScrollThresholdFade.jsx';
-import TextFader from '../jias-react-components/tools/TextFader.jsx';
+import TextFader from '../ResponsiveTextFader.jsx';
 import LazyYouTube from '../LazyYouTube.jsx';
 
 export default function DBHCard() {

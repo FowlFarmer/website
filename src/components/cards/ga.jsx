@@ -22,7 +22,7 @@ export default function GuardianAngel() {
             <p style={{marginTop: "25px"}}>Cal Hacks 11 | October 2024 | Downtown SF @ The Metreon</p>
             <p style={{margin: "0px"}}>Hosted by Google and The University of California, Berkeley</p>
             <a href="https://devpost.com/software/guardian-angel-op49t2" rel="noopener noreferrer" target="_blank">
-            <button className="rounded-button" style={{margin: "20px"}} onClick={() => console.log('Button clicked!')}>Find on Devpost</button>
+            <span className="rounded-button" style={{margin: "20px"}}>Find on Devpost</span>
             </a>
             </div>
         </div>

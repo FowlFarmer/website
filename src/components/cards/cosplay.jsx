@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import useScrollThresholdFade from '../jias-react-components/tools/useScrollThresholdFade.jsx';
-import TextFader from '../jias-react-components/tools/TextFader.jsx';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function CosplayCard() {
     const [lightbox, setLightbox] = useState(null);
+    const openerRef = useRef(null);
 
     const images = [ // 1 - 12
       "/cosplay/scissors.jpg",
@@ -47,56 +47,33 @@ export default function CosplayCard() {
         {/* </div> */}
 
         
-        <div style={{display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", padding: "20px"}}>
-        {images.map((src, idx) => (
-            <div key={idx} style={{ maxWidth: "30%", minWidth: "200px" }}>
-            <img
-            src={src}
-            alt={`Image ${idx}`}
-            className="cosplay-item media-frame"
-            style={{ cursor: "pointer" }}
-            loading="lazy"
-            decoding="async"
-            onClick={() => setLightbox(src)}
-            />
-            </div>
-        ))}
+        <div className="cosplay-grid">
+          {images.map((src, idx) => (
+            <button key={src} type="button" className="cosplay-thumbnail" aria-label={`Enlarge cosplay photo ${idx + 1}`} onClick={event => { openerRef.current = event.currentTarget; setLightbox(src); }}>
+              <img src={src} alt={`Cosplay and handmade props ${idx + 1}`} className="cosplay-item" loading="lazy" decoding="async" />
+            </button>
+          ))}
         </div>
+        {lightbox && <PhotoDialog opener={openerRef.current} src={lightbox} onClose={() => setLightbox(null)} />}
 
-        {lightbox && (
-          <div
-            onClick={() => setLightbox(null)}
-            style={{
-              position: "fixed", inset: 0,
-              background: "rgba(0,0,0,0.7)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              zIndex: 1000,
-            }}
-          >
-            <div
-              onClick={e => e.stopPropagation()}
-              style={{ position: "relative", width: "60vw" }}
-            >
-              <button
-                onClick={() => setLightbox(null)}
-                style={{
-                  position: "absolute", top: "8px", right: "8px",
-                  background: "rgba(0,0,0,0.6)", border: "none", color: "white",
-                  borderRadius: "50%", width: "32px", height: "32px",
-                  fontSize: "18px", cursor: "pointer", lineHeight: "32px", textAlign: "center",
-                  zIndex: 1001,
-                }}
-              >×</button>
-              <img
-                src={lightbox}
-                alt="expanded"
-                style={{ width: "100%", aspectRatio: "4/3", objectFit: "cover", objectPosition: "center", borderRadius: "8px", display: "block" }}
-              />
-            </div>
-          </div>
-        )}
 
 
     </div>
+  );
+}
+function PhotoDialog({ src, onClose, opener }) {
+  const dialogRef = useRef(null);
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialog.showModal();
+    return () => { dialog.close(); document.body.style.overflow = previousOverflow; opener?.focus({ preventScroll: true }); };
+  }, [opener]);
+  return createPortal(
+    <dialog ref={dialogRef} className="photo-dialog" aria-label="Expanded cosplay photo" onCancel={onClose} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <button type="button" className="photo-dialog-close" onClick={onClose} aria-label="Close photo" autoFocus>×</button>
+      <img src={src} alt="Expanded cosplay and handmade props" />
+    </dialog>, document.body
   );
 }

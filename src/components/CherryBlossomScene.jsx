@@ -75,6 +75,8 @@ const TAB_LABELS = {
 const POSE_STORAGE_KEY = 'convenience-store-scene-pose-v5';
 const PARALLAX_CAMERA_SWAY = { x: 0.78, y: 0.27, bob: 0.035 };
 const PARALLAX_FOCUS_SWAY = { x: 0.33, y: 0.18 };
+// One full left-right-left cycle. Amplitude 1 matches the farthest desktop mouse.
+const MOBILE_YAW_PERIOD = 8;
 const BACKDROP_COVER_OVERSCAN = 1.045;
 const BACKDROP_COVER_MAX_SCALE = 256;
 const BACKDROP_COVER_POINTER_STEPS = [-1, 0, 1];
@@ -683,7 +685,6 @@ export default function CherryBlossomScene() {
     };
 
     const updateBackdropCover = () => {
-      if (mobileLayout) return;
       if (!backdropPlane || !editableObjects.backdrop) return;
       const bounds = backdropPlane.geometry.boundingBox;
       if (!bounds) return;
@@ -1209,9 +1210,19 @@ export default function CherryBlossomScene() {
         orbitControls.update();
         modelGroup.rotation.y = 0;
       } else if (mobileLayout) {
-        camera.position.copy(baseCameraPosition);
-        camera.lookAt(baseCameraTarget);
-        modelGroup.rotation.y = 0;
+        const yaw = reduceMotion ? 0 : Math.sin((motionTime * Math.PI * 2) / MOBILE_YAW_PERIOD);
+        camera.position.set(
+          baseCameraPosition.x + yaw * PARALLAX_CAMERA_SWAY.x,
+          baseCameraPosition.y + Math.sin(motionTime * 0.18) * PARALLAX_CAMERA_SWAY.bob,
+          baseCameraPosition.z,
+        );
+        parallaxFocalPoint.set(
+          baseCameraTarget.x - yaw * PARALLAX_FOCUS_SWAY.x,
+          baseCameraTarget.y,
+          baseCameraTarget.z,
+        );
+        camera.lookAt(parallaxFocalPoint);
+        modelGroup.rotation.y = yaw * 0.009;
       } else {
         camera.position.set(
           baseCameraPosition.x + pointer.x * PARALLAX_CAMERA_SWAY.x,

@@ -1,6 +1,5 @@
 import React from 'react';
-import useScrollThresholdFade from '../jias-react-components/tools/useScrollThresholdFade.jsx';
-import TextFader from '../jias-react-components/tools/TextFader.jsx';
+import TextFader from '../ResponsiveTextFader.jsx';
 import LazyYouTube from '../LazyYouTube.jsx';
 
 export default function Gerb2Card() {
@@ -44,7 +43,7 @@ export default function Gerb2Card() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <button className="rounded-button" onClick={() => console.log('Button clicked!')}>Find on GitHub</button>
+              <span className="rounded-button">Find on GitHub</span>
             </a>
         </div>
       </div>
