@@ -35,17 +35,22 @@ export default function Navbar() {
             }}>return to home</p>
         </Link>
         </div>
-        <div style={{
-          display: "flex",
+        <div style={{ 
+          display: "flex", 
           gap: "40px",
           top: "0",
-          alignItems: "center",
+          alignItems: "center", 
+          // fontWeight: "500", 
           justifyContent: "center",
           fontWeight: "300",
+          // fontStyle: "italic",
           fontSize: "0.9rem",
           color: "black"
           }}>
+          {/* <HashLink className="hover1" to="/self#Begin" style={{ textDecoration: "none", color: "inherit" }}>me</HashLink> */}
           <HashLink className="hover1" smooth to="/gallery#Ross" style={{ textDecoration: "none", color: "inherit" }}>projects</HashLink>
+          {/* <HashLink className="hover1" smooth to="/gallery#Hackathons" style={{ textDecoration: "none", color: "inherit" }}>hackathons</HashLink> */}
+          {/* <HashLink smooth to="/gallery#Lab" style={{ textDecoration: "none", color: "inherit" }}>other</HashLink> */}
           <HashLink className="hover1" smooth to="/contact" style={{ textDecoration: "none", color: "inherit" }}>contact</HashLink>
           <HashLink className="hover1" smooth to="/avalon" style={{ textDecoration: "none", color: "inherit" }}>avalon</HashLink>
         </div>

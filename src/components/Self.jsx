@@ -29,13 +29,16 @@ export default function Self() {
             <div id="DetroitBecomeHuman"/>
             {/* Replaced inlined Detroit Become Human card with component */}
             <DBHCard />
-            <div className="status-card glass-effect" style={{ width: "90%", marginTop: "40px", display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "center", alignItems: "center", position: "relative" }}>
-                <div className="status-heading current-status" style={{borderColor: "#55da95ff", borderWidth: "2px", borderStyle: "solid", opacity: 0.8, borderRadius: "8px", width: "100%", marginLeft: "30px", marginRight: "30px", position: "relative", minHeight: "40px"}}>
-                    <img src="/macbook/sus.png" alt="" style={{position: "absolute", height: "60px", top: "50%", left: "8px", transform: "translateY(-50%)"}} />
-                    <p style={{color: "white", margin: "8px 20px"}}>Current Status</p>
+            <div className="glass-effect" style={{ width: "90%", marginTop: "40px", display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "center", alignItems: "center" }}>
+                <div style={{height: "20px", width: "100%"}} />
+                <div className='current-status' style={{height: "40px", marginLeft: "30px", marginRight: "30px", width: "100%", borderColor: "#55da95ff", borderWidth: "2px", borderStyle: "solid", opacity: 0.8, borderRadius: "8px"}}>
+                    <p style={{color: "white", margin: "8px 20px 20px 0px"}}>Current Status</p>
                 </div>
+                <img src="/macbook/sus.png" alt="" style={{position: "absolute", scale: 0.9, height: "60px", top: "24px", left: "25px"}} />
+                <div style={{height: "10px", width: "100%"}} />
                 <Spotify />
                 <Macbook />
+                <div style={{height: "20px", width: "100%"}} />
             </div>
             {/* <GitHubProfileCard /> */}
             <div id="WorkExperience" />
