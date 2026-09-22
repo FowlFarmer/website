@@ -55,3 +55,15 @@ test('size is continuous at the threshold', () => {
   assert.equal(above.scale, 1);
   assert.ok(Math.abs(above.width - below.width) < 0.02);
 });
+
+test('Safari toolbar moves only the bottom anchor while the sizing frame stays fixed', () => {
+  const collapsed = sceneViewport(390, 844, referenceAspect, bounds, 120, 0);
+  for (const anchorInset of [120, 80, 40, 0, 40, 120]) {
+    const view = sceneViewport(390, 844, referenceAspect, bounds, 120, anchorInset);
+    assert.equal(view.y, anchorInset);
+    for (const key of ['x', 'width', 'height', 'scale', 'storeWidth']) {
+      assert.equal(view[key], collapsed[key], `${key} must not change with browser chrome`);
+    }
+    assert.ok(Math.abs(view.x + view.width - 390) < 1e-9);
+  }
+});

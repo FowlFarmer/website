@@ -1153,9 +1153,19 @@ export default function CherryBlossomScene() {
     let viewportWidth = mount.clientWidth;
     let viewportHeight = mount.clientHeight;
     let safeViewportHeight = safeViewport.clientHeight || viewportHeight;
+    let modelBottomInset = 0;
+    const visualViewport = window.visualViewport;
+    const updateModelAnchor = () => {
+      const visibleBottom = visualViewport
+        ? visualViewport.height + visualViewport.offsetTop
+        : window.innerHeight;
+      modelBottomInset = mobileLayout ? Math.max(0, viewportHeight - visibleBottom) : 0;
+    };
+    updateModelAnchor();
     const handleResize = () => {
+      updateModelAnchor();
       const width = mount.clientWidth;
-      // Height-only toolbar and keyboard events do not change the composition.
+      // Toolbar changes move only the model anchor, not the background or scale.
       if (mobileLayout && width === viewportWidth) return;
       if (mobileLayout) {
         mount.style.height = '';
@@ -1166,6 +1176,7 @@ export default function CherryBlossomScene() {
       viewportWidth = width;
       viewportHeight = height;
       safeViewportHeight = safeViewport.clientHeight || height;
+      updateModelAnchor();
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       petalField.material.uniforms.uAspect.value = camera.aspect;
@@ -1180,6 +1191,8 @@ export default function CherryBlossomScene() {
 
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
     window.addEventListener('resize', handleResize);
+    visualViewport?.addEventListener('resize', updateModelAnchor, { passive: true });
+    visualViewport?.addEventListener('scroll', updateModelAnchor, { passive: true });
     document.addEventListener('visibilitychange', handleVisibility);
 
     let lastRenderedAt = 0;
@@ -1239,7 +1252,7 @@ export default function CherryBlossomScene() {
         renderer.autoClear = false;
         renderer.clearDepth();
         const inset = mobileLayout ? Math.max(0, viewportHeight - safeViewportHeight) : 0;
-        const view = sceneViewport(viewportWidth, viewportHeight, referenceAspect, modelBounds, inset);
+        const view = sceneViewport(viewportWidth, viewportHeight, referenceAspect, modelBounds, inset, modelBottomInset);
         modelCamera.copy(camera);
         modelCamera.aspect = referenceAspect;
         modelCamera.layers.set(1);
@@ -1263,6 +1276,8 @@ export default function CherryBlossomScene() {
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('resize', handleResize);
+      visualViewport?.removeEventListener('resize', updateModelAnchor);
+      visualViewport?.removeEventListener('scroll', updateModelAnchor);
       document.removeEventListener('visibilitychange', handleVisibility);
       orbitControls.removeEventListener('change', handleOrbitChange);
       transformControls.removeEventListener('objectChange', handleObjectChange);
