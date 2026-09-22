@@ -78,6 +78,8 @@ const PARALLAX_CAMERA_SWAY = { x: 0.78, y: 0.27, bob: 0.035 };
 const PARALLAX_FOCUS_SWAY = { x: 0.33, y: 0.18 };
 // One full left-right-left cycle. Amplitude 1 matches the farthest desktop mouse.
 const MOBILE_YAW_PERIOD = 16;
+// Keep the lower 65% of the portrait photo: raise Fuji by trimming sky only.
+const MOBILE_PHOTO_HEIGHT = 0.65;
 // A firm flick (~1600 px/s) reaches the same pitch as a mouse at the screen edge.
 const MOBILE_PITCH_SPEED = 1600;
 const MOBILE_PITCH_SETTLE_MS = 70;
@@ -698,6 +700,7 @@ export default function CherryBlossomScene() {
     };
 
     const updateBackdropCover = () => {
+      if (mobileLayout) { frameMobileBackdrop(); return; }
       if (!backdropPlane || !editableObjects.backdrop) return;
       const bounds = backdropPlane.geometry.boundingBox;
       if (!bounds) return;
@@ -959,7 +962,8 @@ export default function CherryBlossomScene() {
         const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
         backdropTexture.colorSpace = THREE.SRGBColorSpace;
         backdropTexture.anisotropy = Math.min(maxAnisotropy, 8);
-        const backdropAspect = backdropTexture.image.width / backdropTexture.image.height;
+        if (mobileLayout) backdropTexture.repeat.y = MOBILE_PHOTO_HEIGHT;
+        const backdropAspect = backdropTexture.image.width / (backdropTexture.image.height * (mobileLayout ? MOBILE_PHOTO_HEIGHT : 1));
         const backdropHeight = 16;
         const backdropMaterial = new THREE.MeshBasicMaterial({
           map: backdropTexture,
@@ -1187,25 +1191,52 @@ export default function CherryBlossomScene() {
       });
       modelBounds = { storeMinX: projectedStore.min.x, storeMaxX: projectedStore.max.x };
     };
+    let mobileBackdropState = '';
     const frameMobileBackdrop = () => {
-      if (!editableObjects.store || !editableObjects.rider || !backdropPlane) return;
-      camera.position.copy(baseCameraPosition);
-      camera.lookAt(baseCameraTarget);
-      camera.updateMatrixWorld(true);
-      const tangent = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-      // The portrait image faces the camera: uniform cover scaling preserves
-      // its proportions and never inherits the desktop backdrop's tilted pose.
-      const depth = 140;
       const backdrop = editableObjects.backdrop;
-      backdrop.position.copy(camera.position).addScaledVector(camera.getWorldDirection(new THREE.Vector3()), depth);
-      backdrop.quaternion.copy(camera.quaternion);
+      if (!backdrop || !backdropPlane) return;
+      const state = [camera.aspect, camera.fov, ...baseCameraPosition.toArray(), ...baseCameraTarget.toArray()].join('|');
+      if (state === mobileBackdropState) return;
+
+      // Fit the full parallax envelope in the photo's plane, rather than
+      // enlarging a centered image afterward (which loses the bottom anchor).
+      coverCamera.copy(camera);
+      coverCamera.position.copy(baseCameraPosition);
+      coverCamera.lookAt(baseCameraTarget);
+      coverCamera.updateMatrixWorld(true);
+      coverCamera.updateProjectionMatrix();
+      const normal = coverCamera.getWorldDirection(new THREE.Vector3());
+      backdrop.position.copy(baseCameraPosition).addScaledVector(normal, 140);
+      backdrop.quaternion.copy(coverCamera.quaternion);
       backdrop.scale.setScalar(1);
-      const imageAspect = backdropPlane.material.map.image.width / backdropPlane.material.map.image.height;
-      const coverHeight = 2 * tangent * depth * Math.max(1, camera.aspect / imageAspect);
-      backdropPlane.scale.setScalar(coverHeight / 16);
-      // Keep Fuji in view when landscape orientation crops the tall image.
-      backdrop.position.addScaledVector(new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion), (coverHeight - 2 * tangent * depth) / 2);
+      backdrop.updateMatrixWorld(true);
+      const plane = new THREE.Plane().setFromNormalAndCoplanarPoint(normal, backdrop.position);
+      const ray = new THREE.Raycaster();
+      const point = new THREE.Vector3();
+      const bounds = new THREE.Box2();
+      for (const x of BACKDROP_COVER_POINTER_STEPS) {
+        for (const y of BACKDROP_COVER_POINTER_STEPS) {
+          for (const bob of BACKDROP_COVER_BOB_STEPS) {
+            applyParallaxSample(coverCamera, x, y, bob);
+            coverCamera.updateMatrixWorld(true);
+            for (const corner of viewportCoverCorners) {
+              ray.setFromCamera(corner, coverCamera);
+              if (ray.ray.intersectPlane(plane, point)) {
+                backdrop.worldToLocal(point);
+                bounds.expandByPoint(new THREE.Vector2(point.x, point.y));
+              }
+            }
+          }
+        }
+      }
+      const imageAspect = backdropPlane.geometry.parameters.width / backdropPlane.geometry.parameters.height;
+      const height = Math.max(bounds.max.y - bounds.min.y, (bounds.max.x - bounds.min.x) / imageAspect);
+      backdropPlane.scale.setScalar(height / 16);
+      // Extra height extends upward into the sky. The photo's bottom always
+      // reaches below the lowest visible corner, including Safari's tall canvas.
+      backdropPlane.position.set((bounds.min.x + bounds.max.x) / 2, bounds.min.y + height / 2, 0);
       ground.visible = false;
+      mobileBackdropState = state;
     };
     let viewportWidth = mount.clientWidth;
     let viewportHeight = mount.clientHeight;
