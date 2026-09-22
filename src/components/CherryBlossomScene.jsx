@@ -77,6 +77,9 @@ const PARALLAX_CAMERA_SWAY = { x: 0.78, y: 0.27, bob: 0.035 };
 const PARALLAX_FOCUS_SWAY = { x: 0.33, y: 0.18 };
 // One full left-right-left cycle. Amplitude 1 matches the farthest desktop mouse.
 const MOBILE_YAW_PERIOD = 16;
+// A firm flick (~1600 px/s) reaches the same pitch as a mouse at the screen edge.
+const MOBILE_PITCH_SPEED = 1600;
+const MOBILE_PITCH_SETTLE_MS = 70;
 const BACKDROP_COVER_OVERSCAN = 1.045;
 const BACKDROP_COVER_MAX_SCALE = 256;
 const BACKDROP_COVER_POINTER_STEPS = [-1, 0, 1];
@@ -1096,6 +1099,23 @@ export default function CherryBlossomScene() {
       targetPointer.x = (event.clientX / window.innerWidth - 0.5) * 2;
       targetPointer.y = (event.clientY / window.innerHeight - 0.5) * 2;
     };
+    let lastScrollY = window.scrollY;
+    let lastScrollAt = performance.now();
+    let scrollPitch = 0;
+    let targetScrollPitch = 0;
+    const handleScrollPitch = () => {
+      if (!mobileLayout) return;
+      const now = performance.now();
+      const deltaY = window.scrollY - lastScrollY;
+      const deltaMs = Math.max(now - lastScrollAt, 1);
+      lastScrollY = window.scrollY;
+      lastScrollAt = now;
+      targetScrollPitch = THREE.MathUtils.clamp(
+        (deltaY / deltaMs) * (1000 / MOBILE_PITCH_SPEED),
+        -1,
+        1,
+      );
+    };
     const handleVisibility = () => {
       visible = !document.hidden;
     };
@@ -1191,6 +1211,7 @@ export default function CherryBlossomScene() {
     };
 
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('scroll', handleScrollPitch, { passive: true });
     window.addEventListener('resize', handleResize);
     visualViewport?.addEventListener('resize', updateModelAnchor, { passive: true });
     visualViewport?.addEventListener('scroll', updateModelAnchor, { passive: true });
@@ -1211,14 +1232,22 @@ export default function CherryBlossomScene() {
         modelGroup.rotation.y = 0;
       } else if (mobileLayout) {
         const yaw = reduceMotion ? 0 : Math.sin((motionTime * Math.PI * 2) / MOBILE_YAW_PERIOD);
+        if (reduceMotion) {
+          targetScrollPitch = 0;
+          scrollPitch = 0;
+        } else {
+          if (now - lastScrollAt > MOBILE_PITCH_SETTLE_MS) targetScrollPitch = 0;
+          scrollPitch += (targetScrollPitch - scrollPitch) * (targetScrollPitch === 0 ? 0.06 : 0.18);
+        }
         camera.position.set(
           baseCameraPosition.x + yaw * PARALLAX_CAMERA_SWAY.x,
-          baseCameraPosition.y + Math.sin(motionTime * 0.18) * PARALLAX_CAMERA_SWAY.bob,
+          baseCameraPosition.y - scrollPitch * PARALLAX_CAMERA_SWAY.y
+            + Math.sin(motionTime * 0.18) * PARALLAX_CAMERA_SWAY.bob,
           baseCameraPosition.z,
         );
         parallaxFocalPoint.set(
           baseCameraTarget.x - yaw * PARALLAX_FOCUS_SWAY.x,
-          baseCameraTarget.y,
+          baseCameraTarget.y + scrollPitch * PARALLAX_FOCUS_SWAY.y,
           baseCameraTarget.z,
         );
         camera.lookAt(parallaxFocalPoint);
@@ -1286,6 +1315,7 @@ export default function CherryBlossomScene() {
       window.clearTimeout(readyTimer);
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('scroll', handleScrollPitch);
       window.removeEventListener('resize', handleResize);
       visualViewport?.removeEventListener('resize', updateModelAnchor);
       visualViewport?.removeEventListener('scroll', updateModelAnchor);
