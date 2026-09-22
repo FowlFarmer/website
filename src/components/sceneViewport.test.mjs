@@ -24,17 +24,26 @@ test('wider screens keep the authored frame pinned bottom-right at full size', (
   assert.equal(view.y, 0);
 });
 
-test('phone through ultrawide keeps aspect, 60% cap and the bottom-right corner', () => {
-  for (const [width, height] of [[320, 568], [390, 844], [768, 1024], [844, 390], [1440, 900], [2560, 1080]]) {
+test('phone through ultrawide keeps aspect, width cap and the bottom-right corner', () => {
+  for (const [width, height, cap] of [
+    [320, 568, 0.9], [390, 844, 0.9], [768, 1024, 0.9], [844, 390, 0.9],
+    [1440, 900, 0.6], [2560, 1080, 0.6],
+  ]) {
     const inset = 24;
-    const view = sceneViewport(width, height, referenceAspect, bounds, inset);
-    assert.ok(view.storeWidth <= width * 0.6 + 1e-9);
+    const view = sceneViewport(width, height, referenceAspect, bounds, inset, inset, cap);
+    assert.ok(view.storeWidth <= width * cap + 1e-9);
     assert.ok(Math.abs(view.x + view.width - width) < 1e-9);
     assert.equal(view.y, inset);
     assert.ok(Math.abs(view.width / view.height - referenceAspect) < 1e-9);
     assert.ok(view.scale <= 1);
     assert.ok(view.height <= height - inset + 1e-9);
   }
+});
+
+test('phone cap is 90 percent of screen width', () => {
+  const view = sceneViewport(390, 844, referenceAspect, bounds, 0, 0, 0.9);
+  assert.ok(view.storeWidth <= 390 * 0.9 + 1e-9);
+  assert.ok(view.storeWidth > 390 * 0.6);
 });
 
 test('cropped store geometry is never revealed by the cap', () => {

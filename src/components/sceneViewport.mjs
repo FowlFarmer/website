@@ -2,8 +2,7 @@
 // authored frame's bottom-right corner stays pinned to the screen's
 // bottom-right corner, so geometry the author cropped below or past the
 // frame stays cropped. Resizing only scales that frame's image.
-export function sceneViewport(width, height, referenceAspect, bounds, bottomInset = 0, anchorInset = bottomInset) {
-  const maxStoreFraction = 0.6;
+export function sceneViewport(width, height, referenceAspect, bounds, bottomInset = 0, anchorInset = bottomInset, maxStoreFraction = 0.6) {
   const availableHeight = Math.max(1, height - bottomInset);
   const naturalWidth = availableHeight * referenceAspect;
   // Only the part of the store inside the authored frame takes up screen.

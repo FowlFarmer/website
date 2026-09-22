@@ -1292,7 +1292,15 @@ export default function CherryBlossomScene() {
         renderer.autoClear = false;
         renderer.clearDepth();
         const inset = mobileLayout ? Math.max(0, viewportHeight - safeViewportHeight) : 0;
-        const view = sceneViewport(viewportWidth, viewportHeight, referenceAspect, modelBounds, inset, modelBottomInset);
+        const view = sceneViewport(
+          viewportWidth,
+          viewportHeight,
+          referenceAspect,
+          modelBounds,
+          inset,
+          modelBottomInset,
+          mobileLayout ? 0.9 : 0.6,
+        );
         modelCamera.copy(camera);
         modelCamera.aspect = referenceAspect;
         modelCamera.layers.set(1);
