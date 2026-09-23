@@ -1449,81 +1449,23 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   pointer-events: none;
 }
 .scene-performance-control button {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  position: relative;
   margin: 0;
-  min-height: 38px;
-  padding: 7px 13px 7px 11px;
-  border: 1px solid rgba(255, 255, 255, 0.62);
-  border-radius: 12px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 246, 248, 0.4));
-  box-shadow:
-    0 3px 4px 3px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.78);
-  color: #1c1c1c;
-  font: 300 11px/1 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  letter-spacing: 0.04em;
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 5px;
+  background: rgba(24, 31, 45, 0.28);
+  color: rgba(255, 255, 255, 0.8);
+  font: 400 10px/1.2 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  white-space: nowrap;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
-  backdrop-filter: blur(8px) saturate(1.15);
-  -webkit-backdrop-filter: blur(8px) saturate(1.15);
-  transition: transform 0.2s ease-in-out, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 .scene-performance-control button:hover {
-  transform: scale(1.01) translateY(-1px);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 246, 248, 0.58));
-  border-color: rgba(255, 255, 255, 0.9);
-  box-shadow:
-    0 3px 5px 4px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-.scene-performance-control button:active {
-  transform: scale(1);
-}
-.scene-performance-control [aria-checked="true"] {
-  background:
-    linear-gradient(180deg, rgba(255, 241, 244, 0.82), rgba(255, 228, 234, 0.62));
-  border-color: rgba(189, 103, 128, 0.38);
-}
-.scene-performance-mark {
-  flex: none;
-  width: 7px;
-  height: 11px;
-  border-radius: 70% 30% 70% 30%;
-  transform: rotate(-28deg);
-  background: transparent;
-  box-shadow: inset 0 0 0 1px #bd6780;
-}
-.scene-performance-control [aria-checked="true"] .scene-performance-mark {
-  background: #bd6780;
-  box-shadow: none;
-}
-.scene-performance-copy {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
-}
-.scene-performance-kicker {
-  font-size: 0.58rem;
-  font-weight: 100;
-  font-style: italic;
-  letter-spacing: 0.16em;
-  text-transform: lowercase;
-  color: rgba(28, 28, 28, 0.68);
-}
-.scene-performance-state {
-  font-size: 0.82rem;
-  font-weight: 300;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-}
-.scene-performance-control [aria-checked="true"] .scene-performance-state {
-  color: #bd6780;
+  background: rgba(24, 31, 45, 0.45);
+  color: #fff;
 }
 .scene-performance-control button:focus-visible {
   outline: 3px solid #ffb8d0;
@@ -1550,7 +1492,12 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 .scene-performance-notice:empty { display: none; }
 .scene-performance-notice.is-visible { opacity: 1; }
 @media (pointer: coarse) {
-  .scene-performance-control button { min-height: 44px; padding: 9px 15px 9px 12px; }
+  /* Keep the visible button small while leaving room for a finger tap. */
+  .scene-performance-control button::after {
+    content: '';
+    position: absolute;
+    inset: -11px -4px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .scene-performance-control,

@@ -22,16 +22,12 @@ function PerformanceToggle({ staticMode, onToggle, notice, noticeVisible, placem
       <button
         type="button"
         role="switch"
-        aria-checked={staticMode}
-        aria-label={staticMode ? 'Switch to the live 3D scene' : 'Use a still scene to save graphics power'}
+        aria-checked={!staticMode}
+        aria-label="3D background"
         tabIndex={visible ? 0 : -1}
         onClick={onToggle}
       >
-        <span className="scene-performance-mark" aria-hidden="true" />
-        <span className="scene-performance-copy">
-          <span className="scene-performance-kicker">scene</span>
-          <span className="scene-performance-state">{staticMode ? 'still' : 'live'}</span>
-        </span>
+        {staticMode ? '3D off' : '3D on'}
       </button>
     </div>
   );
