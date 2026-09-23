@@ -179,8 +179,8 @@ const petalVertexShader = `
 
     // Keep the nearest flakes from filling the viewport while preserving
     // normal perspective for the rest of the field.
-    float foregroundScale = smoothstep(1.25, 3.4, depth);
-    vec3 petal = position * aScale * mix(0.56, 1.0, foregroundScale);
+    float foregroundScale = smoothstep(1.4, 6.0, depth);
+    vec3 petal = position * aScale * mix(0.28, 1.0, foregroundScale);
     // Small variations keep the shared mesh from looking stamped out.
     float widthVariation = mix(0.90, 1.10, aTint);
     petal.x *= widthVariation;
