@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "optimize:lawson": "node scripts/assets/optimize-lawson.mjs"
+    "optimize:lawson": "node scripts/assets/optimize-lawson.mjs",
+    "prebuild": "node scripts/assets/check-scene-snapshots.mjs"
   },
   "dependencies": {
     "@react-pdf-viewer/core": "^3.12.0",
