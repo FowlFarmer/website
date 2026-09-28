@@ -31,6 +31,13 @@ const SMALL_CELL_RADIUS = 0.8;
 // Canvas bleed around the banner, in viewBox units, so petals can drift past it.
 const BLEED = 110;
 const DRAG_PER_SECOND = 2.4;
+// After the burst, large petals keep a slow drift that fades out as they get far from home.
+const DRIFT_SPEED = 1.1;
+const DRIFT_SPEED_RANGE = 1.4;
+const DRIFT_FADE_START = 45;
+const DRIFT_FADE_END = 90;
+// A brief dwell before a character blooms, so sweeping past the banner leaves it alone.
+const HOVER_DELAY_MS = 140;
 const OPEN_SECONDS = 0.4;
 const RETURN_MS = 720;
 // The background wake (petalWind.mjs), at banner scale: viewBox units instead of viewport heights.
@@ -42,6 +49,9 @@ const WIND_LIFETIME = 1.8;
 const COLUMN_EDGES = [0, 109.5, 209, calligraphyViewBox.width];
 
 const { width: VIEW_WIDTH, height: VIEW_HEIGHT } = calligraphyViewBox;
+const NAME_LABEL = `朱加宇, Zhū Jiā Yǔ: ${calligraphyGlyphs
+  .map((glyph) => `${glyph.char} ${glyph.meaning.join(', ')}`)
+  .join('; ')}`;
 
 const glyphCenter = ({ box }) => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
 const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
@@ -417,6 +427,7 @@ export default function CalligraphyName() {
   const canvasRef = useRef(null);
   const glyphRefs = useRef([]);
   const engineRef = useRef(null);
+  const hoverTimers = useRef([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -424,6 +435,7 @@ export default function CalligraphyName() {
     const context = canvas?.getContext('2d');
     if (!canvas || !wrapper || !context) return undefined;
 
+    const timers = hoverTimers.current;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     // mode: 'ink' shows the vector, 'bloom' the petals and words, 'return' petals flying home.
     const glyphStates = calligraphyGlyphs.map((glyph) => ({
@@ -487,17 +499,21 @@ export default function CalligraphyName() {
       const open = easeOutCubic(Math.min(elapsed / OPEN_SECONDS, 1));
       for (const petal of state.large) {
         const [airX, airY] = gusts.length ? airAt(petal.x, petal.y) : [0, 0];
-        // Still air is pure drag; a gust drags the petal toward its own speed instead.
-        petal.velocityX = airX * petal.windResponse + (petal.velocityX - airX * petal.windResponse) * drag;
-        petal.velocityY = airY * petal.windResponse + (petal.velocityY - airY * petal.windResponse) * drag;
+        const travelled = Math.hypot(petal.x - petal.homeX, petal.y - petal.homeY);
+        const drift = Math.min(Math.max((DRIFT_FADE_END - travelled) / (DRIFT_FADE_END - DRIFT_FADE_START), 0), 1);
+        // Drag pulls each petal toward the local air speed plus its own fading drift.
+        const targetX = airX * petal.windResponse + petal.driftX * drift;
+        const targetY = airY * petal.windResponse + petal.driftY * drift;
+        petal.velocityX = targetX + (petal.velocityX - targetX) * drag;
+        petal.velocityY = targetY + (petal.velocityY - targetY) * drag;
         petal.spin = (petal.spin + (airX - airY) * petal.windResponse * 0.012 * seconds) * drag;
         petal.x += petal.velocityX * seconds;
         petal.y += petal.velocityY * seconds;
         petal.rotation += petal.spin * seconds;
         // The glyph cell reshapes into the petal while it flies off.
         petal.morph = petal.morphFrom + (1 - petal.morphFrom) * open;
-        if (Math.hypot(petal.velocityX, petal.velocityY) < 0.35 && !gusts.length) {
-          // Below a crawl the petal simply comes to rest where it floated.
+        if (!drift && Math.hypot(petal.velocityX, petal.velocityY) < 0.35 && !gusts.length) {
+          // Past its drift range and below a crawl, the petal comes to rest where it floated.
           petal.velocityX = 0;
           petal.velocityY = 0;
           petal.spin = 0;
@@ -655,6 +671,11 @@ export default function CalligraphyName() {
           petal.velocityX = Math.cos(angle) * speed;
           petal.velocityY = Math.sin(angle) * speed;
           petal.spin = (Math.random() - 0.5) * 7;
+          const driftAngle = angle + (Math.random() - 0.5) * 0.6;
+          const driftSpeed = DRIFT_SPEED + Math.random() * DRIFT_SPEED_RANGE;
+          petal.driftX = Math.cos(driftAngle) * driftSpeed;
+          // A faint downward lean, like the petals falling in the scene behind.
+          petal.driftY = Math.sin(driftAngle) * driftSpeed + 0.35;
         }
         for (const petal of state.small) {
           const { target } = petal;
@@ -717,6 +738,7 @@ export default function CalligraphyName() {
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
+      timers.forEach((timer) => window.clearTimeout(timer));
       idleTasks.forEach((task) => cancelIdle(task));
       observer.disconnect();
       window.removeEventListener('pointermove', handlePointerMove);
@@ -727,10 +749,21 @@ export default function CalligraphyName() {
   }, []);
 
   const handleEnter = (index) => (event) => {
-    if (event.pointerType === 'mouse') engineRef.current?.bloom(index);
+    if (event.pointerType !== 'mouse') return;
+    window.clearTimeout(hoverTimers.current[index]);
+    hoverTimers.current[index] = window.setTimeout(() => {
+      hoverTimers.current[index] = 0;
+      engineRef.current?.bloom(index);
+    }, HOVER_DELAY_MS);
   };
   const handleLeave = (index) => (event) => {
-    if (event.pointerType === 'mouse') engineRef.current?.settle(index);
+    if (event.pointerType !== 'mouse') return;
+    if (hoverTimers.current[index]) {
+      window.clearTimeout(hoverTimers.current[index]);
+      hoverTimers.current[index] = 0;
+      return;
+    }
+    engineRef.current?.settle(index);
   };
   // Touch has no hover, so a tap toggles the character instead.
   const handleTap = (index) => (event) => {
@@ -741,7 +774,7 @@ export default function CalligraphyName() {
   };
 
   return (
-    <div ref={wrapperRef} className="calligraphy-name" role="img" aria-label="朱加宇, Zhū Jiā Yǔ">
+    <div ref={wrapperRef} className="calligraphy-name" role="img" aria-label={NAME_LABEL}>
       <canvas ref={canvasRef} className="calligraphy-name-petals" aria-hidden="true" />
       <svg viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`} aria-hidden="true">
         {calligraphyGlyphs.map((glyph, index) => (

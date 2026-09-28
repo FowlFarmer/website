@@ -8,17 +8,17 @@ export const calligraphyGlyphs = [
     "char": "朱",
     "pinyin": "Zhū",
     "meaning": [
-      "vermillion",
+      "vermilion",
       "prosperity"
     ],
     "syllables": [
       [
         "vermi",
-        "llion"
+        "lion"
       ],
       [
-        "prosp",
-        "erity"
+        "pros",
+        "perity"
       ]
     ],
     "box": {

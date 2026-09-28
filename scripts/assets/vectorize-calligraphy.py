@@ -21,8 +21,8 @@ SCALE = 8
 PAD = 1  # px of breathing room around each glyph box, in source pixels
 
 GLYPHS = [
-    {'id': 'zhu', 'char': '朱', 'pinyin': 'Zhū', 'meaning': ['vermillion', 'prosperity'],
-     'syllables': [['vermi', 'llion'], ['prosp', 'erity']]},
+    {'id': 'zhu', 'char': '朱', 'pinyin': 'Zhū', 'meaning': ['vermilion', 'prosperity'],
+     'syllables': [['vermi', 'lion'], ['pros', 'perity']]},
     {'id': 'jia', 'char': '加', 'pinyin': 'Jiā', 'meaning': ['plus', 'ultra'], 'syllables': [['plus'], ['ultra']]},
     {'id': 'yu', 'char': '宇', 'pinyin': 'Yǔ', 'meaning': ['universe'], 'syllables': [['uni', 'ver', 'se']]},
 ]

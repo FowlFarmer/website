@@ -106,6 +106,12 @@ export default function SakuraCursorTrail() {
     const handlePointerMove = (event) => {
       if (event.pointerType && event.pointerType !== 'mouse') return;
       const current = { x: event.clientX, y: event.clientY };
+      // The name banner makes its own petals; a second trail over it just muddies them.
+      if (event.target?.closest?.('.calligraphy-name')) {
+        previousPointer = current;
+        spawnCarry = 0;
+        return;
+      }
       if (!previousPointer) {
         previousPointer = current;
         return;
