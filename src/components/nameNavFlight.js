@@ -14,6 +14,11 @@ const FLIGHT_SECONDS = 1.0;
 const FLIGHT_SECONDS_RANGE = 0.35;
 const FLIGHT_STAGGER = 0.15;
 const ITEMS_FADE_OUT_MS = 200;
+// How far a bar tile's claim can vary, as a fraction of the tile size.
+const TILE_IRREGULARITY = 0.45;
+// Flight time (not eased distance) at which a piece becomes a petal, and starts to take its landing shape.
+const PETAL_BY = 0.1;
+const LANDING_FROM = 0.93;
 
 const smoothstep = (edge0, edge1, value) => {
   const t = Math.min(Math.max((value - edge0) / (edge1 - edge0), 0), 1);
@@ -105,8 +110,10 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
     for (let row = 0; row < barRows; row += 1) {
       for (let column = 0; column < columns; column += 1) {
         seeds.push({
-          homeX: box.left + (column + 0.2 + Math.random() * 0.6) * cellWidth,
-          homeY: box.top + (row + 0.2 + Math.random() * 0.6) * cellHeight,
+          homeX: box.left + (column + Math.random()) * cellWidth,
+          homeY: box.top + (row + Math.random()) * cellHeight,
+          // Uneven claims make uneven shards, so the tiling doesn't read as a grid.
+          cellWeight: (Math.random() * TILE_IRREGULARITY * Math.min(cellWidth, cellHeight)) ** 2,
         });
       }
     }
@@ -210,9 +217,9 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
       piece.x = cubic(flight.fromX, p1X, p2X, toX, t);
       piece.y = cubic(flight.fromY, p1Y, p2Y, toY, t);
       piece.rotation = flight.fromRotation + flight.spin * t;
-      // Leave the starting shape early, be a petal in mid-air, settle into the landing shape late.
-      const intoPetal = smoothstep(0, 0.3, t);
-      const intoTarget = smoothstep(0.7, 1, t);
+      // Become a petal right away and stay one until it has all but landed, then take its tile's shape.
+      const intoPetal = smoothstep(0, PETAL_BY, progress);
+      const intoTarget = smoothstep(LANDING_FROM, 1, progress);
       const size = piece.size * scale;
       PIECE_DIRECTIONS.forEach(({ theta }, angle) => {
         const target = up ? piece.bar.radii[angle] : piece.cell[angle] * scale;
