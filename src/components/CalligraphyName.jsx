@@ -1,5 +1,10 @@
 import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { calligraphyGlyphs, calligraphyViewBox } from '../data/calligraphy.js';
+import {
+  PIECE_DIRECTIONS, glyphInterior, glyphMask, petalRadius, tessellate, tracePiece,
+} from './petalPieces.js';
+import { createNavFlight } from './nameNavFlight.js';
 
 const PETAL_COLORS = ['#fffefe', '#fffaf8', '#ffffff', '#f7f5f4'];
 // Large petals blow away and ride the wind; they sit on a jittered grid over the glyph.
@@ -21,10 +26,8 @@ const LETTER_INSET = 0.5;
 const LETTER_SPACING = 1.3;
 const LETTER_GRAIN_RADIUS = 2.2;
 // The glyph is cut into one cell per petal (a power diagram: large petals claim larger cells),
-// rasterised this many pixels per unit. Each cell is kept as its radius at PIECE_ANGLES
-// directions, so it can morph into the petal outline and back without a visible break.
+// rasterised this many pixels per unit, so it can morph into the petal and back seamlessly.
 const PIECE_DENSITY = 6;
-const PIECE_ANGLES = 48;
 const PIECE_OVERLAP = 0.22;
 const LARGE_CELL_RADIUS = 1.9;
 const SMALL_CELL_RADIUS = 0.8;
@@ -38,6 +41,13 @@ const DRIFT_FADE_START = 45;
 const DRIFT_FADE_END = 90;
 // A brief dwell before a character blooms, so sweeping past the banner leaves it alone.
 const HOVER_DELAY_MS = 140;
+// Scrolling this far from where a character opened closes it again.
+const SCROLL_CLOSE_PX = 24;
+// On touch the words stay open with no cursor to steer by, so petals clear a wider berth.
+const TOUCH_BURST_SPEED = 95;
+const TOUCH_BURST_RANGE = 115;
+const TOUCH_WORD_MARGIN = 10;
+const TOUCH_CLEARING_FORCE = 160;
 const OPEN_SECONDS = 0.4;
 const RETURN_MS = 720;
 // The background wake (petalWind.mjs), at banner scale: viewBox units instead of viewport heights.
@@ -70,21 +80,6 @@ function wordLines(glyph) {
   });
   const shift = WORD_CENTER_Y + (WORD_OFFSET[glyph.id]?.y || 0) - (y - WORD_LINE_HEIGHT) / 2;
   return lines.map((line) => ({ ...line, y: line.y + shift }));
-}
-
-function glyphInterior(glyph, spacing) {
-  const probe = document.createElement('canvas').getContext('2d');
-  const path = new Path2D(glyph.paths.join(' '));
-  const { x, y, width, height } = glyph.box;
-  const points = [];
-  for (let py = y; py < y + height; py += spacing) {
-    for (let px = x; px < x + width; px += spacing) {
-      const pointX = px + Math.random() * spacing;
-      const pointY = py + Math.random() * spacing;
-      if (probe.isPointInPath(path, pointX, pointY)) points.push({ x: pointX, y: pointY });
-    }
-  }
-  return points;
 }
 
 function makePetal(x, y, size, rotation = Math.random() * Math.PI * 2) {
@@ -260,147 +255,16 @@ function sampleSmallPetals(glyph, lines, large) {
   return petals;
 }
 
-const PETAL_OUTLINE = [
-  [[0, 1], [0.95, 0.3], [0.8, -0.82], [0.24, -0.9]],
-  [[0.24, -0.9], [0.24, -0.9], [0, -0.62], [0, -0.62]],
-  [[0, -0.62], [0, -0.62], [-0.24, -0.9], [-0.24, -0.9]],
-  [[-0.24, -0.9], [-0.8, -0.82], [-0.95, 0.3], [0, 1]],
-];
-
-// The unit petal's radius at each local angle; the outline is star-shaped about its centre.
-const PETAL_PROFILE = (() => {
-  const bins = 720;
-  const profile = new Float32Array(bins).fill(-1);
-  for (const [p0, p1, p2, p3] of PETAL_OUTLINE) {
-    for (let step = 0; step <= 600; step += 1) {
-      const t = step / 600;
-      const u = 1 - t;
-      const x = u * u * u * p0[0] + 3 * u * u * t * p1[0] + 3 * u * t * t * p2[0] + t * t * t * p3[0];
-      const y = u * u * u * p0[1] + 3 * u * u * t * p1[1] + 3 * u * t * t * p2[1] + t * t * t * p3[1];
-      const bin = Math.floor(((Math.atan2(y, x) / (Math.PI * 2) + 1) % 1) * bins) % bins;
-      profile[bin] = Math.max(profile[bin], Math.hypot(x, y));
-    }
-  }
-  for (let bin = 0; bin < bins; bin += 1) {
-    if (profile[bin] >= 0) continue;
-    let before = bin;
-    let after = bin;
-    while (profile[(before + bins) % bins] < 0) before -= 1;
-    while (profile[after % bins] < 0) after += 1;
-    const mix = (bin - before) / (after - before);
-    profile[bin] = profile[(before + bins) % bins] * (1 - mix) + profile[after % bins] * mix;
-  }
-  return profile;
-})();
-
-const petalRadius = (angle) => {
-  const turn = ((angle / (Math.PI * 2)) % 1 + 1) % 1;
-  return PETAL_PROFILE[Math.floor(turn * PETAL_PROFILE.length) % PETAL_PROFILE.length];
-};
-
-// Cut the glyph into one cell per petal and move each petal's home to its cell's centroid.
-function tessellate(glyph, petals) {
-  const { box } = glyph;
-  const width = Math.ceil(box.width * PIECE_DENSITY);
-  const height = Math.ceil(box.height * PIECE_DENSITY);
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext('2d');
-  context.scale(PIECE_DENSITY, PIECE_DENSITY);
-  context.translate(-box.x, -box.y);
-  context.fill(new Path2D(glyph.paths.join(' ')));
-  const { data } = context.getImageData(0, 0, width, height);
-
-  const bucketSize = 6;
-  const buckets = new Map();
-  petals.forEach((petal, index) => {
-    const key = `${Math.floor(petal.homeX / bucketSize)},${Math.floor(petal.homeY / bucketSize)}`;
-    if (!buckets.has(key)) buckets.set(key, []);
-    buckets.get(key).push(index);
-  });
-  const labels = new Int32Array(width * height).fill(-1);
-  const sumX = new Float64Array(petals.length);
-  const sumY = new Float64Array(petals.length);
-  const counts = new Uint32Array(petals.length);
-  for (let py = 0; py < height; py += 1) {
-    for (let px = 0; px < width; px += 1) {
-      const pixel = py * width + px;
-      // Half coverage is where the antialiased edge sits, matching the SVG's own outline.
-      if (data[pixel * 4 + 3] < 128) continue;
-      const x = box.x + (px + 0.5) / PIECE_DENSITY;
-      const y = box.y + (py + 0.5) / PIECE_DENSITY;
-      const bucketX = Math.floor(x / bucketSize);
-      const bucketY = Math.floor(y / bucketSize);
-      let best = -1;
-      let bestPower = Infinity;
-      for (let dy = -1; dy <= 1; dy += 1) {
-        for (let dx = -1; dx <= 1; dx += 1) {
-          for (const index of buckets.get(`${bucketX + dx},${bucketY + dy}`) || []) {
-            const petal = petals[index];
-            const power = (petal.homeX - x) ** 2 + (petal.homeY - y) ** 2 - petal.cellWeight;
-            if (power < bestPower) {
-              bestPower = power;
-              best = index;
-            }
-          }
-        }
-      }
-      if (best < 0) continue;
-      labels[pixel] = best;
-      sumX[best] += x;
-      sumY[best] += y;
-      counts[best] += 1;
-    }
-  }
-
-  const labelAt = (x, y) => {
-    const px = Math.floor((x - box.x) * PIECE_DENSITY);
-    const py = Math.floor((y - box.y) * PIECE_DENSITY);
-    return px >= 0 && py >= 0 && px < width && py < height ? labels[py * width + px] : -1;
-  };
-  const owns = (index, x, y) => labelAt(x, y) === index;
-  petals.forEach((petal, index) => {
-    petal.cell = new Float32Array(PIECE_ANGLES);
-    if (!counts[index]) return;
-    let centerX = sumX[index] / counts[index];
-    let centerY = sumY[index] / counts[index];
-    if (!owns(index, centerX, centerY)) {
-      centerX = petal.homeX;
-      centerY = petal.homeY;
-    }
-    const march = 0.5 / PIECE_DENSITY;
-    for (let angle = 0; angle < PIECE_ANGLES; angle += 1) {
-      const theta = (angle / PIECE_ANGLES) * Math.PI * 2;
-      const cos = Math.cos(theta);
-      const sin = Math.sin(theta);
-      let radius = 0;
-      while (radius < 20 && owns(index, centerX + cos * (radius + march), centerY + sin * (radius + march))) radius += march;
-      // Neighbouring cells overlap a hair to hide antialiasing seams; the glyph's own edge stays exact.
-      const beyond = labelAt(centerX + cos * (radius + march), centerY + sin * (radius + march));
-      petal.cell[angle] = radius + (beyond >= 0 ? march + PIECE_OVERLAP : march / 2);
-    }
-    petal.homeX = centerX;
-    petal.homeY = centerY;
-    petal.x = centerX;
-    petal.y = centerY;
-  });
-}
+const morphRadii = new Float32Array(PIECE_DIRECTIONS.length);
 
 function drawPetal(context, petal) {
   if (petal.morph < 1) {
     // Blend the glyph cell's outline into the petal's, direction by direction.
     const morph = petal.morph;
-    context.beginPath();
-    for (let angle = 0; angle < PIECE_ANGLES; angle += 1) {
-      const theta = (angle / PIECE_ANGLES) * Math.PI * 2;
-      const radius = petal.cell[angle] * (1 - morph) + petalRadius(theta - petal.rotation) * petal.drawSize * morph;
-      const x = petal.x + Math.cos(theta) * radius;
-      const y = petal.y + Math.sin(theta) * radius;
-      if (angle) context.lineTo(x, y);
-      else context.moveTo(x, y);
-    }
-    context.closePath();
+    PIECE_DIRECTIONS.forEach(({ theta }, angle) => {
+      morphRadii[angle] = petal.cell[angle] * (1 - morph) + petalRadius(theta - petal.rotation) * petal.drawSize * morph;
+    });
+    tracePiece(context, petal.x, petal.y, morphRadii);
     context.fillStyle = petal.color;
     context.fill();
     return;
@@ -425,9 +289,20 @@ function drawPetal(context, petal) {
 export default function CalligraphyName() {
   const wrapperRef = useRef(null);
   const canvasRef = useRef(null);
+  const navCanvasRef = useRef(null);
   const glyphRefs = useRef([]);
   const engineRef = useRef(null);
   const hoverTimers = useRef([]);
+  // The column under the mouse, tracked even while hover is locked, so a character the
+  // pointer is already resting on can still open once the name is back.
+  const hoveredColumn = useRef(-1);
+  const scheduleBloom = (index) => {
+    window.clearTimeout(hoverTimers.current[index]);
+    hoverTimers.current[index] = window.setTimeout(() => {
+      hoverTimers.current[index] = 0;
+      engineRef.current?.bloom(index);
+    }, HOVER_DELAY_MS);
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -442,6 +317,7 @@ export default function CalligraphyName() {
       glyph, large: null, small: null, mode: 'ink', startedAt: 0,
     }));
     const gusts = [];
+    let navFlight = null;
     let previousPointer = null;
     let animationFrame = 0;
     let previousFrameTime = 0;
@@ -455,7 +331,7 @@ export default function CalligraphyName() {
     const draw = () => {
       context.clearRect(-BLEED, -BLEED, VIEW_WIDTH + BLEED * 2, VIEW_HEIGHT + BLEED * 2);
       for (const state of glyphStates) {
-        if (state.mode === 'ink') continue;
+        if (state.mode !== 'bloom' && state.mode !== 'return') continue;
         if (!reduceMotion) for (const petal of state.large) drawPetal(context, petal);
         for (const petal of state.small) drawPetal(context, petal);
       }
@@ -506,6 +382,16 @@ export default function CalligraphyName() {
         const targetY = airY * petal.windResponse + petal.driftY * drift;
         petal.velocityX = targetX + (petal.velocityX - targetX) * drag;
         petal.velocityY = targetY + (petal.velocityY - targetY) * drag;
+        const { wordBox } = state;
+        if (state.touch && petal.x > wordBox.left && petal.x < wordBox.right && petal.y > wordBox.top && petal.y < wordBox.bottom) {
+          // Still over the words: keep easing it out through the nearest side.
+          const centerX = (wordBox.left + wordBox.right) / 2;
+          const centerY = (wordBox.top + wordBox.bottom) / 2;
+          const away = Math.atan2(petal.y - centerY, petal.x - centerX);
+          petal.velocityX += Math.cos(away) * TOUCH_CLEARING_FORCE * seconds;
+          petal.velocityY += Math.sin(away) * TOUCH_CLEARING_FORCE * seconds;
+          moving = true;
+        }
         petal.spin = (petal.spin + (airX - airY) * petal.windResponse * 0.012 * seconds) * drag;
         petal.x += petal.velocityX * seconds;
         petal.y += petal.velocityY * seconds;
@@ -644,15 +530,28 @@ export default function CalligraphyName() {
       state.small = sampleSmallPetals(state.glyph, wordLines(state.glyph), state.large);
       for (const petal of state.large) petal.cellWeight = LARGE_CELL_RADIUS ** 2;
       for (const petal of state.small) petal.cellWeight = SMALL_CELL_RADIUS ** 2;
-      tessellate(state.glyph, [...state.large, ...state.small]);
+      tessellate(glyphMask(state.glyph, PIECE_DENSITY), [...state.large, ...state.small], {
+        bucketSize: 6, overlap: PIECE_OVERLAP, maxRadius: 20,
+      });
+      const targets = state.small.map((petal) => petal.target);
+      state.wordBox = {
+        left: Math.min(...targets.map((target) => target.x)) - TOUCH_WORD_MARGIN,
+        right: Math.max(...targets.map((target) => target.x)) + TOUCH_WORD_MARGIN,
+        top: Math.min(...targets.map((target) => target.y)) - TOUCH_WORD_MARGIN,
+        bottom: Math.max(...targets.map((target) => target.y)) + TOUCH_WORD_MARGIN,
+      };
     };
 
     engineRef.current = {
       isBloomed: (index) => glyphStates[index].mode === 'bloom',
-      bloom(index) {
+      bloom(index, touch = false) {
         const state = glyphStates[index];
-        if (state.mode === 'bloom') return;
+        if (state.mode === 'bloom' || state.mode === 'nav' || navFlight?.busy()) return;
+        // One meaning at a time: opening a character closes any other.
+        glyphStates.forEach((other, otherIndex) => { if (otherIndex !== index) engineRef.current.settle(otherIndex); });
         prepare(state);
+        state.touch = touch;
+        state.openedAtScroll = window.scrollY;
         if (reduceMotion) {
           for (const petal of state.small) {
             petal.x = petal.target.x;
@@ -665,9 +564,13 @@ export default function CalligraphyName() {
           return;
         }
         const center = glyphCenter(state.glyph);
+        const { wordBox } = state;
+        // On touch, petals blow away from the words themselves rather than the glyph's middle.
+        const burstX = touch ? (wordBox.left + wordBox.right) / 2 : center.x;
+        const burstY = touch ? (wordBox.top + wordBox.bottom) / 2 : center.y;
         for (const petal of state.large) {
-          const angle = Math.atan2(petal.y - center.y, petal.x - center.x) + (Math.random() - 0.5) * 0.9;
-          const speed = 55 + Math.random() * 120;
+          const angle = Math.atan2(petal.y - burstY, petal.x - burstX) + (Math.random() - 0.5) * 0.9;
+          const speed = touch ? TOUCH_BURST_SPEED + Math.random() * TOUCH_BURST_RANGE : 55 + Math.random() * 120;
           petal.velocityX = Math.cos(angle) * speed;
           petal.velocityY = Math.sin(angle) * speed;
           petal.spin = (Math.random() - 0.5) * 7;
@@ -727,16 +630,50 @@ export default function CalligraphyName() {
       },
     };
 
+    const quietHover = () => {
+      timers.forEach((timer, index) => {
+        window.clearTimeout(timer);
+        timers[index] = 0;
+      });
+      glyphStates.forEach((_, index) => engineRef.current.settle(index));
+    };
+    const handleScroll = () => {
+      glyphStates.forEach((state, index) => {
+        if (state.mode === 'bloom' && Math.abs(window.scrollY - state.openedAtScroll) > SCROLL_CLOSE_PX) {
+          engineRef.current.settle(index);
+        }
+      });
+    };
+
     resize();
+    navFlight = reduceMotion || !navCanvasRef.current ? null : createNavFlight({
+      glyphs: calligraphyGlyphs,
+      wrapper,
+      canvas: navCanvasRef.current,
+      unitScale: () => unitScale,
+      setGlyphMode: setMode,
+      hoverIdle: () => glyphStates.every((state) => state.mode === 'ink' || state.mode === 'nav'),
+      quietHover,
+      onBanner: () => {
+        const index = hoveredColumn.current;
+        if (index >= 0) scheduleBloom(index);
+      },
+    });
     // Cutting the glyphs takes a few tens of milliseconds; do it before the first hover.
     const idle = window.requestIdleCallback || ((callback) => window.setTimeout(callback, 200));
     const cancelIdle = window.cancelIdleCallback || window.clearTimeout;
-    const idleTasks = glyphStates.map((state) => idle(() => prepare(state)));
+    const idleTasks = [
+      ...glyphStates.map((state) => idle(() => prepare(state))),
+      idle(() => navFlight?.prepare()),
+    ];
     const observer = new ResizeObserver(resize);
     observer.observe(wrapper);
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
+      navFlight?.destroy();
+      window.removeEventListener('scroll', handleScroll);
       window.cancelAnimationFrame(animationFrame);
       timers.forEach((timer) => window.clearTimeout(timer));
       idleTasks.forEach((task) => cancelIdle(task));
@@ -750,14 +687,12 @@ export default function CalligraphyName() {
 
   const handleEnter = (index) => (event) => {
     if (event.pointerType !== 'mouse') return;
-    window.clearTimeout(hoverTimers.current[index]);
-    hoverTimers.current[index] = window.setTimeout(() => {
-      hoverTimers.current[index] = 0;
-      engineRef.current?.bloom(index);
-    }, HOVER_DELAY_MS);
+    hoveredColumn.current = index;
+    scheduleBloom(index);
   };
   const handleLeave = (index) => (event) => {
     if (event.pointerType !== 'mouse') return;
+    if (hoveredColumn.current === index) hoveredColumn.current = -1;
     if (hoverTimers.current[index]) {
       window.clearTimeout(hoverTimers.current[index]);
       hoverTimers.current[index] = 0;
@@ -770,12 +705,13 @@ export default function CalligraphyName() {
     const engine = engineRef.current;
     if (event.pointerType === 'mouse' || !engine) return;
     if (engine.isBloomed(index)) engine.settle(index);
-    else engine.bloom(index);
+    else engine.bloom(index, true);
   };
 
   return (
     <div ref={wrapperRef} className="calligraphy-name" role="img" aria-label={NAME_LABEL}>
       <canvas ref={canvasRef} className="calligraphy-name-petals" aria-hidden="true" />
+      {createPortal(<canvas ref={navCanvasRef} className="name-nav-petals" aria-hidden="true" />, document.body)}
       <svg viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`} aria-hidden="true">
         {calligraphyGlyphs.map((glyph, index) => (
           <g

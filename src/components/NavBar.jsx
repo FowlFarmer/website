@@ -3,17 +3,25 @@ import useScrollThresholdFade from "./jias-react-components/tools/useScrollThres
 import { Link } from "react-router-dom";
 import { HashLink } from 'react-router-hash-link';
 import { useLocation } from "react-router-dom";
+import { useNavFormation } from "./navFormation.js";
 
 export default function Navbar() {
-  let nav_opacity;
-  if (useLocation().pathname === "/contact" || useLocation().pathname === "/gallery" || useLocation().pathname.startsWith("/avalon")) {
-    nav_opacity = { opacity: 1 };
-  } else {
-    nav_opacity = useScrollThresholdFade(80, Infinity, 300);
-  }
+  const { pathname } = useLocation();
+  const scrollFade = useScrollThresholdFade(80, Infinity, 300);
+  const formation = useNavFormation();
+  const alwaysShown = pathname === "/contact" || pathname === "/gallery" || pathname.startsWith("/avalon");
+  // On the home page the name's petals build the bar, then its items fade in.
+  const formed = formation.managed && pathname === "/self";
+  const nav_opacity = formed ? undefined : alwaysShown ? { opacity: 1 } : scrollFade;
   return (
     <nav className="navbar">
-      <div className="navbar-styles nav-hover-parent" style={nav_opacity}>
+      <div
+        className="navbar-styles nav-hover-parent"
+        style={nav_opacity}
+        data-formed={formed || undefined}
+        data-bar={formed ? (formation.bar ? "shown" : "hidden") : undefined}
+        data-items={formed ? (formation.items ? "shown" : "hidden") : undefined}
+      >
         <div className="" style={{position: "absolute"}}>
         <Link to="/self" style={{textDecoration: "none", color: "inherit"}}>
           <img
