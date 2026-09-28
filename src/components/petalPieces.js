@@ -3,6 +3,10 @@
 // two pieces (a glyph cell, a petal, a menu bar cell) blend into each other direction by direction.
 export const PIECE_ANGLES = 48;
 
+// The large petals a character breaks into, for both the hover burst and the menu bar flight.
+// Spacing and sizes are in the banner's viewBox units.
+export const LARGE_PETAL = { spacing: 3.7, size: 3.1, sizeRange: 1.9 };
+
 const PETAL_OUTLINE = [
   [[0, 1], [0.95, 0.3], [0.8, -0.82], [0.24, -0.9]],
   [[0.24, -0.9], [0.24, -0.9], [0, -0.62], [0, -0.62]],

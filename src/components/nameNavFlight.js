@@ -1,20 +1,15 @@
 import {
-  PIECE_DIRECTIONS, glyphInterior, glyphMask, petalRadius, shapeMask, tessellate, tracePiece,
+  LARGE_PETAL, PIECE_DIRECTIONS, glyphInterior, glyphMask, petalRadius, shapeMask, tessellate, tracePiece,
 } from './petalPieces.js';
 import { setNavFormation } from './navFormation.js';
 
 // Scrolling past the intro, the name bursts into petals that fly up and tile the menu bar.
-// Fewer, larger pieces than the hover burst, since each grows to fill a slice of the bar.
+// The same large petals as the hover burst; each reshapes into its slice of the bar as it lands.
 export const NAV_SCROLL_THRESHOLD = 80;
-const PIECE_SPACING = 5.2;
 const PIECE_DENSITY = 6;
 const PIECE_OVERLAP = 0.22;
-const PETAL_SIZE = 4.2;
-const PETAL_SIZE_RANGE = 1.4;
 const BAR_DENSITY = 2;
 const BAR_OVERLAP = 0.45;
-// A petal grows to this multiple of its bar cell's mean radius at mid-flight.
-const BAR_PETAL_GROWTH = 1.25;
 const FLIGHT_SECONDS = 1.0;
 const FLIGHT_SECONDS_RANGE = 0.35;
 const FLIGHT_STAGGER = 0.15;
@@ -70,7 +65,7 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
     if (pieces) return;
     pieces = [];
     glyphs.forEach((glyph, glyphIndex) => {
-      const seeds = glyphInterior(glyph, PIECE_SPACING).map((point) => ({ homeX: point.x, homeY: point.y }));
+      const seeds = glyphInterior(glyph, LARGE_PETAL.spacing).map((point) => ({ homeX: point.x, homeY: point.y }));
       tessellate(glyphMask(glyph, PIECE_DENSITY), seeds, { bucketSize: 8, overlap: PIECE_OVERLAP, maxRadius: 20 });
       const centerX = glyph.box.x + glyph.box.width / 2;
       const centerY = glyph.box.y + glyph.box.height / 2;
@@ -81,7 +76,7 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
           homeX: seed.homeX,
           homeY: seed.homeY,
           cell: seed.cell,
-          size: PETAL_SIZE + Math.random() * PETAL_SIZE_RANGE,
+          size: LARGE_PETAL.size + Math.random() * LARGE_PETAL.sizeRange,
           outwardX: Math.cos(outward),
           outwardY: Math.sin(outward),
           x: 0,
@@ -131,8 +126,7 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
     const orderedCells = pairInColumns(seeds, barRows, (seed) => seed.homeX, (seed) => seed.homeY);
     orderedPieces.forEach((piece, index) => {
       const cell = orderedCells[index];
-      const meanRadius = cell.cell.reduce((sum, value) => sum + value, 0) / cell.cell.length;
-      piece.bar = { x: cell.homeX, y: cell.homeY, radii: cell.cell, size: meanRadius * BAR_PETAL_GROWTH };
+      piece.bar = { x: cell.homeX, y: cell.homeY, radii: cell.cell };
     });
   };
 
@@ -182,8 +176,6 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
         fromY: piece.y,
         fromRadii: Float32Array.from(piece.radii),
         fromRotation: piece.rotation,
-        fromSize: direction === 'up' ? piece.size * scale : piece.bar.size,
-        toSize: direction === 'up' ? piece.bar.size : piece.size * scale,
         spin: (Math.random() - 0.5) * 5,
         reach,
         lift,
@@ -221,7 +213,7 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
       // Leave the starting shape early, be a petal in mid-air, settle into the landing shape late.
       const intoPetal = smoothstep(0, 0.3, t);
       const intoTarget = smoothstep(0.7, 1, t);
-      const size = flight.fromSize + (flight.toSize - flight.fromSize) * t;
+      const size = piece.size * scale;
       PIECE_DIRECTIONS.forEach(({ theta }, angle) => {
         const target = up ? piece.bar.radii[angle] : piece.cell[angle] * scale;
         const petal = petalRadius(theta - piece.rotation) * size;

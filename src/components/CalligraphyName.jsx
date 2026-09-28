@@ -2,13 +2,11 @@ import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { calligraphyGlyphs, calligraphyViewBox } from '../data/calligraphy.js';
 import {
-  PIECE_DIRECTIONS, glyphInterior, glyphMask, petalRadius, tessellate, tracePiece,
+  LARGE_PETAL, PIECE_DIRECTIONS, glyphInterior, glyphMask, petalRadius, tessellate, tracePiece,
 } from './petalPieces.js';
 import { createNavFlight } from './nameNavFlight.js';
 
 const PETAL_COLORS = ['#fffefe', '#fffaf8', '#ffffff', '#f7f5f4'];
-// Large petals blow away and ride the wind; they sit on a jittered grid over the glyph.
-const LARGE_PETAL = { spacing: 3.7, size: 3.1, sizeRange: 1.9 };
 // Small petals hide inside the glyph too, then fly on fixed paths to spell its meaning.
 const SMALL_PETAL = { size: 1.2, sizeRange: 0.35 };
 // Words are split into syllables; a larger gap between groups separates the words.
