@@ -1429,7 +1429,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   position: fixed;
   z-index: 150;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-end;
   gap: 8px;
   max-width: calc(100% - 16px);
@@ -1472,25 +1472,40 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   outline-offset: 3px;
 }
 .scene-performance-notice {
-  max-width: 220px;
-  padding: 8px 11px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 12px;
-  color: #2a2426;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 246, 248, 0.4));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  max-width: min(220px, calc(100vw - 96px));
+  padding: 8px 11px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 10px;
+  background: rgba(255, 252, 253, 0.86);
   box-shadow:
-    0 3px 4px 3px rgba(0, 0, 0, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
-  font: 300 11px/1.4 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  backdrop-filter: blur(8px) saturate(1.15);
-  -webkit-backdrop-filter: blur(8px) saturate(1.15);
+    0 3px 4px 3px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  color: #1c1c1c;
+  font: 300 12px/1.35 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  text-align: right;
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
   opacity: 0;
-  transition: opacity 0.5s ease;
+  transform: translateY(-4px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
   pointer-events: none;
 }
+.scene-performance-notice-title {
+  font-weight: 100;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  color: #bd6780;
+}
+.scene-performance-notice-hint {
+  font-size: 11px;
+  color: rgba(28, 28, 28, 0.72);
+}
 .scene-performance-notice:empty { display: none; }
-.scene-performance-notice.is-visible { opacity: 1; }
+.scene-performance-notice.is-visible { opacity: 1; transform: none; }
 @media (pointer: coarse) {
   /* Keep the visible button small while leaving room for a finger tap. */
   .scene-performance-control button::after {

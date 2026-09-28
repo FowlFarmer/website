@@ -531,6 +531,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     } catch {
       mount.dataset.webglFallback = 'true';
       setSceneReady(true);
+      lowPerformanceRef.current?.('unavailable');
       return undefined;
     }
 
@@ -946,6 +947,11 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     loader.setMeshoptDecoder(MeshoptDecoder);
 
     let disposed = false;
+    const handleContextLost = (event) => {
+      event.preventDefault();
+      if (!disposed) lowPerformanceRef.current?.('unavailable');
+    };
+    renderer.domElement.addEventListener('webglcontextlost', handleContextLost);
     const pmrem = new THREE.PMREMGenerator(renderer);
     let environmentTarget;
     new HDRLoader().load('/models/lawson/dawn-environment.hdr', (hdr) => {
@@ -1118,6 +1124,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         if (disposed) return;
         console.error('Unable to load the convenience store scene.', error);
         mount.dataset.assetFallback = 'true';
+        lowPerformanceRef.current?.('unavailable');
         readyTimer = window.setTimeout(
           () => setSceneReady(true),
           Math.max(0, 700 - (performance.now() - loadingStartedAt)),
@@ -1437,6 +1444,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
 
     return () => {
       disposed = true;
+      renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
       window.clearTimeout(readyTimer);
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('pointermove', handlePointerMove);

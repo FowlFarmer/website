@@ -5,6 +5,21 @@ const Scene = lazy(() => import('./CherryBlossomScene.jsx'));
 const CursorTrail = lazy(() => import('./SakuraCursorTrail.jsx'));
 const STORAGE_KEY = 'scene-low-performance';
 
+function storedPerformanceChoice() {
+  try { return localStorage.getItem(STORAGE_KEY); } catch { return null; }
+}
+
+const PERFORMANCE_NOTICES = {
+  performance: {
+    title: 'paused the blossoms',
+    hint: 'this page was working too hard',
+  },
+  unavailable: {
+    title: 'the live scene could not start',
+    hint: 'showing a still one instead',
+  },
+};
+
 function PerformanceToggle({ staticMode, onToggle, notice, noticeVisible, placement, visible }) {
   return (
     <div
@@ -17,7 +32,10 @@ function PerformanceToggle({ staticMode, onToggle, notice, noticeVisible, placem
         role="status"
         aria-live={visible ? 'polite' : 'off'}
       >
-        {notice}
+        {notice && <>
+          <span className="scene-performance-notice-title">{notice.title}</span>
+          <span className="scene-performance-notice-hint">{notice.hint}</span>
+        </>}
       </span>
       <button
         type="button"
@@ -37,16 +55,19 @@ export default function SceneBackground() {
   const { pathname } = useLocation();
   const navPinned = pathname === '/contact' || pathname === '/gallery' || pathname.startsWith('/avalon');
   const [scrolledPastNav, setScrolledPastNav] = useState(() => window.scrollY >= 80);
+  const initialChoice = storedPerformanceChoice();
   const [staticMode, setStaticMode] = useState(() => {
-    try { return localStorage.getItem(STORAGE_KEY) === 'true'; } catch { return false; }
+    if (initialChoice === 'true') return true;
+    if (initialChoice === 'false') return false;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   });
-  const [notice, setNotice] = useState('');
+  const [notice, setNotice] = useState(null);
   const [noticeVisible, setNoticeVisible] = useState(false);
-  const manualOverride = useRef(false);
-  const switchAutomatically = useCallback(() => {
-    if (manualOverride.current) return;
+  const manualOverride = useRef(initialChoice === 'false');
+  const switchAutomatically = useCallback((reason = 'performance') => {
+    if (reason !== 'unavailable' && manualOverride.current) return;
     setStaticMode(true);
-    setNotice('Switched to a still scene. You can turn the 3D back on anytime.');
+    setNotice(PERFORMANCE_NOTICES[reason] ?? PERFORMANCE_NOTICES.performance);
   }, []);
   useEffect(() => {
     if (navPinned) return undefined;
@@ -58,15 +79,15 @@ export default function SceneBackground() {
   useEffect(() => {
     if (!notice) return;
     setNoticeVisible(true);
-    const fadeTimer = setTimeout(() => setNoticeVisible(false), 5500);
-    const clearTimer = setTimeout(() => setNotice(''), 6100);
+    const fadeTimer = setTimeout(() => setNoticeVisible(false), 7000);
+    const clearTimer = setTimeout(() => setNotice(null), 7600);
     return () => { clearTimeout(fadeTimer); clearTimeout(clearTimer); };
   }, [notice]);
   function toggle() {
     const next = !staticMode;
     manualOverride.current = true;
     setStaticMode(next);
-    setNotice('');
+    setNotice(null);
     try { localStorage.setItem(STORAGE_KEY, String(next)); } catch { /* Storage can be unavailable in private browsing. */ }
   }
   const underNav = navPinned || scrolledPastNav;
