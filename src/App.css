@@ -832,6 +832,39 @@ yeet
   border-radius: 8px;
 }
 
+/* Vector name banner: hovering a character blows it into petals that spell its meaning. */
+.calligraphy-name {
+  position: relative;
+  width: 309px;
+  max-width: 100%;
+  aspect-ratio: 309 / 194;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.calligraphy-name > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: #fff;
+}
+
+.calligraphy-name-petals {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.calligraphy-glyph:not([data-mode="ink"]) .calligraphy-ink {
+  opacity: 0;
+}
+
+.calligraphy-hit {
+  fill: transparent;
+  pointer-events: all;
+}
+
 
 /* .app-container {
   display: flex;

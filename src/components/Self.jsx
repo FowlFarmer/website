@@ -3,6 +3,8 @@ import useScrollThresholdFade from './jias-react-components/tools/useScrollThres
 import DBHCard from './cards/dbh.jsx';
 import { Link } from 'react-router-dom';
 
+import CalligraphyName from './CalligraphyName.jsx';
+
 import WorkExperienceCard from './cards/workExperience.jsx';
 import CosplayCard from './cards/cosplay.jsx';
 import Spotify from './jias-react-components/tools/Spotify.jsx';
@@ -29,7 +31,7 @@ export default function Self() {
             <div id="Begin" />
             <div className="mainBlob glass-effect" style={{ width: "60%", padding: "20px", marginTop: "100px", ...first_blob_opacity }}>
                 <div style={{ justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <img style={{filter: "invert(100%)"}} src="/site/calligraphy_logo.png" alt="Profile" />
+                    <CalligraphyName />
                     <span>Hi, I'm Theodore.</span>
                     <span>I also go by Jia.</span>
                     <p style={{ textAlign: "center" }}>I code, make cool projects, and nerd out about random things.</p>
