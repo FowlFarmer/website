@@ -65,6 +65,17 @@ test('size is continuous at the threshold', () => {
   assert.ok(Math.abs(above.width - below.width) < 0.02);
 });
 
+test('a reused target matches a fresh viewport and does not replace earlier results', () => {
+  const target = {};
+  const first = sceneViewport(1440, 900, referenceAspect, bounds, 0, 0, 0.6, target);
+  assert.equal(first, target);
+  const held = { ...first };
+  const second = sceneViewport(390, 844, referenceAspect, bounds, 0, 0, 0.9, target);
+  assert.equal(second, target);
+  assert.equal(held.width, sceneViewport(1440, 900, referenceAspect, bounds).width);
+  assert.equal(second.width, sceneViewport(390, 844, referenceAspect, bounds, 0, 0, 0.9).width);
+});
+
 test('Safari toolbar moves only the bottom anchor while the sizing frame stays fixed', () => {
   const collapsed = sceneViewport(390, 844, referenceAspect, bounds, 120, 0);
   for (const anchorInset of [120, 80, 40, 0, 40, 120]) {

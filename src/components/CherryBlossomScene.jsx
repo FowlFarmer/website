@@ -630,7 +630,29 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     const backdropProjectedPoint = new THREE.Vector3();
     const coverCamera = new THREE.PerspectiveCamera();
     const coverLookAt = new THREE.Vector3();
-    let backdropCoverState = '';
+    const backdropCoverKey = new Float64Array(24);
+    const backdropCoverScratch = new Float64Array(24);
+    let backdropCoverReady = false;
+    const coverQuantization = (index) => (index === 0 || index >= 8 ? 1e5 : 1e4);
+    const backdropCoverUnchanged = () => {
+      const elements = editableObjects.backdrop.matrixWorld.elements;
+      const scratch = backdropCoverScratch;
+      scratch[0] = camera.aspect;
+      scratch[1] = camera.fov;
+      scratch[2] = baseCameraPosition.x;
+      scratch[3] = baseCameraPosition.y;
+      scratch[4] = baseCameraPosition.z;
+      scratch[5] = baseCameraTarget.x;
+      scratch[6] = baseCameraTarget.y;
+      scratch[7] = baseCameraTarget.z;
+      for (let index = 0; index < 16; index += 1) scratch[8 + index] = elements[index];
+      if (!backdropCoverReady) return false;
+      for (let index = 0; index < scratch.length; index += 1) {
+        const factor = coverQuantization(index);
+        if (Math.round(scratch[index] * factor) !== Math.round(backdropCoverKey[index] * factor)) return false;
+      }
+      return true;
+    };
 
     const projectedPolygonContains = (point, polygon) => {
       let windingSign = 0;
@@ -713,14 +735,9 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       if (!bounds) return;
 
       editableObjects.backdrop.updateMatrixWorld(true);
-      const nextState = [
-        camera.aspect.toFixed(5),
-        camera.fov.toFixed(4),
-        ...baseCameraPosition.toArray().map((value) => value.toFixed(4)),
-        ...baseCameraTarget.toArray().map((value) => value.toFixed(4)),
-        ...editableObjects.backdrop.matrixWorld.elements.map((value) => value.toFixed(5)),
-      ].join('|');
-      if (nextState === backdropCoverState) return;
+      if (backdropCoverUnchanged()) return;
+      backdropCoverKey.set(backdropCoverScratch);
+      backdropCoverReady = true;
 
       // Size the hidden inner plane for the full parallax/bob envelope around
       // the saved camera, not the live wiggling camera. That keeps coverage
@@ -743,7 +760,6 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         backdropPlane.scale.setScalar(Math.min(high * 1.02, BACKDROP_COVER_MAX_SCALE));
       }
 
-      backdropCoverState = nextState;
     };
 
     const roundPoseValue = (value) => Number(value.toFixed(3));
@@ -1221,12 +1237,32 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       });
       modelBounds = { storeMinX: projectedStore.min.x, storeMaxX: projectedStore.max.x };
     };
-    let mobileBackdropState = '';
+    const mobileBackdropKey = new Float64Array(8);
+    const mobileBackdropScratch = new Float64Array(8);
+    let mobileBackdropReady = false;
     const frameMobileBackdrop = () => {
       const backdrop = editableObjects.backdrop;
       if (!backdrop || !backdropPlane) return;
-      const state = [camera.aspect, camera.fov, ...baseCameraPosition.toArray(), ...baseCameraTarget.toArray()].join('|');
-      if (state === mobileBackdropState) return;
+      mobileBackdropScratch[0] = camera.aspect;
+      mobileBackdropScratch[1] = camera.fov;
+      mobileBackdropScratch[2] = baseCameraPosition.x;
+      mobileBackdropScratch[3] = baseCameraPosition.y;
+      mobileBackdropScratch[4] = baseCameraPosition.z;
+      mobileBackdropScratch[5] = baseCameraTarget.x;
+      mobileBackdropScratch[6] = baseCameraTarget.y;
+      mobileBackdropScratch[7] = baseCameraTarget.z;
+      let mobileUnchanged = mobileBackdropReady;
+      if (mobileUnchanged) {
+        for (let index = 0; index < mobileBackdropKey.length; index += 1) {
+          if (mobileBackdropKey[index] !== mobileBackdropScratch[index]) {
+            mobileUnchanged = false;
+            break;
+          }
+        }
+      }
+      if (mobileUnchanged) return;
+      mobileBackdropKey.set(mobileBackdropScratch);
+      mobileBackdropReady = true;
 
       // Fit the full parallax envelope in the photo's plane, rather than
       // enlarging a centered image afterward (which loses the bottom anchor).
@@ -1266,12 +1302,13 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       // reaches below the lowest visible corner, including Safari's tall canvas.
       backdropPlane.position.set((bounds.min.x + bounds.max.x) / 2, bounds.min.y + height / 2, 0);
       ground.visible = false;
-      mobileBackdropState = state;
     };
     let viewportWidth = mount.clientWidth;
     let viewportHeight = mount.clientHeight;
     let safeViewportHeight = safeViewport.clientHeight || viewportHeight;
     let modelBottomInset = 0;
+    const modelView = { x: 0, y: 0, width: 0, height: 0, scale: 1, storeWidth: 0 };
+    let modelViewSignature = '';
     const visualViewport = window.visualViewport;
     const updateModelAnchor = () => {
       const visibleBottom = visualViewport
@@ -1415,6 +1452,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           inset,
           modelBottomInset,
           mobileLayout ? 0.9 : 0.6,
+          modelView,
         );
         modelCamera.copy(camera);
         modelCamera.aspect = referenceAspect;
@@ -1427,7 +1465,13 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         camera.layers.set(2);
         renderer.render(scene, camera);
         scene.background = background;
-        if (import.meta.env.DEV) mount.dataset.modelViewport = JSON.stringify(view);
+        if (import.meta.env.DEV) {
+          const signature = `${view.x}|${view.y}|${view.width}|${view.height}`;
+          if (signature !== modelViewSignature) {
+            modelViewSignature = signature;
+            mount.dataset.modelViewport = JSON.stringify(view);
+          }
+        }
       }
       if (captureMode && captureRequested.current) {
         captureRequested.current = false;
