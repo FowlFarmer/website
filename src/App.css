@@ -1523,3 +1523,6 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   .scene-performance-control button:hover,
   .scene-performance-control button:active { transform: none; }
 }
+
+/* Reserve Avalon’s dark full viewport while its route bundle loads. */
+.main-content.main-content--archive { display: block; width: 100%; max-width: none; padding: 0; min-height: 100svh; background: #060f21; }

@@ -1,11 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import NavBar from './components/NavBar.jsx';
 import Gallery from './components/Gallery.jsx';
 import Self from './components/Self.jsx';
 import Contact from './components/Contact.jsx';
-import Avalon from './components/Avalon.jsx';
+const Avalon = lazy(() => import('./components/Avalon.jsx'));
 import SceneBackground from './components/SceneBackground.jsx';
 
 import { Analytics } from "@vercel/analytics/react"
@@ -24,7 +24,7 @@ function FadeRoutes() {
       {/* Key by pathname so old page can animate out before unmount */}
       <motion.main
         key={location.pathname}
-        className="main-content"
+        className={`main-content${location.pathname === '/avalon' ? ' main-content--archive' : ''}`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}       // fade-out on leave
@@ -35,7 +35,7 @@ function FadeRoutes() {
           <Route path="/self" element={<Self />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/avalon" element={<Avalon />} />
+          <Route path="/avalon" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#060f21' }} />}><Avalon /></Suspense>} />
 
           <Route path="*" element={<Gallery />} />
         </Routes>
@@ -44,14 +44,18 @@ function FadeRoutes() {
   );
 }
 
+function SiteChrome() {
+  const { pathname } = useLocation();
+  if (pathname === '/avalon') return null;
+  return <><SceneBackground /><div className="blossom-atmosphere" aria-hidden="true" /><NavBar /></>;
+}
+
 export default function App() {
   return (
     <Router>
       <div className="app-container" id="popup-root">
-        <SceneBackground />
-        <div className="blossom-atmosphere" aria-hidden="true" />
+        <SiteChrome />
         <FadeRoutes />
-        <NavBar />
       </div>
         <Analytics />
     </Router>
