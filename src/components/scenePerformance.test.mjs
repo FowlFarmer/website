@@ -8,28 +8,23 @@ function run(monitor, fps, seconds, start = 0) {
   return triggered;
 }
 
-test('healthy 60fps, smooth 30fps, and an intentional mobile 30fps cap stay in 3D', () => {
-  assert.equal(run(createScenePerformanceMonitor(60), 60, 30), false);
-  assert.equal(run(createScenePerformanceMonitor(60), 30, 30), false);
-  assert.equal(run(createScenePerformanceMonitor(30), 30, 30), false);
+test('frames inside the 50ms deadline stay in 3D, including a smooth 30fps cap', () => {
+  assert.equal(run(createScenePerformanceMonitor(), 60, 30), false);
+  assert.equal(run(createScenePerformanceMonitor(), 30, 30), false);
+  assert.equal(run(createScenePerformanceMonitor(), 20, 30), false);
 });
 
-test('startup warmup and a single bad window do not switch', () => {
+test('startup warmup and a single late window do not switch', () => {
   const m = createScenePerformanceMonitor();
   assert.equal(run(m, 12, 10), false);
   assert.equal(run(m, 60, 20, 10000), false);
 });
 
-test('sustained slideshow frame rates trigger after warmup and two windows', () => {
+test('a sustained miss of the 50ms deadline triggers after warmup and two windows', () => {
   assert.equal(run(createScenePerformanceMonitor(), 15, 16), true);
-  assert.equal(run(createScenePerformanceMonitor(30), 15, 16), true);
 });
 
-test('a mobile cap that still holds a slow but calm rate stays in 3D', () => {
-  assert.equal(run(createScenePerformanceMonitor(30), 20, 30), false);
-});
-
-test('repeated hitches trigger even when the average stays above the floor', () => {
+test('late frames past the 95th percentile trigger even when most frames are on time', () => {
   const m = createScenePerformanceMonitor();
   let now = 0;
   let triggered = false;
@@ -40,7 +35,7 @@ test('repeated hitches trigger even when the average stays above the floor', () 
   assert.equal(triggered, true);
 });
 
-test('occasional hitches stay in 3D', () => {
+test('occasional hitches inside the 95th percentile stay in 3D', () => {
   const m = createScenePerformanceMonitor();
   let now = 0;
   let triggered = false;
@@ -58,7 +53,7 @@ test('visibility reset discards old samples and hidden-tab delay', () => {
   assert.equal(run(m, 60, 20, 300000), false);
 });
 
-test('a background-tab pause is not a poor window', () => {
+test('a background-tab pause is not a late frame', () => {
   const m = createScenePerformanceMonitor();
   assert.equal(run(m, 15, 10), false);
   assert.equal(m.sample(10_000), false);
@@ -66,7 +61,7 @@ test('a background-tab pause is not a poor window', () => {
   assert.equal(run(m, 60, 20, 40_000), false);
 });
 
-test('two long pauses after one bad window still do not switch', () => {
+test('two long pauses after one late window still do not switch', () => {
   const m = createScenePerformanceMonitor();
   run(m, 15, 10);
   m.sample(10_000);

@@ -493,7 +493,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     const random = seededRandom();
     const reduceMotion = captureMode || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const lowPower = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 720 || (navigator.deviceMemory && navigator.deviceMemory <= 4);
-    const performanceMonitor = createScenePerformanceMonitor(lowPower ? 30 : 60);
+    const performanceMonitor = createScenePerformanceMonitor();
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xb9c5ce);
     scene.fog = new THREE.FogExp2(0x777294, DEFAULT_FOG_DENSITY);

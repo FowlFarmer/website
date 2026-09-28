@@ -1,22 +1,30 @@
-// Decide from rendered frames, not from pointer or scroll events.
-// Smooth 30fps is a healthy decorative scene. Switch only after warm-up
-// when two full windows stay below a calm frame rate, or spend a fifth of
-// their time inside real hitches. One loading spike must not disable 3D.
-export function createScenePerformanceMonitor(targetFps = 60) {
-  const capped = targetFps <= 30;
-  const hitchMs = capped ? 100 : 80;
-  const minFps = capped ? 18 : 22;
+// A frame is late when it misses the 50ms RAIL deadline. Judge a window by
+// its 95th percentile frame time, not its average fps: a smooth 30fps scene
+// stays under that deadline, and a hitchy one does not. Switch only after
+// two late windows past warm-up. One spike must not disable 3D.
+const FRAME_DEADLINE_MS = 50;
+const WINDOW_MS = 4000;
+const WARMUP_MS = 6000;
+
+function percentile(values, p) {
+  const sorted = [...values].sort((a, b) => a - b);
+  const rank = Math.ceil(p * sorted.length) - 1;
+  return sorted[Math.min(sorted.length - 1, Math.max(0, rank))];
+}
+
+export function createScenePerformanceMonitor() {
   let previous = null;
-  let warmup = 6000;
+  let warmup = WARMUP_MS;
   let elapsed = 0;
-  let frames = 0;
-  let hitchTime = 0;
+  let samples = [];
   let badWindows = 0;
 
   function reset() {
     previous = null;
-    warmup = 6000;
-    elapsed = frames = hitchTime = badWindows = 0;
+    warmup = WARMUP_MS;
+    elapsed = 0;
+    samples = [];
+    badWindows = 0;
   }
 
   function sample(now) {
@@ -39,13 +47,12 @@ export function createScenePerformanceMonitor(targetFps = 60) {
       return false;
     }
     elapsed += dt;
-    frames += 1;
-    if (dt >= hitchMs) hitchTime += dt;
-    if (elapsed < 4000) return false;
-    const fps = (frames * 1000) / elapsed;
-    const poor = fps < minFps || hitchTime / elapsed >= 0.2;
+    samples.push(dt);
+    if (elapsed < WINDOW_MS) return false;
+    const poor = percentile(samples, 0.95) > FRAME_DEADLINE_MS;
     badWindows = poor ? badWindows + 1 : 0;
-    elapsed = frames = hitchTime = 0;
+    elapsed = 0;
+    samples = [];
     return badWindows >= 2;
   }
 
