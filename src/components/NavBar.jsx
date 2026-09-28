@@ -23,7 +23,17 @@ export default function Navbar() {
         data-items={formed ? (formation.items ? "shown" : "hidden") : undefined}
       >
         <div className="" style={{position: "absolute"}}>
-        <Link to="/self" style={{textDecoration: "none", color: "inherit"}}>
+        <Link
+          to="/self"
+          style={{textDecoration: "none", color: "inherit"}}
+          onClick={(e) => {
+            // Already home: scroll back to the top instead of re-navigating.
+            if (pathname === "/self") {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
+        >
           <img
             className="navbar-logo"
             src="/site/calligraphy_logo.png"
