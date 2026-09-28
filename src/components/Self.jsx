@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import useScrollThresholdFade from './jias-react-components/tools/useScrollThresholdFade.jsx';
 import DBHCard from './cards/dbh.jsx';
 import { Link } from 'react-router-dom';
@@ -8,11 +8,24 @@ import CosplayCard from './cards/cosplay.jsx';
 import Spotify from './jias-react-components/tools/Spotify.jsx';
 import Macbook from './jias-react-components/tools/Macbook.jsx';
 
+function homePanelsAreVisible() {
+    if (typeof window === "undefined") return 0;
+    return (window.scrollY || 0) >= 80 ? 1 : 0;
+}
+
 export default function Self() {
     const first_blob_opacity = useScrollThresholdFade(-1, 300, 300);
+    const [homePanelOpacity, setHomePanelOpacity] = useState(homePanelsAreVisible);
+
+    useEffect(() => {
+        const update = () => setHomePanelOpacity(homePanelsAreVisible());
+        update();
+        window.addEventListener("scroll", update, { passive: true });
+        return () => window.removeEventListener("scroll", update);
+    }, []);
 
     return (
-        <div className="self blossom-home" style={{justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center"}}>
+        <div className="self blossom-home" style={{justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center", "--home-panel-opacity": homePanelOpacity}}>
             <div id="Begin" />
             <div className="mainBlob glass-effect" style={{ width: "60%", padding: "20px", marginTop: "100px", ...first_blob_opacity }}>
                 <div style={{ justifyContent: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>

@@ -914,7 +914,6 @@ text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
 }
 
 .glass-effect:hover {
-  transform: scale(1.01);     /* subtle lift */
   box-shadow: 0 3px 5px 4px rgba(0,0,0,0.06); /* subtle shadow */
 }
 
@@ -1339,7 +1338,10 @@ text-align: left;
   -webkit-backdrop-filter: blur(8px);
   transition: opacity 0.5s ease-in-out, box-shadow 0.2s ease-in-out;
 }
-.glass-effect:not(:has(.current-status)):hover, .glass-effect-2:hover { transform: none; }
+.blossom-home > .glass-effect:not(.mainBlob) {
+  opacity: var(--home-panel-opacity, 1);
+}
+.glass-effect:hover, .glass-effect-2:hover { transform: none; }
 .glass-effect-2 { cursor: default; }
 button.glass-effect { cursor: pointer; }
 .rounded-button {

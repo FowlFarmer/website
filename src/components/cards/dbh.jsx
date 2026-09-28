@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react'; // ← you use useState/useEffect
-import useScrollThresholdFade from '../jias-react-components/tools/useScrollThresholdFade.jsx';
 import TextFader from '../ResponsiveTextFader.jsx';
 import LazyYouTube from '../LazyYouTube.jsx';
 
 export default function DBHCard() {
-  const dbh_blob_opacity = useScrollThresholdFade(80, 8000000, 300);
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" ? window.innerWidth <= 600 : false
   );
@@ -22,7 +20,6 @@ export default function DBHCard() {
         width: "90%",
         position: "relative",
         alignContent: "center",
-        ...dbh_blob_opacity
       }}
     >
       <div style={{ display: "flex", flexWrap: "wrap", gap: "20px", padding: "20px" }}>
