@@ -9,7 +9,7 @@ import { OUTLINE_RINGS, OUTLINE_SIDES } from './kitsuneTails.js';
 // ambient sway, and gusts left by the mouse. Constraints, solved a few times per step: segment
 // lengths; tail against tail using each tail's low-poly shell (convex segments between rings of
 // the shell: a shell corner inside another tail's segment is pushed out along that segment's
-// shallowest face); the figure's torso capsule and head sphere; the cliff top. The root two
+// shallowest face); the figure's torso capsule and head sphere; the ground under his feet. The root two
 // points are pinned to the tailbone.
 
 const STEP = 1 / 120;

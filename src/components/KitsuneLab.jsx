@@ -1,7 +1,16 @@
 import KitsuneScene from './experience/KitsuneScene.jsx';
-import './experience/experience.css';
+import KitsuneNotes from './experience/KitsuneNotes.jsx';
+import KitsuneLore from './experience/KitsuneLore.jsx';
 
-// Scratch page for the standalone kitsune scene while its shape and look are settled.
+// Test page for the kitsune scene, full screen with the test panel, and a card on how it was built.
 export default function KitsuneLab() {
-  return <KitsuneScene />;
+  return (
+    <div className="kitsune-lab">
+      <div className="kitsune-page">
+        <KitsuneScene />
+        <KitsuneNotes />
+      </div>
+      <KitsuneLore />
+    </div>
+  );
 }

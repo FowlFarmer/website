@@ -1,4 +1,5 @@
 import React from "react";
+import QuestTag from '../experience/QuestIcons.jsx';
 
 export default function SpectralFrontCard() {
   return (
@@ -14,6 +15,7 @@ export default function SpectralFrontCard() {
         boxSizing: "border-box",
       }}
     >
+      <QuestTag type="world"/>
       <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "16px" }}>
         <img
           src="/spectralfront/icon.svg"
@@ -26,7 +28,7 @@ export default function SpectralFrontCard() {
           }}
         />
         <div>
-          <p style={{ margin: 0, fontWeight: "bold" }}>Featured Project - Spectral Front</p>
+          <p style={{ margin: 0, fontWeight: "bold" }}>Spectral Front</p>
           <p style={{ margin: "2px 0 0", opacity: 0.72 }}>Live tactical graph-artillery duel</p>
         </div>
       </div>

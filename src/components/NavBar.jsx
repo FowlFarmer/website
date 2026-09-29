@@ -9,18 +9,25 @@ export default function Navbar() {
   const { pathname } = useLocation();
   const scrollFade = useScrollThresholdFade(80, Infinity, 300);
   const formation = useNavFormation();
-  const alwaysShown = pathname === "/contact" || pathname === "/gallery" || pathname.startsWith("/avalon");
-  // On the home page the name's petals build the bar, then its items fade in.
-  const formed = formation.managed && pathname === "/self";
-  const nav_opacity = formed ? undefined : alwaysShown ? { opacity: 1 } : scrollFade;
+  const alwaysShown = pathname === "/contact" || pathname === "/quests" || pathname.startsWith("/avalon");
+  // The name's petals build the bar, then its items fade in: on the home page, and on the way to
+  // the quests while petals launched from home are still landing.
+  const formed = formation.managed;
+  // Arriving home, the bar takes the home page's shape (bar and items shown only once scrolled
+  // past the name) before the page mounts and its petals take over, so the handover is seamless.
+  const home = !formed && pathname === "/self";
+  const scrolled = scrollFade.opacity === 1;
+  const barState = formed ? formation.bar : scrolled;
+  const itemsState = formed ? formation.items : scrolled;
+  const nav_opacity = formed || home ? undefined : alwaysShown ? { opacity: 1 } : scrollFade;
   return (
     <nav className="navbar">
       <div
         className="navbar-styles nav-hover-parent"
         style={nav_opacity}
         data-formed={formed || undefined}
-        data-bar={formed ? (formation.bar ? "shown" : "hidden") : undefined}
-        data-items={formed ? (formation.items ? "shown" : "hidden") : undefined}
+        data-bar={formed || home ? (barState ? "shown" : "hidden") : undefined}
+        data-items={formed || home ? (itemsState ? "shown" : "hidden") : undefined}
       >
         <div className="" style={{position: "absolute"}}>
         <Link
@@ -66,11 +73,10 @@ export default function Navbar() {
           color: "black"
           }}>
           {/* <HashLink className="hover1" to="/self#Begin" style={{ textDecoration: "none", color: "inherit" }}>me</HashLink> */}
-          <HashLink className="hover1" smooth to="/gallery#Ross" style={{ textDecoration: "none", color: "inherit" }}>projects</HashLink>
+          <Link className="hover1" to="/quests" style={{ textDecoration: "none", color: "inherit" }}>quests</Link>
           {/* <HashLink className="hover1" smooth to="/gallery#Hackathons" style={{ textDecoration: "none", color: "inherit" }}>hackathons</HashLink> */}
           {/* <HashLink smooth to="/gallery#Lab" style={{ textDecoration: "none", color: "inherit" }}>other</HashLink> */}
           <HashLink className="hover1" smooth to="/contact" style={{ textDecoration: "none", color: "inherit" }}>contact</HashLink>
-          <HashLink className="hover1" smooth to="/avalon" style={{ textDecoration: "none", color: "inherit" }}>avalon</HashLink>
         </div>
             </div>
     </nav>

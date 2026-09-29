@@ -15,4 +15,11 @@ const subscribe = (listener) => {
   return () => listeners.delete(listener);
 };
 
+// Whoever builds the bar can take requests to build it now (the home page's "look at my work"
+// button flies the name up as it leaves). `done` runs once the bar's items show; with nothing to
+// build it, straight away.
+let formHandler = null;
+export const setNavFormHandler = (handler) => { formHandler = handler; };
+export const formNav = (done = () => {}) => (formHandler ? formHandler(done) : done());
+
 export const useNavFormation = () => useSyncExternalStore(subscribe, () => formation);

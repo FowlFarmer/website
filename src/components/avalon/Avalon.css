@@ -1,7 +1,7 @@
 /* Avalon owns its viewport. All archive styles stay inside this route. */
 .app-container:has(.avalon-archive) { background: #060f21; }
 .main-content:has(.avalon-archive) { max-width: none; padding: 0; display: block; }
-.avalon-archive { --ivory: #ece8dc; --gold: #c1ac7f; --muted: #9caac0; position: relative; isolation: isolate; width: 100%; min-height: 100svh; color: var(--ivory); background: #060f21; padding: 0 clamp(20px, 4.4vw, 80px); font-family: 'Helvetica Neue', sans-serif; font-weight: 400; overflow: hidden; }
+.avalon-archive { --ivory: #ece8dc; --gold: #c1ac7f; --muted: #9caac0; position: relative; isolation: isolate; width: 100%; min-height: 100svh; color: var(--ivory); background: #060f21; padding: 0 clamp(20px, 4.4vw, 80px); font-family: 'Inter Variable', sans-serif; font-weight: 400; overflow: hidden; }
 .avalon-archive *, .archive-lightbox * { box-sizing: border-box; }
 .avalon-archive button, .avalon-archive a { -webkit-tap-highlight-color: transparent; }
 .avalon-archive button { font: inherit; color: inherit; cursor: pointer; }
@@ -33,7 +33,7 @@
 .archive-collection-nav button[aria-current] { color: #e5d0a4; border-color: #d5bf8f; }
 .collection-heading { max-width: 1180px; margin: 0 auto 38px; }
 .avalon-archive .collection-heading h1 { margin: 10px 0; font: 48px Georgia, serif; outline: none; }
-.collection-heading h1 > span { font: 11px 'Helvetica Neue', sans-serif; color: var(--muted); margin-left: 16px; letter-spacing: .05em; }
+.collection-heading h1 > span { font: 11px 'Inter Variable', sans-serif; color: var(--muted); margin-left: 16px; letter-spacing: .05em; }
 .collection-heading > p { margin: 0; color: var(--muted); font-size: 14px; }
 .quest-layout, .journal-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 42px; max-width: 1180px; margin: 0 auto 70px; }
 .archive-sidebar { min-width: 0; }
