@@ -1,45 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { experiences } from '../../data/experience.js';
 
-const experiences = [
-  {
-    id: 'tesla',
-    company: 'Tesla',
-    logo: '/work_experience/tesla/tesla_logo.jpeg',
-    headline: 'Test Systems Engineering: Optimus Reliability & HV Software Integration',
-    dateRange: 'January - April 2026',
-    location: 'Sunnyvale, California',
-    images: ['/work_experience/tesla/tesla_1.webp', '/work_experience/tesla/tesla_2.webp', '/work_experience/tesla/tesla_3.webp', '/work_experience/tesla/tesla_4.webp', '/work_experience/tesla/tesla_5.webp', '/work_experience/tesla/tesla_6.webp'],
-  },
-  {
-    id: 'watonomous',
-    company: 'WATonomous',
-    logo: '/work_experience/watonomous/watonomous_logo.jpeg',
-    headline: 'Software and Hardware Platforms for Self-Driving Cars',
-    dateRange: 'January 2025 - Present',
-    location: 'Student Design Team @ University of Waterloo',
-    images: ['/work_experience/watonomous/watonomous_1.webp'],
-  },
-  {
-    id: 'independent-robotics',
-    company: 'Independent Robotics',
-    logo: '/work_experience/independent_robotics/independent_robotics_logo.jpeg',
-    headline: 'Software Integration for Aquatic Robotics',
-    dateRange: 'May - August 2025',
-    location: 'Montreal, Quebec',
-    images: ['/work_experience/independent_robotics/ir_1.webp', '/work_experience/independent_robotics/ir_2.webp'],
-  },
-  {
-    id: 'rapyuta',
-    company: 'Rapyuta Robotics',
-    logo: '/work_experience/rapyuta/rapyuta_logo.jpeg',
-    headline: 'Firmware for Autonomous Storage and Retrieval Systems (ASRS)',
-    dateRange: 'June - December 2024',
-    location: 'Tokyo, Japan',
-    images: ['/work_experience/rapyuta/rapyuta_1.webp', '/work_experience/rapyuta/rapyuta_2.webp'],
-  },
-];
-
-function CyclingImage({ images, alt }) {
+export function CyclingImage({ images, alt }) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
@@ -72,7 +34,7 @@ function CyclingImage({ images, alt }) {
   );
 }
 
-function LogoBadge({ logo, company }) {
+export function LogoBadge({ logo, company }) {
   const [err, setErr] = useState(false);
   const initials = company.split(' ').map(w => w[0]).join('').slice(0, 3).toUpperCase();
   return (

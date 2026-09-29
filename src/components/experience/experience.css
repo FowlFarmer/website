@@ -1,0 +1,524 @@
+/* Shared scroll-story frame: a tall section with a full-screen stage pinned inside it. */
+.experience-lab {
+  width: 100%;
+  padding-top: 70px;
+}
+
+.experience-lab-title {
+  width: max-content;
+  margin: 0 auto;
+  padding: 10px 22px;
+  font-weight: 400;
+  text-align: center;
+  cursor: default;
+}
+
+.story-section {
+  position: relative;
+  width: 100%;
+}
+
+.story-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  color: #fff;
+}
+
+.story-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
+  text-transform: uppercase;
+}
+
+.story-card {
+  padding: 22px 24px;
+  cursor: default;
+}
+
+.story-date,
+.story-location {
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.story-company {
+  margin: 0 0 6px;
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.story-headline {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.story-media {
+  margin-top: 14px;
+}
+
+.story-rail {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: opacity 200ms ease;
+}
+
+.story-rail-logo {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  background: #fff;
+  opacity: 0.55;
+  cursor: pointer;
+  transition: opacity 200ms ease, transform 200ms ease, border-color 200ms ease;
+}
+
+.story-rail-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.story-rail-logo[aria-current="step"] {
+  border-color: #ffc4d3;
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+/* 1 · Growing branch */
+.branch-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  align-items: center;
+  gap: 24px;
+  padding: 70px 24px 24px;
+}
+
+.branch-svg {
+  width: 100%;
+  height: calc(100svh - 110px);
+  overflow: visible;
+}
+
+.branch-ghost,
+.branch-ink {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.branch-ghost {
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-width: 7;
+}
+
+.branch-ink {
+  stroke: #fff;
+  stroke-width: 8;
+}
+
+.branch-twig {
+  stroke-width: 4;
+}
+
+.branch-blossom {
+  cursor: pointer;
+  outline: none;
+}
+
+.branch-petal {
+  fill: #ffe6ec;
+  stroke: rgba(233, 134, 162, 0.5);
+  stroke-width: 1;
+}
+
+.branch-logo-ring {
+  fill: #fff;
+}
+
+.branch-blossom[data-active="true"] .branch-petal {
+  fill: #ffc4d3;
+}
+
+.branch-year {
+  fill: #fff;
+  font: 500 22px 'Helvetica Neue', sans-serif;
+}
+
+.branch-copy {
+  position: relative;
+  display: grid;
+  align-items: center;
+  min-height: 60%;
+}
+
+.branch-copy > * {
+  grid-area: 1 / 1;
+}
+
+.branch-overview h2 {
+  margin: 0 0 10px;
+  font-size: 2.2rem;
+  font-weight: 400;
+}
+
+.branch-overview p {
+  margin: 0 0 14px;
+}
+
+/* 2 · Petal type */
+.type-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.type-hint {
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.type-details {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  width: min(560px, 86%);
+  text-align: center;
+}
+
+/* The petals already spell the company; keep the heading for screen readers only. */
+.type-details .story-company {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.type-media {
+  width: min(300px, 70%);
+  margin: 14px auto 0;
+}
+
+.type-rail {
+  top: 50%;
+  left: 18px;
+  transform: translateY(-50%);
+}
+
+/* 3 · Ema wall */
+.ema-stage {
+  perspective: 1400px;
+}
+
+.ema-overview {
+  position: absolute;
+  top: 12%;
+  left: 0;
+  right: 0;
+  text-align: center;
+}
+
+.ema-overview h2 {
+  margin: 0 0 8px;
+  font-size: 2.2rem;
+  font-weight: 400;
+}
+
+.ema-track {
+  position: absolute;
+  top: 26%;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+
+.ema-rope {
+  position: absolute;
+  top: -20px;
+  height: 80px;
+  overflow: visible;
+}
+
+.ema-rope path {
+  fill: none;
+  stroke: #e9d6b0;
+  stroke-width: 6;
+  stroke-linecap: round;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35));
+}
+
+.ema-hanger {
+  position: absolute;
+  top: 0;
+  width: 250px;
+  transform-origin: 50% 0;
+}
+
+.ema-string {
+  width: 2px;
+  height: 46px;
+  margin: 0 auto;
+  background: #e9d6b0;
+}
+
+.ema-plaque {
+  position: relative;
+  width: 250px;
+  height: 320px;
+  transform-style: preserve-3d;
+}
+
+.ema-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 46px 20px 18px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  clip-path: polygon(50% 0, 100% 16%, 100% 100%, 0 100%, 0 16%);
+  color: #3a2616;
+  text-align: center;
+  background:
+    repeating-linear-gradient(92deg, rgba(90, 56, 28, 0.08) 0 3px, transparent 3px 11px),
+    linear-gradient(180deg, #e2b988, #c8925c);
+}
+
+.ema-back {
+  justify-content: flex-start;
+  padding-top: 40px;
+  transform: rotateY(180deg);
+  background:
+    repeating-linear-gradient(92deg, rgba(90, 56, 28, 0.06) 0 3px, transparent 3px 11px),
+    linear-gradient(180deg, #f1dcc0, #dfbf98);
+}
+
+.ema-hole {
+  position: absolute;
+  top: 18px;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #5b3b22;
+}
+
+.ema-logo {
+  width: 104px;
+  height: 104px;
+  margin: 26px 0 16px;
+  border: 4px solid #fff7ea;
+  border-radius: 999px;
+  background: #fff;
+  object-fit: contain;
+}
+
+.ema-front strong {
+  font: 600 1.25rem Georgia, 'Times New Roman', serif;
+}
+
+.ema-year {
+  margin-top: 6px;
+  font: italic 1rem Georgia, serif;
+}
+
+.ema-plaque[data-lit="true"] .ema-front {
+  box-shadow: inset 0 0 0 4px #ffc4d3;
+}
+
+.ema-back .story-date,
+.ema-back .story-location,
+.ema-back .story-headline {
+  color: #4a3222;
+  font-size: 0.74rem;
+}
+
+.ema-back .story-company {
+  font-size: 1.05rem;
+  color: #2c1b0e;
+}
+
+.ema-media {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.ema-gust {
+  position: absolute;
+  top: 200px;
+  left: 50%;
+  z-index: -1;
+}
+
+.ema-gust span {
+  position: absolute;
+  width: 10px;
+  height: 13px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: #fff;
+}
+
+.ema-rail {
+  top: 50%;
+  right: 18px;
+  transform: translateY(-50%);
+}
+
+/* Kitsune: the figure and its tails on the left, the role on the right. */
+.kitsune-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 11fr) minmax(0, 9fr);
+  align-items: center;
+}
+
+.kitsune-canvas {
+  position: relative;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+
+.kitsune-canvas[data-loaded="true"] {
+  opacity: 1;
+}
+
+.kitsune-canvas canvas {
+  display: block;
+}
+
+.kitsune-copy {
+  position: relative;
+  display: grid;
+  align-items: center;
+  padding: 70px 28px 24px 8px;
+}
+
+.kitsune-copy > .kitsune-overview,
+.kitsune-copy > .kitsune-card {
+  grid-area: 1 / 1;
+}
+
+.kitsune-overview h2 {
+  margin: 0 0 16px;
+  font-size: 2.2rem;
+  font-weight: 400;
+}
+
+.kitsune-overview ul {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 18px;
+  padding: 0;
+  list-style: none;
+}
+
+.kitsune-overview li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kitsune-overview li img {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #fff;
+  object-fit: contain;
+}
+
+.kitsune-overview li small {
+  margin-left: auto;
+  opacity: 0.75;
+}
+
+.kitsune-overview li[data-latest="true"] {
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+
+.kitsune-overview li[data-latest="true"] img {
+  width: 42px;
+  height: 42px;
+  box-shadow: 0 0 0 3px #bfe8ff, 0 0 18px #9fd6ff;
+}
+
+.kitsune-tail-count {
+  margin: 0 0 8px;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #bfe8ff;
+}
+
+.kitsune-rail {
+  position: relative;
+  grid-area: 2 / 1;
+  flex-direction: row;
+  margin-top: 16px;
+}
+
+@media (max-width: 700px) {
+  .kitsune-stage {
+    grid-template-columns: 1fr;
+    grid-template-rows: 48% 52%;
+  }
+
+  .kitsune-copy {
+    align-items: start;
+    padding: 8px 16px 16px;
+  }
+
+  .branch-stage {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: 10px;
+    padding: 70px 12px 16px;
+  }
+
+  .story-card {
+    padding: 16px;
+  }
+
+  .ema-track {
+    top: 22%;
+  }
+
+  .type-rail,
+  .ema-rail {
+    top: auto;
+    bottom: 14px;
+    left: 50%;
+    right: auto;
+    flex-direction: row;
+    transform: translateX(-50%);
+  }
+}
+
+/* Standalone kitsune scene: the dusk Fuji photo behind a transparent three.js canvas. */
+.kitsune-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: #3c3a6e url('/images/scene/fuji_hd.jpg') center bottom / cover no-repeat;
+}
+
+.kitsune-scene canvas {
+  display: block;
+}

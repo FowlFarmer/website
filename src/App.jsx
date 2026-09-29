@@ -5,6 +5,7 @@ import NavBar from './components/NavBar.jsx';
 import Gallery from './components/Gallery.jsx';
 import Self from './components/Self.jsx';
 import Contact from './components/Contact.jsx';
+const KitsuneLab = lazy(() => import('./components/KitsuneLab.jsx'));
 const Avalon = lazy(() => import('./components/Avalon.jsx'));
 import SceneBackground from './components/SceneBackground.jsx';
 
@@ -35,6 +36,7 @@ function FadeRoutes() {
           <Route path="/self" element={<Self />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/lab/kitsune" element={<Suspense fallback={null}><KitsuneLab /></Suspense>} />
           <Route path="/avalon" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#060f21' }} />}><Avalon /></Suspense>} />
 
           <Route path="*" element={<Gallery />} />
@@ -46,7 +48,7 @@ function FadeRoutes() {
 
 function SiteChrome() {
   const { pathname } = useLocation();
-  if (pathname === '/avalon') return null;
+  if (pathname === '/avalon' || pathname === '/lab/kitsune') return null;
   return <><SceneBackground /><div className="blossom-atmosphere" aria-hidden="true" /><NavBar /></>;
 }
 
