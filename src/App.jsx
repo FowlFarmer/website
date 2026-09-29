@@ -10,6 +10,7 @@ const Avalon = lazy(() => import('./components/Avalon.jsx'));
 import SceneBackground from './components/SceneBackground.jsx';
 
 import { Analytics } from "@vercel/analytics/react"
+import { usePersistentAnalytics } from './persistentAnalytics.js';
 
 // A wrapper that applies fade-out (exit) then fade-in (enter) on route changes
 function FadeRoutes() {
@@ -48,6 +49,7 @@ function FadeRoutes() {
 
 function SiteChrome() {
   const { pathname } = useLocation();
+  usePersistentAnalytics();
   if (pathname === '/avalon' || pathname === '/lab/kitsune') return null;
   return <><SceneBackground /><div className="blossom-atmosphere" aria-hidden="true" /><NavBar /></>;
 }
