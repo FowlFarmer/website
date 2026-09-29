@@ -1,0 +1,50 @@
+.an-page {
+  --an-bg: #fafafa;
+  --an-card: #fff;
+  --an-line: #e5e5e5;
+  --an-text: #171717;
+  --an-muted: #737373;
+  --an-fill: #e8eefc;
+  --an-accent: #3b6fe0;
+  min-height: 100vh;
+  background: var(--an-bg);
+  color: var(--an-text);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  padding: 32px 16px 64px;
+  box-sizing: border-box;
+}
+@media (prefers-color-scheme: dark) {
+  .an-page {
+    --an-bg: #0a0a0a;
+    --an-card: #141414;
+    --an-line: #262626;
+    --an-text: #ededed;
+    --an-muted: #a1a1a1;
+    --an-fill: #1b2640;
+    --an-accent: #6d95ee;
+  }
+}
+.an-page > * { max-width: 1080px; margin-left: auto; margin-right: auto; }
+.an-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.an-head h1 { font-size: 24px; margin: 0; }
+.an-ranges { display: flex; flex-wrap: wrap; gap: 6px; }
+.an-ranges button {
+  font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 6px; cursor: pointer;
+  background: var(--an-card); color: var(--an-text); border: 1px solid var(--an-line);
+}
+.an-ranges button.is-on { background: var(--an-text); color: var(--an-bg); border-color: var(--an-text); }
+.an-totals { display: flex; gap: 12px; margin-bottom: 12px; }
+.an-totals div { flex: 1; background: var(--an-card); border: 1px solid var(--an-line); border-radius: 10px; padding: 16px; }
+.an-totals span { display: block; font-size: 13px; color: var(--an-muted); }
+.an-totals strong { font-size: 32px; font-variant-numeric: tabular-nums; }
+.an-card { background: var(--an-card); border: 1px solid var(--an-line); border-radius: 10px; padding: 16px; }
+.an-card h2 { font-size: 14px; margin: 0 0 12px; }
+.an-chart { display: flex; align-items: flex-end; gap: 2px; height: 180px; margin-bottom: 12px; }
+.an-col { flex: 1; height: 100%; display: flex; align-items: flex-end; min-width: 0; }
+.an-col span { width: 100%; background: var(--an-accent); border-radius: 2px 2px 0 0; min-height: 2px; }
+.an-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.an-row { position: relative; display: flex; justify-content: space-between; gap: 12px; padding: 6px 8px; font-size: 13px; }
+.an-bar { position: absolute; inset: 0 auto 0 0; background: var(--an-fill); border-radius: 4px; }
+.an-key { position: relative; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.an-num { position: relative; font-variant-numeric: tabular-nums; color: var(--an-muted); }
+.an-empty { color: var(--an-muted); font-size: 13px; margin: 0; }

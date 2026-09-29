@@ -3,7 +3,7 @@
 # shows (page, referrer, UTM, country/region/city, device, browser, OS,
 # visitors), minus its retention window.
 import os, json, re, time, urllib.parse
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler
 
 from pymongo import MongoClient, ASCENDING
@@ -62,7 +62,57 @@ def _referrer_host(ref, own_host):
         return None
     return host[4:] if host.startswith("www.") else host
 
+_VISITORS = {"$size": {"$setDifference": ["$v", [None]]}}
+
+def _top(field, n=10):
+    return [
+        {"$match": {field: {"$type": "string"}}},
+        {"$group": {"_id": f"${field}", "views": {"$sum": 1}, "v": {"$addToSet": "$visitor"}}},
+        {"$project": {"_id": 0, "key": "$_id", "views": 1, "visitors": _VISITORS}},
+        {"$sort": {"visitors": -1, "views": -1}},
+        {"$limit": n},
+    ]
+
+def _summary(days):
+    # Aggregates only: no visitor ids or user agents leave the database.
+    col = _collection()
+    if col is None:
+        return None
+    match = {"ts": {"$gte": datetime.now(timezone.utc) - timedelta(days=days)}} if days else {}
+    facets = {name: _top(field) for name, field in (
+        ("pages", "path"), ("referrers", "referrer_host"), ("utm_sources", "utm.source"),
+        ("countries", "country"), ("cities", "city"), ("devices", "device"),
+        ("browsers", "browser"), ("os", "os"))}
+    facets["totals"] = [{"$group": {"_id": None, "views": {"$sum": 1}, "v": {"$addToSet": "$visitor"}}},
+                        {"$project": {"_id": 0, "views": 1, "visitors": _VISITORS}}]
+    facets["daily"] = [{"$group": {"_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$ts"}},
+                                   "views": {"$sum": 1}, "v": {"$addToSet": "$visitor"}}},
+                       {"$project": {"_id": 0, "day": "$_id", "views": 1, "visitors": _VISITORS}},
+                       {"$sort": {"day": 1}}]
+    out = next(col.aggregate([{"$match": match}, {"$facet": facets}]))
+    out["totals"] = out["totals"][0] if out["totals"] else {"views": 0, "visitors": 0}
+    return out
+
 class handler(BaseHTTPRequestHandler):
+    # GET /api/track?days=30  (0 = all time) -> dashboard summary
+    def do_GET(self):
+        qs = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        try:
+            days = max(0, int(qs.get("days", ["30"])[0]))
+            data = _summary(days)
+            status, body = (200, data) if data is not None else (503, {"error": "no_mongo"})
+        except Exception as e:
+            log("summary.err", err=str(e))
+            status, body = 500, {"error": "summary_failed"}
+        raw = json.dumps(body).encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Robots-Tag", "noindex")
+        self.send_header("Content-Length", str(len(raw)))
+        self.end_headers()
+        self.wfile.write(raw)
+
     # POST /api/track  body: {path, query, referrer, visitor, session, width}
     def do_POST(self):
         try:

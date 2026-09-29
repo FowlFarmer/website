@@ -24,8 +24,8 @@ export function usePersistentAnalytics() {
   const { pathname, search } = useLocation();
 
   useEffect(() => {
-    // "/" always redirects to /self, so it would double count.
-    if (import.meta.env.DEV || pathname === '/') return;
+    // "/" always redirects to /self, so it would double count; /analytics is the dashboard itself.
+    if (import.meta.env.DEV || pathname === '/' || pathname === '/analytics') return;
     const body = JSON.stringify({
       path: pathname,
       query: search,
