@@ -9,10 +9,12 @@ const ExperienceLab = lazy(() => import('./components/ExperienceLab.jsx'));
 const RiderShaderLab = lazy(() => import('./components/shaderLab/RiderShaderLab.jsx'));
 const KitsuneLab = lazy(() => import('./components/KitsuneLab.jsx'));
 const Avalon = lazy(() => import('./components/Avalon.jsx'));
+const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard.jsx'));
 import SceneBackground from './components/SceneBackground.jsx';
 import { experienceStage } from './components/experience/experienceStage.js';
 
 import { Analytics } from "@vercel/analytics/react"
+import { usePersistentAnalytics } from './persistentAnalytics.js';
 
 // Route changes fade the page out, swap it while it's invisible (back at the top), then fade the
 // new page in. One persistent <main> carries the fade, so a page never appears before its fade-in
@@ -76,6 +78,7 @@ function FadeRoutes() {
         {/* The gallery's projects are the World Quests now. */}
         <Route path="/gallery" element={<Navigate to="/quests" replace />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/analytics" element={<Suspense fallback={null}><AnalyticsDashboard /></Suspense>} />
         <Route path="/lab/experience" element={<Suspense fallback={null}><ExperienceLab /></Suspense>} />
         <Route path="/lab/shaders" element={<Suspense fallback={null}><RiderShaderLab /></Suspense>} />
         <Route path="/lab/kitsune" element={<Suspense fallback={null}><KitsuneLab /></Suspense>} />
@@ -89,7 +92,8 @@ function FadeRoutes() {
 
 function SiteChrome() {
   const { pathname } = useLocation();
-  if (pathname === '/avalon' || pathname === '/lab/kitsune') return null;
+  usePersistentAnalytics();
+  if (pathname === '/avalon' || pathname === '/lab/kitsune' || pathname === '/analytics') return null;
   return <><SceneBackground /><div className="blossom-atmosphere" aria-hidden="true" /><NavBar /></>;
 }
 

@@ -7,6 +7,7 @@ import { formNav } from './navFormation.js';
 import CalligraphyName from './CalligraphyName.jsx';
 
 import CosplayCard from './cards/cosplay.jsx';
+import ShipsGalleryCard from './cards/shipsGallery.jsx';
 import Spotify from './jias-react-components/tools/Spotify.jsx';
 import Macbook from './jias-react-components/tools/Macbook.jsx';
 
@@ -66,7 +67,7 @@ export default function Self() {
             {/* <GitHubProfileCard /> */}
             <div id="Cosplay"/>
             <CosplayCard />
-            {/* <ShipsGalleryCard /> */}
+            <ShipsGalleryCard />
             <div id="Shipbuilding"/>
             {/* <Shipbuilding /> */}
             {/* <div style={{marginTop: "100000px"}} /> */}
