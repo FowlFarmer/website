@@ -7,6 +7,7 @@ import CalligraphyName from './CalligraphyName.jsx';
 
 import WorkExperienceCard from './cards/workExperience.jsx';
 import CosplayCard from './cards/cosplay.jsx';
+import ShipsGalleryCard from './cards/shipsGallery.jsx';
 import Spotify from './jias-react-components/tools/Spotify.jsx';
 import Macbook from './jias-react-components/tools/Macbook.jsx';
 
@@ -60,7 +61,7 @@ export default function Self() {
             <WorkExperienceCard />
             <div id="Cosplay"/>
             <CosplayCard />
-            {/* <ShipsGalleryCard /> */}
+            <ShipsGalleryCard />
             <div id="Shipbuilding"/>
             {/* <Shipbuilding /> */}
             {/* <div style={{marginTop: "100000px"}} /> */}
