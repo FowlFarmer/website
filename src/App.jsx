@@ -7,9 +7,11 @@ import Self from './components/Self.jsx';
 import Contact from './components/Contact.jsx';
 const KitsuneLab = lazy(() => import('./components/KitsuneLab.jsx'));
 const Avalon = lazy(() => import('./components/Avalon.jsx'));
+const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard.jsx'));
 import SceneBackground from './components/SceneBackground.jsx';
 
 import { Analytics } from "@vercel/analytics/react"
+import { usePersistentAnalytics } from './persistentAnalytics.js';
 
 // A wrapper that applies fade-out (exit) then fade-in (enter) on route changes
 function FadeRoutes() {
@@ -36,6 +38,7 @@ function FadeRoutes() {
           <Route path="/self" element={<Self />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/analytics" element={<Suspense fallback={null}><AnalyticsDashboard /></Suspense>} />
           <Route path="/lab/kitsune" element={<Suspense fallback={null}><KitsuneLab /></Suspense>} />
           <Route path="/avalon" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#060f21' }} />}><Avalon /></Suspense>} />
 
@@ -48,7 +51,8 @@ function FadeRoutes() {
 
 function SiteChrome() {
   const { pathname } = useLocation();
-  if (pathname === '/avalon' || pathname === '/lab/kitsune') return null;
+  usePersistentAnalytics();
+  if (pathname === '/avalon' || pathname === '/lab/kitsune' || pathname === '/analytics') return null;
   return <><SceneBackground /><div className="blossom-atmosphere" aria-hidden="true" /><NavBar /></>;
 }
 
