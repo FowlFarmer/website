@@ -1,48 +1,89 @@
-import React, { lazy, Suspense, useEffect } from 'react';
+import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 import NavBar from './components/NavBar.jsx';
 import Gallery from './components/Gallery.jsx';
+import Quests from './components/Quests.jsx';
 import Self from './components/Self.jsx';
 import Contact from './components/Contact.jsx';
+const ExperienceLab = lazy(() => import('./components/ExperienceLab.jsx'));
+const RiderShaderLab = lazy(() => import('./components/shaderLab/RiderShaderLab.jsx'));
 const KitsuneLab = lazy(() => import('./components/KitsuneLab.jsx'));
 const Avalon = lazy(() => import('./components/Avalon.jsx'));
 import SceneBackground from './components/SceneBackground.jsx';
+import { experienceStage } from './components/experience/experienceStage.js';
 
 import { Analytics } from "@vercel/analytics/react"
 
-// A wrapper that applies fade-out (exit) then fade-in (enter) on route changes
+// Route changes fade the page out, swap it while it's invisible (back at the top), then fade the
+// new page in. One persistent <main> carries the fade, so a page never appears before its fade-in
+// starts or blinks as it ends (mounting a fresh animated element per page did both).
+const PAGE_FADE_MS = 350;
+// Paths that only redirect: there's no page to fade out.
+const REDIRECTS = ['/', '/gallery'];
+
 function FadeRoutes() {
   const location = useLocation();
+  const [shown, setShown] = useState(location);
+  const [leaving, setLeaving] = useState(false);
+  const mainRef = useRef(null);
 
-  // Optional: scroll to top on route change to avoid mid-page fades
+  // The scene behind switches with the address, as the old page starts fading, not once it's gone:
+  // the kitsune behind the quests, the Lawson store everywhere else.
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    experienceStage.show = location.pathname === '/quests' ? 'kitsune' : 'lawson';
   }, [location.pathname]);
 
-  return (
-    <AnimatePresence mode="wait" initial={false}>
-      {/* Key by pathname so old page can animate out before unmount */}
-      <motion.main
-        key={location.pathname}
-        className={`main-content${location.pathname === '/avalon' ? ' main-content--archive' : ''}`}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}       // fade-out on leave
-        transition={{ duration: 0.35, ease: 'easeInOut' }}
-      >
-        <Routes location={location}>
-          <Route path="/" element={<Navigate to="/self" replace />} />
-          <Route path="/self" element={<Self />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/lab/kitsune" element={<Suspense fallback={null}><KitsuneLab /></Suspense>} />
-          <Route path="/avalon" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#060f21' }} />}><Avalon /></Suspense>} />
+  useEffect(() => {
+    if (location.pathname === shown.pathname || REDIRECTS.includes(shown.pathname)) {
+      // Same page (a hash or search change), or arriving through a redirect: no fade.
+      if (location !== shown) setShown(location);
+      setLeaving(false);
+      return undefined;
+    }
+    setLeaving(true);
+    // Swap once the fade-out has actually finished (a busy frame can start it late), with a
+    // timer in case the transition never runs (reduced motion, an already-invisible page).
+    const main = mainRef.current;
+    let fallback = 0;
+    const swap = () => {
+      main.removeEventListener('transitionend', onFaded);
+      window.clearTimeout(fallback);
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      setShown(location);
+      setLeaving(false);
+    };
+    const onFaded = (event) => {
+      if (event.target === main && event.propertyName === 'opacity') swap();
+    };
+    main.addEventListener('transitionend', onFaded);
+    fallback = window.setTimeout(swap, PAGE_FADE_MS * 3);
+    return () => {
+      main.removeEventListener('transitionend', onFaded);
+      window.clearTimeout(fallback);
+    };
+  }, [location]); // eslint-disable-line react-hooks/exhaustive-deps
 
-          <Route path="*" element={<Gallery />} />
-        </Routes>
-      </motion.main>
-    </AnimatePresence>
+  return (
+    <main
+      ref={mainRef}
+      className={`main-content${shown.pathname === '/avalon' ? ' main-content--archive' : ''}`}
+      style={{ opacity: leaving ? 0 : 1, transition: `opacity ${PAGE_FADE_MS}ms ease-in-out` }}
+    >
+      <Routes location={shown}>
+        <Route path="/" element={<Navigate to="/self" replace />} />
+        <Route path="/self" element={<Self />} />
+        <Route path="/quests" element={<Quests />} />
+        {/* The gallery's projects are the World Quests now. */}
+        <Route path="/gallery" element={<Navigate to="/quests" replace />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/lab/experience" element={<Suspense fallback={null}><ExperienceLab /></Suspense>} />
+        <Route path="/lab/shaders" element={<Suspense fallback={null}><RiderShaderLab /></Suspense>} />
+        <Route path="/lab/kitsune" element={<Suspense fallback={null}><KitsuneLab /></Suspense>} />
+        <Route path="/avalon" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#060f21' }} />}><Avalon /></Suspense>} />
+
+        <Route path="*" element={<Gallery />} />
+      </Routes>
+    </main>
   );
 }
 

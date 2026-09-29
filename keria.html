@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101316" />
+    <title>Keria in Profile — 3D Viewer</title>
+  </head>
+  <body>
+    <main class="viewer" aria-label="Keria in Profile 3D model viewer">
+      <div id="stage" class="stage" aria-label="Interactive 3D model. Drag to rotate and scroll to zoom."></div>
+      <header class="masthead">
+        <div class="identity"><span class="identity-mark" aria-hidden="true">K</span><span>KERIA <span class="muted">/</span> IN PROFILE</span></div>
+        <span class="edition">3D STUDY <span class="edition-rule"></span> 01</span>
+      </header>
+      <div class="model-label" aria-hidden="true"><span class="label-index">01 — 01</span><h1>Keria<br /><em>in Profile</em></h1></div>
+      <div id="loading" class="loading" role="status" aria-live="polite"><span class="loading-spinner" aria-hidden="true"></span><span id="loading-text">Loading model…</span></div>
+      <footer class="toolbar">
+        <p class="hint">DRAG TO ROTATE <span>·</span> SCROLL TO ZOOM</p>
+        <div class="actions">
+          <button id="reset" type="button" title="Reset camera">RESET VIEW</button>
+          <button id="rotate" type="button" aria-pressed="false" title="Toggle automatic rotation">AUTO ROTATE <span class="switch-dot" aria-hidden="true"></span></button>
+          <a href="/models/keria-profile.glb" download="Keria in Profile.glb" title="Download 3D model">DOWNLOAD GLB <span aria-hidden="true">↗</span></a>
+        </div>
+      </footer>
+      <p class="credit">MODEL: <a href="https://www.meshy.ai/s/yuNEJv" target="_blank" rel="noreferrer">MESHY</a> <span>·</span> CC BY 4.0</p>
+    </main>
+    <script type="module" src="/src/keria/main.js"></script>
+  </body>
+</html>

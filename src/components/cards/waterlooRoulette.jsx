@@ -1,4 +1,13 @@
 import React from "react";
+import QuestTag from '../experience/QuestIcons.jsx';
+
+// Live stats from waterloo.careers, checked September 29, 2026.
+const STATS = [
+  ['1,522', 'players'],
+  ['4,888', 'runs completed'],
+  ['726', 'hours played'],
+  ['19,736', 'co-op jobs landed'],
+];
 
 export default function WaterlooRouletteCard() {
   return (
@@ -13,6 +22,7 @@ export default function WaterlooRouletteCard() {
         boxSizing: "border-box",
       }}
     >
+      <QuestTag type="world" />
       <div
         style={{
           display: "flex",
@@ -53,14 +63,27 @@ export default function WaterlooRouletteCard() {
               hours gambling on a roulette table for FAKE jobs in a fantasy Isekai
               world? 🤔🤔
             </p>
+            <p style={{ margin: "8px 0 0", fontSize: "0.8rem", opacity: 0.85 }}>
+              Edit: Somehow more jobs have been acquired on waterloo.careers than WaterlooWorks this year LMAO
+            </p>
           </div>
         </div>
 
-        <a href="https://waterloo.careers" target="_blank" rel="noopener noreferrer">
-          <span className="rounded-button">
-            play @ waterloo.careers
-          </span>
-        </a>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", flex: "0 0 auto" }}>
+          <a href="https://waterloo.careers" target="_blank" rel="noopener noreferrer">
+            <span className="rounded-button">
+              play @ waterloo.careers
+            </span>
+          </a>
+          <dl className="roulette-stats">
+            {STATS.map(([value, label]) => (
+              <div key={label}>
+                <dt>{value}</dt>
+                <dd>{label}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
       </div>
     </div>
   );

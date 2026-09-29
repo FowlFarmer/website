@@ -8,6 +8,11 @@ import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 import { createScenePerformanceMonitor } from './scenePerformance.mjs';
 import { createPetalWind } from './petalWind.mjs';
 import { sceneViewport } from './sceneViewport.mjs';
+import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
+import {
+  closeLore, cycleGlow, experienceStage, openLore, setHovered as setKitsuneHovered, setKitsuneShown,
+} from './experience/experienceStage.js';
+import { closeInspo, openInspo } from './lawsonStage.js';
 
 const EMPTY_POSE = {
   position: [0, 0, 0],
@@ -89,9 +94,67 @@ const BACKDROP_COVER_MAX_SCALE = 256;
 const BACKDROP_COVER_POINTER_STEPS = [-1, 0, 1];
 const BACKDROP_COVER_BOB_STEPS = [-1, 0, 1];
 const MOBILE_SCENE_QUERY = '(max-width: 767px), (pointer: coarse) and (max-width: 1024px)';
-// The scene shares the GPU with page compositing while scrolling. On a 2x
-// display 1.25 keeps the background crisp enough while leaving headroom.
-const DESKTOP_PIXEL_RATIO_CAP = 1.25;
+// Desktop renders at the display's full pixel ratio, so the kitsune stays sharp.
+const DESKTOP_PIXEL_RATIO_CAP = Infinity;
+// The quests page's kitsune draws on its own layer, with its own camera and lights.
+const KITSUNE_LAYER = 3;
+// How long the store and rider, or the kitsune, take to fade out or in.
+const FADE_MS = 450;
+// How long after the scene is up (and the page is idle) the kitsune loads in the background, so the
+// quests page has nothing left to load.
+const KITSUNE_PRELOAD_MS = 2500;
+
+// A pass drawn into its own buffer, then onto the screen inside a viewport at an opacity, tone
+// mapped like the rest of the scene. For fading the store and rider in and out.
+function createFadeLayer(renderer) {
+  const target = new THREE.WebGLRenderTarget(1, 1, { samples: 4, type: THREE.HalfFloatType });
+  const quad = new FullScreenQuad(new THREE.ShaderMaterial({
+    uniforms: { tDiffuse: { value: target.texture }, opacity: { value: 1 } },
+    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: `uniform sampler2D tDiffuse;
+      uniform float opacity;
+      varying vec2 vUv;
+      void main() {
+        vec4 texel = texture2D(tDiffuse, vUv);
+        gl_FragColor = texel;
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+        gl_FragColor = vec4(gl_FragColor.rgb, texel.a) * opacity;
+      }`,
+    depthTest: false,
+    depthWrite: false,
+    transparent: true,
+    blending: THREE.CustomBlending,
+    blendEquation: THREE.AddEquation,
+    blendSrc: THREE.OneFactor,
+    blendDst: THREE.OneMinusSrcAlphaFactor,
+    blendSrcAlpha: THREE.OneFactor,
+    blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
+  }));
+  const clearColor = new THREE.Color();
+  return {
+    render: (scene, camera, view, opacity) => {
+      const ratio = renderer.getPixelRatio();
+      target.setSize(Math.max(1, Math.round(view.width * ratio)), Math.max(1, Math.round(view.height * ratio)));
+      renderer.getClearColor(clearColor);
+      const clearAlpha = renderer.getClearAlpha();
+      renderer.setRenderTarget(target);
+      renderer.setClearColor(0x000000, 0);
+      renderer.clear();
+      renderer.render(scene, camera);
+      renderer.setRenderTarget(null);
+      renderer.setClearColor(clearColor, clearAlpha);
+      renderer.setViewport(view.x, view.y, view.width, view.height);
+      quad.material.uniforms.opacity.value = opacity;
+      quad.render(renderer);
+    },
+    dispose: () => {
+      target.dispose();
+      quad.material.dispose();
+      quad.dispose();
+    },
+  };
+}
 const SCENE_EDITOR_ENABLED =
   import.meta.env.DEV || import.meta.env.VITE_VERCEL_ENV === 'preview';
 
@@ -513,6 +576,10 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     const parallaxFocalPoint = new THREE.Vector3();
 
     const orbitControls = new OrbitControls(camera, mount);
+    // The controls listen for the wheel without being passive, which makes every scroll of the page
+    // wait on the main thread (it scrolls only once the wheel stops, then jumps). Listen only while
+    // the scene editor is open.
+    orbitControls.disconnect();
     orbitControls.enabled = false;
     orbitControls.enableDamping = true;
     orbitControls.dampingFactor = 0.075;
@@ -537,6 +604,8 @@ export default function CherryBlossomScene({ onLowPerformance }) {
 
     renderer.setPixelRatio(captureMode ? (mobileLayout ? 2 : 1) : Math.min(window.devicePixelRatio, lowPower ? 1.1 : DESKTOP_PIXEL_RATIO_CAP));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
+    // The quests page's kitsune shows on desktop only, for now.
+    experienceStage.supported = !mobileLayout;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.94;
@@ -573,7 +642,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     ground.position.y = -0.035;
     scene.add(ground);
 
-    const petalField = createPetalField(random, lowPower ? 320 : 820);
+    const petalField = createPetalField(random, lowPower ? 160 : 410);
     petalField.layers.set(2);
     scene.add(petalField);
 
@@ -890,6 +959,8 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           measureStoreWidth();
         }
         orbitControls.update();
+        if (value) orbitControls.connect(mount);
+        else orbitControls.disconnect();
         orbitControls.enabled = value;
         transformControls.enabled = value;
         mount.dataset.editing = String(value);
@@ -1131,6 +1202,10 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         if (mobileLayout) frameMobileBackdrop();
 
         mount.dataset.sceneLoaded = 'true';
+        // Load the kitsune in the background once the page has settled, so the quests page doesn't.
+        preloadTimer = window.setTimeout(() => {
+          (window.requestIdleCallback ?? ((callback) => callback()))(() => { kitsuneWanted = true; }, { timeout: 3000 });
+        }, KITSUNE_PRELOAD_MS);
         readyTimer = window.setTimeout(
           () => setSceneReady(true),
           Math.max(0, 700 - (performance.now() - loadingStartedAt)),
@@ -1147,6 +1222,110 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         );
       });
 
+    // Clicks on the store or the rider open the inspo: their boxes, and where the models were last
+    // drawn on screen (CSS pixels, from the bottom left), or null when they weren't.
+    let modelBox = null;
+    let modelsDrawn = null;
+    let modelFade = null;
+    const modelRay = new THREE.Raycaster();
+    const modelRayLocal = new THREE.Ray();
+    const lawsonHit = (event) => {
+      if (!modelsDrawn || editingActive || !modelBox) return false;
+      const x = (event.clientX - modelsDrawn.x) / modelsDrawn.width;
+      const y = (window.innerHeight - event.clientY - modelsDrawn.y) / modelsDrawn.height;
+      if (x < 0 || x > 1 || y < 0 || y > 1) return false;
+      modelRay.setFromCamera(new THREE.Vector2(x * 2 - 1, y * 2 - 1), modelCamera);
+      modelRayLocal.copy(modelRay.ray).applyMatrix4(modelGroup.matrixWorld.clone().invert());
+      return modelRayLocal.intersectsBox(modelBox);
+    };
+
+    // The kitsune (figure, tails and rock) for the quests page. It loads in the background once the
+    // scene is up and the page is idle (or at once, if the quests page wants it), compiles its
+    // shaders and warms its bloom, and only then is ready to fade in. It draws over the backdrop,
+    // under the petals, and is lit only by its own lights.
+    let kitsune = null;
+    let kitsuneGlow = null;
+    let kitsuneLoading = false;
+    let kitsuneReady = false;
+    let kitsuneWanted = false;
+    let preloadTimer;
+    const loadKitsune = () => {
+      kitsuneLoading = true;
+      Promise.all([import('./experience/kitsuneRig.js'), import('./experience/kitsuneHologram.js')])
+        .then(([rig, hologram]) => rig.loadKitsuneAssets(loader).then((assets) => {
+          if (disposed) return undefined;
+          kitsune = rig.createKitsune(assets, {
+            layer: KITSUNE_LAYER,
+            onHover: (index) => {
+              document.body.style.cursor = index >= 0 ? 'pointer' : '';
+              setKitsuneHovered(index);
+            },
+          });
+          scene.add(kitsune.root);
+          kitsune.setAspect(viewportWidth / viewportHeight);
+          kitsuneGlow = hologram.createGlowLayer(renderer, scene, kitsune.camera);
+          kitsuneGlow.setSize(viewportWidth, viewportHeight);
+          return renderer.compileAsync(kitsune.root, kitsune.camera, scene);
+        }))
+        .then(() => {
+          if (disposed || !kitsune) return;
+          kitsune.update(0, performance.now());
+          kitsuneGlow.warm();
+          renderer.setViewport(0, 0, viewportWidth, viewportHeight);
+          kitsuneReady = true;
+        })
+        .catch((error) => console.error('Unable to load the kitsune.', error));
+    };
+    // The fades, 0 to 1: the store and rider, and the kitsune. One fades out before the other fades
+    // in. They start where the page wants them, once the scene is up.
+    let modelsAlpha = 1;
+    let kitsuneAlpha = 0;
+    let fadesStarted = false;
+    const approach = (value, target, step) => (value < target ? Math.min(target, value + step) : Math.max(target, value - step));
+    const updateFades = (seconds) => {
+      const wantKitsune = experienceStage.show === 'kitsune' && experienceStage.supported;
+      if (!fadesStarted) {
+        fadesStarted = true;
+        modelsAlpha = wantKitsune ? 0 : 1;
+      }
+      const step = (seconds * 1000) / FADE_MS;
+      modelsAlpha = approach(modelsAlpha, wantKitsune || kitsuneAlpha > 0 ? 0 : 1, step);
+      kitsuneAlpha = approach(kitsuneAlpha, wantKitsune && kitsuneReady && modelsAlpha === 0 ? 1 : 0, step);
+      setKitsuneShown(kitsuneAlpha > 0);
+    };
+    // Where the kitsune's view sits on screen, in CSS pixels from the bottom left: scaled down
+    // about the bottom-right corner.
+    const kitsuneShown = () => kitsune && kitsuneAlpha > 0;
+    const kitsuneView = (width, height) => {
+      const { scale } = experienceStage;
+      return { x: (1 - scale) * width, y: 0, width: width * scale, height: height * scale };
+    };
+    // The pointer over the kitsune's view, -1 to 1 each way, or null when it's off the view.
+    const kitsuneAt = (event) => {
+      if (!kitsuneShown() || editingActive) return null;
+      const view = kitsuneView(window.innerWidth, window.innerHeight);
+      const x = (event.clientX - view.x) / view.width;
+      const y = (window.innerHeight - event.clientY - view.y) / view.height;
+      return x < 0 || x > 1 || y < 0 || y > 1 ? null : { x: x * 2 - 1, y: y * 2 - 1 };
+    };
+    const kitsunePointer = (event) => {
+      const at = kitsuneAt(event);
+      if (!at) {
+        kitsune?.pointer(null);
+        return;
+      }
+      kitsune.pointer(at.x, at.y, event.timeStamp, experienceStage.hover);
+    };
+    // A click on the kitsune opens its lore; one on the store (or the rider in front of it) opens
+    // the inspo. Clicks through the page's cards count; ones on anything that handles its own
+    // click (links, buttons, fields, videos, photos that open) don't.
+    const handleKitsuneClick = (event) => {
+      if (event.target.closest('a, button, input, textarea, select, label, video, iframe, dialog, [role="button"], [role="dialog"], [contenteditable], .media-frame, .navbar, .scene-editor-panel, .scene-performance-control, .popup-backdrop')) return;
+      const at = kitsuneAt(event);
+      if (at && kitsune.hits(at.x, at.y)) openLore(event.clientX, event.clientY);
+      else if (lawsonHit(event)) openInspo();
+    };
+
     const pointer = new THREE.Vector2();
     const targetPointer = new THREE.Vector2();
     const petalWind = petalField.userData.wind;
@@ -1161,6 +1340,8 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       if (mobileLayout || event.pointerType === 'touch') return;
       targetPointer.x = (event.clientX / window.innerWidth - 0.5) * 2;
       targetPointer.y = (event.clientY / window.innerHeight - 0.5) * 2;
+      kitsune?.setSway(targetPointer.x, -targetPointer.y);
+      if (event.pointerType === 'mouse') kitsunePointer(event);
       if (!reduceMotion && !editingActive && event.pointerType === 'mouse') {
         petalWind.move(targetPointer.x, -targetPointer.y, performance.now() / 1000, camera.aspect);
       }
@@ -1236,6 +1417,16 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         }
       });
       modelBounds = { storeMinX: projectedStore.min.x, storeMaxX: projectedStore.max.x };
+      // One box around the store and the rider in front of it, in the model group's frame as posed,
+      // for clicks on them.
+      const toModels = modelGroup.matrixWorld.clone().invert();
+      const box = new THREE.Box3();
+      [editableObjects.store, editableObjects.rider].filter(Boolean).forEach((object) => object.traverse((mesh) => {
+        if (!mesh.isMesh) return;
+        if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+        box.union(mesh.geometry.boundingBox.clone().applyMatrix4(toModels.clone().multiply(mesh.matrixWorld)));
+      }));
+      modelBox = box.isEmpty() ? null : box;
     };
     const mobileBackdropKey = new Float64Array(8);
     const mobileBackdropScratch = new Float64Array(8);
@@ -1341,11 +1532,14 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       );
       renderer.setPixelRatio(captureMode ? (mobileLayout ? 2 : 1) : Math.min(window.devicePixelRatio, lowPower ? 1.1 : DESKTOP_PIXEL_RATIO_CAP));
       renderer.setSize(width, height);
+      kitsune?.setAspect(width / height);
+      kitsuneGlow?.setSize(width, height);
       if (mobileLayout) frameMobileBackdrop();
       updateBackdropCover();
     };
 
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('click', handleKitsuneClick);
     window.addEventListener('pointerdown', handleTapStart, { passive: true });
     window.addEventListener('pointerup', handleTapEnd, { passive: true });
     window.addEventListener('pointercancel', cancelTap, { passive: true });
@@ -1373,6 +1567,8 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       pointer.lerp(targetPointer, 0.035);
       if (captureMode) pointer.set(0, 0);
       const windDt = (now - lastWindFrameAt) / 1000;
+      if (!kitsune && !kitsuneLoading && (kitsuneWanted || experienceStage.show === 'kitsune') && !mobileLayout && mount.dataset.sceneLoaded === 'true') loadKitsune();
+      if (mount.dataset.sceneLoaded === 'true') updateFades(Math.min(windDt, 0.05));
       lastWindFrameAt = now;
       if (!reduceMotion) {
         if (petalWind.step(windDt, motionTime, camera.aspect)) {
@@ -1458,8 +1654,23 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         modelCamera.aspect = referenceAspect;
         modelCamera.layers.set(1);
         modelCamera.updateProjectionMatrix();
-        renderer.setViewport(view.x, view.y, view.width, view.height);
-        renderer.render(scene, modelCamera);
+        // The store and rider, faded out while the kitsune shows. Clickable while mostly there.
+        modelsDrawn = modelsAlpha > 0.5 ? view : null;
+        if (modelsAlpha >= 1) {
+          renderer.setViewport(view.x, view.y, view.width, view.height);
+          renderer.render(scene, modelCamera);
+        } else if (modelsAlpha > 0) {
+          modelFade ??= createFadeLayer(renderer);
+          modelFade.render(scene, modelCamera, view, modelsAlpha);
+        }
+        if (kitsuneShown()) {
+          if (!experienceStage.hover) kitsune.clearHover();
+          // The role card's cycling tail lights up and fades out over its turn.
+          kitsune.setHighlight(experienceStage.cycleTail, cycleGlow(now));
+          kitsune.update(Math.min(windDt, 0.05), now);
+          const shown = kitsuneView(viewportWidth, viewportHeight);
+          kitsuneGlow.render(shown.x, shown.y, shown.width, shown.height, kitsuneAlpha);
+        }
         renderer.setViewport(0, 0, viewportWidth, viewportHeight);
         renderer.clearDepth();
         camera.layers.set(2);
@@ -1488,10 +1699,19 @@ export default function CherryBlossomScene({ onLowPerformance }) {
 
     return () => {
       disposed = true;
+      window.clearTimeout(preloadTimer);
+      experienceStage.supported = false;
+      modelFade?.dispose();
+      kitsuneGlow?.dispose();
+      kitsune?.dispose();
+      document.body.style.cursor = '';
       renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
       window.clearTimeout(readyTimer);
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('click', handleKitsuneClick);
+      closeLore();
+      closeInspo();
       window.removeEventListener('pointerdown', handleTapStart);
       window.removeEventListener('pointerup', handleTapEnd);
       window.removeEventListener('pointercancel', cancelTap);

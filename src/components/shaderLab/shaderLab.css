@@ -1,0 +1,123 @@
+/* A/B viewer for anime shading on the rider scan. Fills the window under the navbar. */
+.shader-lab {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  color: #fff;
+  font: 400 13px/1.4 'Inter Variable', sans-serif;
+}
+
+.shader-lab[data-backdrop="dusk"] {
+  background: linear-gradient(180deg, #4b4a8f 0%, #8d6fae 55%, #d9a3bf 100%);
+}
+
+.shader-lab[data-backdrop="paper"] {
+  background: #f1ece4;
+}
+
+.shader-lab-viewport {
+  position: absolute;
+  inset: 56px 0 0;
+}
+
+.shader-lab-viewport canvas {
+  display: block;
+}
+
+.shader-lab-split {
+  position: absolute;
+  top: 56px;
+  bottom: 0;
+  width: 28px;
+  margin-left: -14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.shader-lab-tag,
+.shader-lab-status {
+  position: absolute;
+  top: 70px;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(20, 16, 28, 0.65);
+  pointer-events: none;
+}
+
+.shader-lab-tag-a { left: 16px; }
+.shader-lab-tag-b { right: 16px; }
+.shader-lab-status { left: 50%; transform: translateX(-50%); top: 50%; }
+
+.shader-lab-panel {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  width: min(900px, calc(100% - 32px));
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 229, 235, 0.25);
+  border-radius: 14px;
+  background: rgba(20, 16, 28, 0.72);
+  transform: translateX(-50%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.shader-lab-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.shader-lab-slot {
+  width: 18px;
+  font-weight: 700;
+}
+
+.shader-lab-panel button {
+  min-height: 28px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 229, 235, 0.3);
+  border-radius: 999px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.shader-lab-panel button[aria-pressed="true"] {
+  border-color: #ffc4d3;
+  background: rgba(255, 196, 211, 0.22);
+}
+
+.shader-lab-panel label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 10px;
+}
+
+.shader-lab-note {
+  margin: 0 0 6px;
+  opacity: 0.85;
+}
+
+.shader-lab-toggle {
+  position: absolute;
+  top: 112px;
+  left: 50%;
+  min-height: 28px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 229, 235, 0.3);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(20, 16, 28, 0.65);
+  font: inherit;
+  transform: translateX(-50%);
+  cursor: pointer;
+}
