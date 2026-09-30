@@ -27,7 +27,9 @@ frame and halved the frame rate for no visible gain at background scale.
 The viewer's dawn HDR environment supplies reflections, with four interior lights
 and a softer exterior key light.
 There is no full-screen bloom or shadow map pass. The HDR is Poly Haven's
-Kiara 1 Dawn environment (CC0), shared with the original standalone viewer.
+Kiara 1 Dawn environment (CC0), shared with the original standalone viewer, halved to
+512x256 (`scripts/assets/downscale-hdr.mjs`, 1.44 MB to 0.36 MB): at the scene's 0.18
+environment strength the renders differ by under 0.2/255 on average.
 Touch devices use the low-power rendering path (1.1 pixel ratio cap, native antialiasing,
 30 fps cap); hidden tabs pause rendering. The original scene pose is retained by
 normalizing the model to the old building's local width, including saved poses.

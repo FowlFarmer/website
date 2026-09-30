@@ -73,7 +73,7 @@ function PhotoDialog({ src, onClose, opener }) {
   return createPortal(
     <dialog ref={dialogRef} className="photo-dialog" aria-label="Expanded cosplay photo" onCancel={onClose} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <button type="button" className="photo-dialog-close" onClick={onClose} aria-label="Close photo" autoFocus>×</button>
-      <img src={src} alt="Expanded cosplay and handmade props" />
+      <img loading="lazy" decoding="async" src={src} alt="Expanded cosplay and handmade props" />
     </dialog>, document.body
   );
 }

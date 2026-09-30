@@ -736,3 +736,189 @@
   align-items: center;
   transform: none;
 }
+
+/* The kitsune with 3D off (StaticKitsune.jsx): baked stills over the backdrop, placed where the
+   live view draws him. The stills' layout is in units of the view's height (--u: the screen's
+   height, or 1/0.78 of its width on narrower screens, as the live camera keeps), measured from the
+   view's centre (x) and top (y); --s shrinks it to the bottom-right as the live view does. Sized
+   from the corner rather than transformed, so the light layers still add onto the backdrop. */
+.static-kitsune {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  container-type: size;
+  background: #263c61;
+  opacity: 0;
+  transition: opacity 450ms ease-in-out;
+}
+.static-kitsune[data-shown="true"] { opacity: 1; }
+.static-kitsune-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.static-kitsune-stills {
+  --u: min(100cqh, 128.2cqw);
+  position: absolute;
+  right: calc((50cqw - (var(--x) + var(--w)) * var(--u)) * var(--s));
+  bottom: calc((50cqh + var(--u) / 2 - (var(--y) + var(--h)) * var(--u)) * var(--s));
+  width: calc(var(--w) * var(--u) * var(--s));
+  height: calc(var(--h) * var(--u) * var(--s));
+}
+.static-kitsune-stills img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.static-kitsune-light { mix-blend-mode: plus-lighter; }
+
+/* The tail light tuner in the site's scene editor (quests page): below the menu bar, scrolling. */
+.kitsune-tuner--editor {
+  top: 64px;
+  z-index: 160;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+.tail-light-colour { display: grid; gap: 4px; }
+.tail-light-colour > p { display: flex; align-items: center; gap: 6px; opacity: 1; }
+.tail-light-colour > p span { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.5); }
+
+/* Phones (the scene's phone layout, experienceStage.js MOBILE_SCENE_QUERY): the kitsune sits fixed
+   at the middle of the bottom (his bottom-half band, shrunk), and the quests page scrolls in its own
+   area from the menu bar down to three quarters of the screen, fading out sharply at its foot.
+   The cards stack full width. */
+@media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
+  .quests {
+    position: fixed;
+    top: 54px;
+    right: 0;
+    bottom: 25svh;
+    left: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 28px), transparent);
+  }
+  .archon-quests {
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 8px 12px 20px;
+  }
+  /* As tall as the tallest role's card (KitsuneCard's invisible sizers share its one grid cell),
+     so World Quests below stay put as the card changes. */
+  .kitsune-role-slot {
+    position: relative;
+    top: auto;
+    left: auto;
+    display: grid;
+    width: 100%;
+    transform: none;
+  }
+  .kitsune-role-slot > * {
+    grid-area: 1 / 1;
+    align-self: start;
+  }
+  .kitsune-role-sizer { visibility: hidden; }
+  .kitsune-role {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 44px 16px 18px;
+  }
+  .kitsune-role-media { flex: none; width: 100%; }
+  /* The photos in pairs (KitsuneCard.jsx PairedImages): two 4:3 halves, or a lone one across both. */
+  .kitsune-role-pair {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 8 / 3;
+  }
+  .kitsune-role-pair img {
+    position: absolute;
+    top: 0;
+    width: calc(50% - 4px);
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+    transition: opacity 700ms ease;
+  }
+  .kitsune-role-pair img[data-slot="left"] { left: 0; }
+  .kitsune-role-pair img[data-slot="right"] { right: 0; }
+  .kitsune-role-pair img[data-slot="both"] { left: 0; width: 100%; }
+  .world-quests {
+    width: 100%;
+    margin: 0;
+    padding: 0 12px 36px;
+  }
+  .world-quests .gallery-page > * { width: 100% !important; }
+  /* The cards a touch smaller, content and all (their text is sized from the page, so zoom rather
+     than font-size); they still fill their width. */
+  .kitsune-role-slot,
+  .world-quests .gallery-page > * { zoom: 0.9; }
+  /* Just under the cards, beside him. */
+  .scroll-hint { bottom: calc(25svh - 30px); left: 38px; }
+  /* The lore, from the corner of his band (there's no tapping him for it on a phone); hidden while
+     it's open. */
+  body[data-lore="open"] .lore-button { opacity: 0; pointer-events: none; }
+  /* A phone on its side: the kitsune takes the right half of the screen, full height
+     (CherryBlossomScene.jsx), and the page scrolls down the left half. */
+  @media (orientation: landscape) {
+    .quests {
+      right: 50%;
+      bottom: 0;
+      width: 50%;
+      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 20px), transparent);
+      mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 20px), transparent);
+    }
+    .scroll-hint { bottom: 14px; left: 25%; }
+  }
+  .lore-button {
+    position: fixed;
+    right: 14px;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    z-index: 50;
+    width: 34px;
+    height: 34px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    background: rgba(24, 31, 45, 0.35);
+    color: #fff;
+    font: 500 16px/1 'Inter Variable', sans-serif;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+}
+
+/* Phones with 3D off: the stills where the live band draws him (the bottom half of the visible
+   screen, no wider than 1.6 times its height), centred on where the phone camera looks and brought
+   in as it is (--px, --py, --zoom; StaticKitsune.jsx). --u is the band's view height, as the live
+   camera keeps it. Placed in the same layer as the backdrop, so the light layers still add onto it. */
+@media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
+  .static-kitsune-backdrop { object-position: center bottom; }
+  .static-kitsune-stills {
+    /* The band shrunk to 0.65 (PHONE_KITSUNE_SCALE), centred along the bottom. */
+    --band: calc(50svh * 0.65);
+    --band-width: calc(min(100cqw, 80svh) * 0.65);
+    --u: min(var(--band), calc(var(--band-width) / 0.78));
+    right: auto;
+    bottom: auto;
+    left: calc(50cqw + (var(--x) - var(--px)) * var(--u) * var(--zoom));
+    top: calc(100cqh - var(--band) / 2 + (var(--y) - var(--py)) * var(--u) * var(--zoom));
+    width: calc(var(--w) * var(--u) * var(--zoom));
+    height: calc(var(--h) * var(--u) * var(--zoom));
+  }
+  /* On its side: the right half of the screen, full height, as the live view. */
+  @media (orientation: landscape) {
+    .static-kitsune-stills {
+      --band: 100cqh;
+      --band-width: 50cqw;
+      --u: min(100cqh, calc(50cqw / 0.78));
+      left: calc(75cqw + (var(--x) - var(--px)) * var(--u) * var(--zoom));
+    }
+  }
+}

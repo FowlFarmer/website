@@ -19,8 +19,8 @@ export default function GuardianAngel() {
         {/* The photo column narrower than the text, so the two come out about the same height. */}
         <div className="flex items-start justify-start" style={{ flex: "0.65 1 260px", padding: "20px"}}>
             <div style={{ flex: 1, alignItems: "flex-start"}}>
-            <img style={{borderRadius: "10px", display: "block", width: "60%", margin: "0 auto"}} src="/guardian_angel/ga_1.jpg" alt="Guardian Angel Thumbnail" />
-            <img style={{borderRadius: "10px", display: "block", width: "60%", margin: "25px auto 0"}} src="/guardian_angel/ga_2.png" alt="Guardian Angel Thumbnail" />
+            <img loading="lazy" decoding="async" style={{borderRadius: "10px", display: "block", width: "60%", margin: "0 auto"}} src="/guardian_angel/ga_1.jpg" alt="Guardian Angel Thumbnail" />
+            <img loading="lazy" decoding="async" style={{borderRadius: "10px", display: "block", width: "60%", margin: "25px auto 0"}} src="/guardian_angel/ga_2.webp" alt="Guardian Angel Thumbnail" />
             <p style={{marginTop: "25px"}}>October 2024 | Downtown SF @ The Metreon</p>
             <p style={{margin: "0px"}}>Hosted by Google and UC Berkeley</p>
             <a href="https://devpost.com/software/guardian-angel-op49t2" rel="noopener noreferrer" target="_blank">

@@ -55,7 +55,10 @@ export default function SakuraCursorTrail() {
 
       for (let index = particles.length - 1; index >= 0; index -= 1) {
         const particle = particles[index];
-        particle.life += time - particle.lastTime;
+        // A frame's timestamp is when it started, which can be just before a petal born in that
+        // frame (from a pointer event): don't let its age go negative, or its colour comes out
+        // invalid and the canvas draws it in the default black.
+        particle.life = Math.max(0, particle.life + time - particle.lastTime);
         particle.lastTime = time;
         particle.x += particle.velocityX * delta;
         particle.y += particle.velocityY * delta;

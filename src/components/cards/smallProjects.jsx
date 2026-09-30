@@ -9,16 +9,16 @@ import MikuUnsubscriberProjects from './mikuUnsubscriber.jsx';
 export default function SmallProjectsCard() {
   const _bedmaker_images = [
     <div>
-      <img src="/bedmaker/bedmaker_2.webp" alt="Bedmaker 2" />
+      <img loading="lazy" decoding="async" src="/bedmaker/bedmaker_2.webp" alt="Bedmaker 2" />
     </div>,
     <div>
-      <img src="/bedmaker/bedmaker_3.webp" alt="Bedmaker 3" />
+      <img loading="lazy" decoding="async" src="/bedmaker/bedmaker_3.webp" alt="Bedmaker 3" />
     </div>,
     <div>
-      <img src="/bedmaker/bedmaker_4.webp" alt="Bedmaker 4" />
+      <img loading="lazy" decoding="async" src="/bedmaker/bedmaker_4.webp" alt="Bedmaker 4" />
     </div>,
     <div>
-      <img src="/bedmaker/bedmaker_5.webp" alt="Bedmaker 5" />
+      <img loading="lazy" decoding="async" src="/bedmaker/bedmaker_5.webp" alt="Bedmaker 5" />
     </div>
   ];
 
@@ -44,7 +44,7 @@ export default function SmallProjectsCard() {
           </div>
 
           <div className="breathmentor-media" style={{ flex: "0.7 0.7 350px", display: 'flex', gap: '10px', alignItems: 'stretch', justifyContent: "center" }}>
-            <img
+            <img loading="lazy" decoding="async"
               src="/breathmentor/breathmentor_1.webp"
               alt="BreathMentor"
               style={{ width: 'auto', height: '300px', objectFit: 'cover', display: 'block' }}
@@ -66,10 +66,10 @@ export default function SmallProjectsCard() {
             <InlinePdf src="/breathmentor/breathmentor_doc.pdf" height={200} />
           </div>
           <div style={{ flex: '1 1 200px', minWidth: 0 }}>
-            <img src="/breathmentor/breathmentor_3.png" alt="BreathMentor_3" style={{ display: 'block', width: '100%', height: '200px', objectFit: 'cover', borderRadius: '8px' }} />
+            <img loading="lazy" decoding="async" src="/breathmentor/breathmentor_3.webp" alt="BreathMentor_3" style={{ display: 'block', width: '100%', height: '200px', objectFit: 'cover', borderRadius: '8px' }} />
           </div>
           <div style={{ flex: '1 1 200px', minWidth: 0 }}>
-            <img src="/breathmentor/breathmentor_4.png" alt="BreathMentor_4" style={{ display: 'block', width: '100%', height: '200px', objectFit: 'cover', borderRadius: '8px' }} />
+            <img loading="lazy" decoding="async" src="/breathmentor/breathmentor_4.webp" alt="BreathMentor_4" style={{ display: 'block', width: '100%', height: '200px', objectFit: 'cover', borderRadius: '8px' }} />
           </div>
       </div>
     </div>,
@@ -158,7 +158,7 @@ export default function SmallProjectsCard() {
           </div>
 
           <div style={{ flex: "0.5 0.5 200px", display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
-            <img src="/autosprite/autosprite.webp" alt="AutoSpriteTransform" style={{ width: '100%', height: 'auto', borderRadius: '10px', display: 'block' }} />
+            <img loading="lazy" decoding="async" src="/autosprite/autosprite.webp" alt="AutoSpriteTransform" style={{ width: '100%', height: 'auto', borderRadius: '10px', display: 'block' }} />
             <a href="https://github.com/FowlFarmer/AutoSpriteTransform" target="_blank" rel="noopener noreferrer">
               <span className="rounded-button">Analyze Results on GitHub</span>
             </a>

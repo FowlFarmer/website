@@ -56,21 +56,49 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
   let released = false;
   const radii = new Float32Array(PIECE_DIRECTIONS.length);
 
+  // Only a change of width re-tiles the bar (it sits at the top, so height doesn't move it). A phone's
+  // toolbar showing and hiding changes the height all the time: then the canvas only grows, if it
+  // must, since resizing it clears the petals in the air.
+  let canvasWidth = 0;
+  let canvasHeight = 0;
   const resize = () => {
+    const width = window.innerWidth;
+    const widthChanged = width !== canvasWidth;
+    if (!widthChanged && window.innerHeight <= canvasHeight) return;
+    canvasWidth = width;
+    canvasHeight = widthChanged ? window.innerHeight : Math.max(canvasHeight, window.innerHeight);
     const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.round(window.innerWidth * pixelRatio);
-    canvas.height = Math.round(window.innerHeight * pixelRatio);
-    canvas.style.width = `${window.innerWidth}px`;
-    canvas.style.height = `${window.innerHeight}px`;
+    canvas.width = Math.round(canvasWidth * pixelRatio);
+    canvas.height = Math.round(canvasHeight * pixelRatio);
+    canvas.style.width = `${canvasWidth}px`;
+    canvas.style.height = `${canvasHeight}px`;
     context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    if (!widthChanged) return;
     barStale = true;
+    tileBarWhenIdle();
   };
 
-  const clear = () => context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  // Tiling the bar takes a few tens of milliseconds: do it while the page is idle (once the pieces
+  // are ready, and after a resize), not in the frame the petals set off. Not mid-flight, where it
+  // would move their landing spots.
+  const idle = window.requestIdleCallback ?? ((callback) => window.setTimeout(callback, 200));
+  const cancelIdle = window.cancelIdleCallback ?? window.clearTimeout;
+  let barTask = 0;
+  function tileBarWhenIdle() {
+    cancelIdle(barTask);
+    barTask = idle(() => {
+      barTask = 0;
+      if (pieces && phase !== 'forming' && phase !== 'dissolving') prepareBar();
+    }, { timeout: 2000 });
+  }
+
+  const clear = () => context.clearRect(0, 0, canvasWidth, canvasHeight);
 
   // Normally baked (calligraphyPetals.js); prepared live only if the bake is missing or stale.
   const preparePieces = () => {
-    if (!pieces) pieces = prepareNavPieces(glyphs);
+    if (pieces) return;
+    pieces = prepareNavPieces(glyphs);
+    tileBarWhenIdle();
   };
 
   // Tile the live menu bar with exactly one cell per piece.
@@ -296,6 +324,7 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
   setNavFormation({ managed: true, bar: phase === 'bar', items: phase === 'bar' });
 
   function destroy() {
+    cancelIdle(barTask);
     forced = false;
     onFormed = null;
     window.cancelAnimationFrame(animationFrame);
@@ -335,7 +364,9 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
     },
     prepare: preparePieces,
     usePieces(baked) {
-      if (!pieces) pieces = baked;
+      if (pieces) return;
+      pieces = baked;
+      tileBarWhenIdle();
     },
     // The page is going. A flight up to the bar keeps going to its landing, then cleans up;
     // anything else stops now.

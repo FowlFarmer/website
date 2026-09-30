@@ -44,7 +44,7 @@ export function LogoBadge({ logo, company }) {
       background: 'white', border: '1px solid rgba(255,255,255,0.2)',
     }}>
       {!err && logo
-        ? <img src={logo} alt="" onError={() => setErr(true)} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+        ? <img loading="lazy" decoding="async" src={logo} alt="" onError={() => setErr(true)} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
         : <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', fontSize: '0.5rem', fontWeight: 700, color: '#111' }}>{initials}</span>
       }
     </div>

@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 const Scene = lazy(() => import('./CherryBlossomScene.jsx'));
 const CursorTrail = lazy(() => import('./SakuraCursorTrail.jsx'));
 import InspoPopup from './InspoPopup.jsx';
+import StaticKitsune from './experience/StaticKitsune.jsx';
 const STORAGE_KEY = 'scene-low-performance';
 
 function storedPerformanceChoice() {
@@ -62,6 +63,10 @@ export default function SceneBackground() {
     if (initialChoice === 'false') return false;
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   });
+  // With 3D off, the quests page shows the kitsune's stills: loaded on the first visit there.
+  const onQuests = pathname === '/quests';
+  const [questsVisited, setQuestsVisited] = useState(onQuests);
+  useEffect(() => { if (onQuests) setQuestsVisited(true); }, [onQuests]);
   const [notice, setNotice] = useState(null);
   const [noticeVisible, setNoticeVisible] = useState(false);
   const manualOverride = useRef(initialChoice === 'false');
@@ -103,6 +108,7 @@ export default function SceneBackground() {
       <Scene onLowPerformance={switchAutomatically} />
       <CursorTrail />
     </Suspense>}
+    {staticMode && questsVisited && <StaticKitsune shown={onQuests} />}
     <InspoPopup />
     <PerformanceToggle
       placement="corner"

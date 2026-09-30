@@ -2,11 +2,19 @@
 // scene should show, 'lawson' (the store and rider) or 'kitsune'; it fades one out, then the other
 // in once it's loaded. `scale`: the kitsune's view drawn smaller, same camera and angle, pinned to
 // the bottom-right. `hover`: whether hovering a tail picks it (the mouse wind blows either way).
-// `supported`: whether the scene can show the kitsune at all (it's running, and not on a phone).
+// `supported`: whether the scene can show the kitsune at all (it's running).
 // The scene reports when the kitsune starts fading in through `setKitsuneShown`, the tail under
 // the pointer through `setHovered`, and a click on the kitsune through `openLore` (and moving off
 // him through `closeLore`).
 const listeners = new Set();
+
+// Phones (and small touch tablets): the scene's phone layout, where the kitsune sits in a fixed
+// band across the bottom PHONE_KITSUNE_SHARE of the screen and the quests page scrolls above it.
+// experience.css repeats the query for the page's own layout.
+export const MOBILE_SCENE_QUERY = '(max-width: 767px), (pointer: coarse) and (max-width: 1024px)';
+export const PHONE_KITSUNE_SHARE = 0.5;
+// ...drawn at this size, centred along the bottom, with the page's cards above and beside.
+export const PHONE_KITSUNE_SCALE = 0.65;
 
 export const experienceStage = {
   show: 'lawson', scale: 1, hover: true, supported: false, hovered: -1, shown: false,

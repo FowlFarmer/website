@@ -17,7 +17,7 @@ export default function SpectralFrontCard() {
     >
       <QuestTag type="world"/>
       <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "16px" }}>
-        <img
+        <img loading="lazy" decoding="async"
           src="/spectralfront/icon.svg"
           alt="Spectral Front icon"
           style={{
@@ -45,7 +45,7 @@ export default function SpectralFrontCard() {
               border: "1px solid rgba(255, 255, 255, 0.08)",
             }}
           >
-            <img
+            <img loading="lazy" decoding="async"
               src="/spectralfront/spectralfront.webp"
               alt="Spectral Front gameplay screenshot"
               style={{

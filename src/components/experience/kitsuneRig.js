@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { kitsuneTails } from '../../data/experience.js';
-import { hologramMaterial } from './kitsuneHologram.js';
+import { applyColorTuning, hologramMaterial } from './kitsuneHologram.js';
 import { REFERENCE_LENGTH, createTailPhysics } from './kitsunePhysics.js';
 import { buildCliff } from './kitsuneCliff.js';
 import {
@@ -46,7 +46,7 @@ const TAIL_ROLES = kitsuneTails.map(({ hologram, emphasis }) => ({
 // Per colour: `strength` scales its glow (for black, its opacity); `hover` is how many times
 // brighter (darker, for black) it gets when its tail is hovered. White is held back so it doesn't
 // outshine the coloured tails. Tuned by eye in the scene.
-const COLOR_TUNING = {
+export const COLOR_TUNING = {
   '#ff2238': { strength: 1.5, hover: 2.1 }, // Tesla red
   '#050505': { strength: 1, hover: 1.9 }, // black
   '#ffffff': { strength: 0.35, hover: 2 }, // white
@@ -54,6 +54,40 @@ const COLOR_TUNING = {
   '#8f8fe6': { strength: 1, hover: 2 }, // Independent Robotics periwinkle
   '#ff2331': { strength: 1, hover: 3 }, // Rapyuta red
 };
+// Where the tails sit relative to him, all moved as one piece: metres across (x), up (y) and back
+// (z) in his own frame, and a turn in degrees about his tailbone (yaw about his up, pitch about
+// his side, roll about his back). Tuned live in the scene editor (TailPoseTuner.jsx).
+export const TAIL_POSE = { x: -0.13, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0 };
+const liveKitsunes = new Set();
+export function setTailPose(patch) {
+  Object.assign(TAIL_POSE, patch);
+  liveKitsunes.forEach((kitsune) => kitsune.applyTailPose());
+}
+function tailPoseMatrix(frame, pose) {
+  const basis = new THREE.Matrix4().makeBasis(frame.side, frame.up, frame.back);
+  const turn = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(
+    THREE.MathUtils.degToRad(pose.pitch), THREE.MathUtils.degToRad(pose.yaw), THREE.MathUtils.degToRad(pose.roll), 'YXZ',
+  ));
+  const move = frame.side.clone().multiplyScalar(pose.x).addScaledVector(frame.up, pose.y).addScaledVector(frame.back, pose.z);
+  return new THREE.Matrix4().makeTranslation(frame.anchor.x + move.x, frame.anchor.y + move.y, frame.anchor.z + move.z)
+    .multiply(basis).multiply(turn).multiply(basis.clone().invert())
+    .multiply(new THREE.Matrix4().makeTranslation(-frame.anchor.x, -frame.anchor.y, -frame.anchor.z));
+}
+
+// The phone layout's view (CherryBlossomScene.jsx): a crop of desktop's view at rest, `zoom` times
+// closer, centred at (x, y) (across from the centre and down from the top, in units of desktop's
+// view height). Only ever a crop, so it shows nothing desktop can't: the models are cut down to
+// what desktop sees. The 3D-off stills' phone placement (layout.json) is the same crop.
+export const PHONE_VIEW = { x: 0.4287, y: 0.6, zoom: 1.25 };
+// The widest desktop view it stays within (crop-kitsune-view.mjs's widest).
+const PHONE_VIEW_BOUNDS = 2.4;
+
+// Every tail material in use, so the light tuner (TailLightTuner.jsx) can change them live.
+const liveTailMaterials = new Set();
+export function setColorTuning(color, patch) {
+  Object.assign(COLOR_TUNING[color], patch);
+  liveTailMaterials.forEach((material) => applyColorTuning(material, COLOR_TUNING));
+}
 // Six tails evenly spread across the fan, leaving a gap over his head. Neighbours bend the same
 // way across the fan with a gradually shifting phase (combed, never crossing), and alternate in
 // lean and depth S-curve (+ arcs back toward the viewer, - forward) so the fan has real depth.
@@ -61,7 +95,8 @@ const TAILS = [
   { fan: -1.3, lean: 0.34, length: 0.86, sway: 0.2, swayPhase: 0.0, depth: 0.36, depthPhase: 0.2 },
   { fan: -0.8, lean: 0.6, length: 0.96, sway: 0.2, swayPhase: 0.3, depth: -0.34, depthPhase: 1.3 },
   { fan: -0.28, lean: 0.3, length: 1.0, sway: 0.2, swayPhase: 0.6, depth: 0.4, depthPhase: 2.2 },
-  { fan: 0.28, lean: 0.56, length: 0.98, sway: 0.2, swayPhase: 0.9, depth: -0.36, depthPhase: 0.7 },
+  // WATonomous: its top curls in toward him rather than out over the IR tail beside it.
+  { fan: 0.28, lean: 0.56, length: 0.98, sway: 0.2, swayPhase: 0.9, depth: -0.36, depthPhase: 0.7, curl: -0.1 },
   { fan: 0.8, lean: 0.32, length: 0.94, sway: 0.2, swayPhase: 1.2, depth: 0.38, depthPhase: 1.8 },
   { fan: 1.3, lean: 0.58, length: 0.84, sway: 0.2, swayPhase: 1.5, depth: -0.3, depthPhase: 2.6 },
 ].map((tail) => ({ ...tail, length: tail.length * TAIL_LENGTH, root: (tail.fan / 1.25) * 0.16 }));
@@ -266,6 +301,10 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
   });
   const source = prepareTailSource(sourceGeometry);
   const tailMaterials = [];
+  const tailGroup = new THREE.Group();
+  tailGroup.name = 'Tails';
+  tailGroup.matrixAutoUpdate = false;
+  kitsune.add(tailGroup);
   const rigs = TAILS.map((tail, index) => {
     const spine = tailHomeSpine({ frame, stalk: STALK, ...tail });
     const home = Array.from({ length: NODES }, (_, node) => spine.getPointAt(node / (NODES - 1)));
@@ -275,18 +314,29 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
     const material = hologramMaterial({
       palette: TAIL_ROLES[index].palette, markings: skin.markings, tuning: COLOR_TUNING, phase: index * 1.9,
     });
+    liveTailMaterials.add(material);
     const mesh = new THREE.Mesh(skin.geometry, material);
     mesh.frustumCulled = false;
     mesh.renderOrder = 5;
-    kitsune.add(mesh);
+    tailGroup.add(mesh);
     tailMaterials.push(material);
     return { skin, home, phase: index * 1.37 };
   });
   const scale = TAIL_LENGTH / REFERENCE_LENGTH;
   const physics = createTailPhysics({ tails: rigs, frame, scale });
+  // The tail pose moves the tails as one piece (meshes and hover shells) relative to him; their
+  // physics runs as before inside it.
+  const tailPoseHandle = {
+    applyTailPose: () => {
+      tailGroup.matrix.copy(tailPoseMatrix(frame, TAIL_POSE));
+      tailGroup.matrixWorldNeedsUpdate = true;
+    },
+  };
+  tailPoseHandle.applyTailPose();
+  liveKitsunes.add(tailPoseHandle);
   const skins = rigs.map((rig) => rig.skin);
   const hoverShells = physics.chains.map(buildHoverShell);
-  hoverShells.forEach((shell) => kitsune.add(shell));
+  hoverShells.forEach((shell) => tailGroup.add(shell));
   skins.forEach((skin, index) => skin.update(physics.chains[index].points));
 
   const cliff = buildCliff(cliffScene, frame);
@@ -346,6 +396,18 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
     camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(15)) * Math.max(1, 0.78 / aspect)));
     camera.updateProjectionMatrix();
   };
+  // The phone layout's view (PHONE_VIEW), for a view of `aspect`.
+  const setPhoneView = (aspect) => {
+    setAspect(PHONE_VIEW_BOUNDS);
+    const fullHeight = 1000;
+    const fullWidth = fullHeight * PHONE_VIEW_BOUNDS;
+    let height = fullHeight / PHONE_VIEW.zoom;
+    let width = height * aspect;
+    if (width > fullWidth) { width = fullWidth; height = width / aspect; }
+    const x = THREE.MathUtils.clamp(fullWidth / 2 + PHONE_VIEW.x * fullHeight - width / 2, 0, fullWidth - width);
+    const y = THREE.MathUtils.clamp(PHONE_VIEW.y * fullHeight - height / 2, 0, fullHeight - height);
+    camera.setViewOffset(fullWidth, fullHeight, x, y, width, height);
+  };
 
   // Mouse wind: the pointer's path, projected onto a plane through the tails facing the camera,
   // leaves gusts moving at the pointer's world speed. Hover (unless `hover` is off): the nearest
@@ -364,7 +426,7 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
   let highlightAmount = 0;
   const setHighlight = (index, amount) => {
     highlighted = index;
-    highlightAmount = amount;
+    highlightAmount = Number.isFinite(amount) ? amount : 0;
   };
   const setHovered = (index) => {
     if (index === hovered) return;
@@ -416,7 +478,11 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
   const swayGoal = new THREE.Vector2();
   const setSway = (x, y) => swayGoal.set(x, y);
 
-  const update = (seconds, now) => {
+  // `still` holds the tails where they are (the glow still eases), for baking stills of them.
+  const update = (step, now, { still = false } = {}) => {
+    // A bad or backwards step (a stalled or restarted clock) must not reach the physics or the glow:
+    // one invalid value in the tails' light is smeared over the whole picture by the bloom.
+    const seconds = Number.isFinite(step) ? Math.max(step, 0) : 0;
     // Mouse sway: the camera turns a little about its target, following the pointer.
     sway.lerp(swayGoal, Math.min(seconds * SWAY_EASE, 1));
     const offset = base.clone().sub(target);
@@ -427,9 +493,11 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
     camera.lookAt(target);
     camera.updateMatrixWorld();
 
-    physics.update(seconds);
-    skins.forEach((skin, index) => skin.update(physics.chains[index].points));
-    hoverShells.forEach((shell, index) => shell.userData.update(physics.chains[index]));
+    if (!still) {
+      physics.update(seconds);
+      skins.forEach((skin, index) => skin.update(physics.chains[index].points));
+      hoverShells.forEach((shell, index) => shell.userData.update(physics.chains[index]));
+    }
     tailMaterials.forEach((material, index) => {
       material.uniforms.time.value = now / 1000;
       // Emphasised tails glow more at rest, and take a bigger share of the hover boost.
@@ -439,6 +507,7 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
       uniforms.hoverShare.value = hoverShare;
       const target = index === hovered ? 1 : index === highlighted ? highlightAmount : 0;
       uniforms.hoverAmount.value += (target - uniforms.hoverAmount.value) * Math.min(seconds * 6, 1);
+      if (!Number.isFinite(uniforms.hoverAmount.value)) uniforms.hoverAmount.value = 0;
     });
     if (colliders) {
       const array = colliders.geometry.attributes.position.array;
@@ -464,10 +533,12 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
   };
 
   const dispose = () => {
+    liveKitsunes.delete(tailPoseHandle);
     root.traverse((object) => {
       object.geometry?.dispose();
       const materials = object.material ? [object.material].flat() : [];
       materials.forEach((material) => {
+        liveTailMaterials.delete(material);
         Object.values(material).forEach((value) => { if (value?.isTexture) value.dispose(); });
         material.dispose();
       });
@@ -475,7 +546,9 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
   };
 
   return {
-    root, camera, base, target, setPlacement, setAspect, pointer, hits, setSway, update, lookAtHim, dispose,
+    root, camera, base, target, setPlacement, setAspect, setPhoneView, pointer, hits, setSway, update, lookAtHim, dispose,
+    // The tails' invisible hover shells, in tail order (for baking the stills' hover map).
+    hoverShells,
     clearHover: () => setHovered(-1),
     setHighlight,
     focus: () => kitsune.localToWorld(focus.clone()),

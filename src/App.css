@@ -60,6 +60,10 @@ body {
 }
 
 @media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
+  /* Phones: the home page's cards (not the name's intro) a touch smaller, content and all; they
+     still fill their width. The quests cards do the same (experience.css). */
+  .blossom-home > .glass-effect:not(.mainBlob) { zoom: 0.9; }
+
   .cherry-blossom-scene {
     bottom: auto;
     height: 100vh;
