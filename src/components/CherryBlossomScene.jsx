@@ -17,7 +17,9 @@ import {
 import { closeInspo, openInspo } from './lawsonStage.js';
 import { drawSceneMirrors } from './sceneMirror.jsx';
 import { onPageScroll, pageScrollY } from './pageScroll.js';
-import { auditOff, createFrameProfiler, markFrame, markLoad, setTargetFps } from './frameStats.js';
+import {
+  SHOW_FRAME_METER, auditOff, createFrameProfiler, markFrame, markLoad, onTuningChange, setTargetFps, tuning,
+} from './frameStats.js';
 import { createChimes } from './experience/kitsuneChimes.js';
 
 const EMPTY_POSE = {
@@ -611,10 +613,13 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     orbitControls.maxDistance = 35;
     orbitControls.target.set(0, 1.88, -2.8);
 
+    // The pixel ratio: the display's, capped (or the preview's render settings, frameStats.js).
+    const pixelRatio = () => (captureMode ? (mobileLayout ? 2 : 1)
+      : tuning.pixelRatio ?? Math.min(window.devicePixelRatio, lowPower ? 1.1 : DESKTOP_PIXEL_RATIO_CAP));
     let renderer;
     try {
       renderer = new THREE.WebGLRenderer({
-        antialias: true,
+        antialias: tuning.antialias,
         alpha: false,
         powerPreference: 'high-performance',
       });
@@ -626,7 +631,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       return undefined;
     }
 
-    renderer.setPixelRatio(captureMode ? (mobileLayout ? 2 : 1) : Math.min(window.devicePixelRatio, lowPower ? 1.1 : DESKTOP_PIXEL_RATIO_CAP));
+    renderer.setPixelRatio(pixelRatio());
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     // The quests page's kitsune shows on desktop only, for now.
     experienceStage.supported = true;
@@ -1360,7 +1365,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           if (mobileLayout) kitsune.setPhoneView(frame.width / frame.height);
           else kitsune.setAspect(frame.width / frame.height);
           kitsuneGlow = hologram.createGlowLayer(renderer, scene, kitsune.camera);
-          kitsuneGlow.setSize(frame.width, frame.height);
+          kitsuneGlow.setSize(frame.width, frame.height, tuning.glowScale);
           markLoad('kitsune: built');
           return renderer.compileAsync(kitsune.root, kitsune.camera, scene);
         }))
@@ -1655,12 +1660,12 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       petalField.material.uniforms.uTanHalfFov.value = Math.tan(
         THREE.MathUtils.degToRad(camera.fov / 2),
       );
-      renderer.setPixelRatio(captureMode ? (mobileLayout ? 2 : 1) : Math.min(window.devicePixelRatio, lowPower ? 1.1 : DESKTOP_PIXEL_RATIO_CAP));
+      renderer.setPixelRatio(pixelRatio());
       renderer.setSize(width, height);
       const frame = kitsuneFrame();
       if (mobileLayout) kitsune?.setPhoneView(frame.width / frame.height);
       else kitsune?.setAspect(frame.width / frame.height);
-      kitsuneGlow?.setSize(frame.width, frame.height);
+      kitsuneGlow?.setSize(frame.width, frame.height, tuning.glowScale);
       if (mobileLayout) frameMobileBackdrop();
       updateBackdropCover();
     };
@@ -1680,8 +1685,25 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     const stopScrollCancel = onPageScroll(cancelTap);
 
     let lastRenderedAt = 0;
-    const frameInterval = lowPower ? 1000 / 30 : 0;
-    setTargetFps(lowPower ? 30 : null);
+    // At most 30 frames a second on low-power devices (or the preview's frame cap).
+    const capFor = () => tuning.frameCap ?? (lowPower ? 30 : 0);
+    let frameInterval = capFor() ? 1000 / capFor() : 0;
+    setTargetFps(capFor() || null);
+    // The preview's render settings, live (antialiasing waits for a reload).
+    const petalCount = petalField.geometry.instanceCount;
+    const applyTuning = () => {
+      renderer.setPixelRatio(pixelRatio());
+      renderer.setSize(viewportWidth, viewportHeight);
+      const frame = kitsuneFrame();
+      kitsuneGlow?.setSize(frame.width, frame.height, tuning.glowScale);
+      petalField.geometry.instanceCount = Math.round(petalCount * tuning.petals);
+      frameInterval = capFor() ? 1000 / capFor() : 0;
+      setTargetFps(capFor() || null);
+      if (mobileLayout) frameMobileBackdrop();
+      updateBackdropCover();
+    };
+    if (SHOW_FRAME_METER) applyTuning();
+    const stopTuning = onTuningChange(applyTuning);
     const profiler = createFrameProfiler(renderer.getContext());
     const animate = (now = performance.now()) => {
       animationFrame = window.requestAnimationFrame(animate);
@@ -1870,6 +1892,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       kitsune?.dispose();
       chimes?.dispose();
       setTargetFps(null);
+      stopTuning();
       document.body.style.cursor = '';
       renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
       window.clearTimeout(readyTimer);

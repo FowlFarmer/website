@@ -285,8 +285,9 @@ export function createGlowLayer(renderer, scene, camera) {
   };
   return {
     render,
-    setSize: (width, height) => {
-      composer.setPixelRatio(renderer.getPixelRatio());
+    // `scale`: the glow drawn at that share of the renderer's resolution.
+    setSize: (width, height, scale = 1) => {
+      composer.setPixelRatio(renderer.getPixelRatio() * scale);
       composer.setSize(width, height);
     },
     // Fully transparent, so nothing shows; the caller restores its viewport afterwards.

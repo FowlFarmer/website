@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { freezes, loads, measure, profile, sceneFrames, targetFps } from './frameStats.js';
+import { TUNING_DEFAULTS, freezes, loads, measure, onTuningChange, profile, sceneFrames, setTuning, targetFps, tuning } from './frameStats.js';
 
 // Frames per second, the 95th percentile frame time and the frame budget for the target rate, in
 // the corner (not on Vercel's production site: App.jsx). It times the 3D scene's frames while it's
@@ -38,6 +38,60 @@ function report() {
 }
 if (typeof window !== 'undefined') window.__perfReport = report;
 
+// The render settings to try (frameStats.js tuning), remembered on this device.
+function RenderSettings() {
+  const [values, setValues] = useState(() => ({ ...tuning }));
+  useEffect(() => onTuningChange((next) => setValues({ ...next })), []);
+  const siteRatio = Math.min(window.devicePixelRatio, 1.5);
+  const slider = (key, label, min, max, step, fallback) => {
+    const value = values[key] ?? fallback;
+    return (
+      <label className="frame-setting">
+        <span>{label}</span>
+        <input type="range" min={min} max={max} step={step} value={value} onChange={(event) => setTuning({ [key]: Number(event.target.value) })} />
+        <output>{value.toFixed(2)}</output>
+      </label>
+    );
+  };
+  const toggle = (key, label) => (
+    <label className="frame-setting frame-setting--toggle">
+      <input type="checkbox" checked={values[key]} onChange={(event) => setTuning({ [key]: event.target.checked })} />
+      <span>{label}</span>
+    </label>
+  );
+  const aaChanged = values.antialias !== aaAtLoad;
+  return (
+    <div className="frame-settings">
+      <strong>render settings (this device)</strong>
+      {slider('pixelRatio', 'resolution (px per CSS px)', 0.5, 2, 0.05, siteRatio)}
+      {slider('petals', 'falling petals (share)', 0, 1, 0.05, 1)}
+      {slider('glowScale', 'kitsune glow resolution', 0.25, 1, 0.05, 1)}
+      <label className="frame-setting">
+        <span>frame cap</span>
+        <select value={values.frameCap ?? 'site'} onChange={(event) => setTuning({ frameCap: event.target.value === 'site' ? null : Number(event.target.value) })}>
+          <option value="site">site default</option>
+          <option value="30">30 fps</option>
+          <option value="60">60 fps</option>
+          <option value="0">none</option>
+        </select>
+      </label>
+      <div className="frame-setting-row">
+        {toggle('antialias', aaChanged ? 'antialiasing (reload to apply)' : 'antialiasing')}
+        {toggle('glass', 'glass copy')}
+        {toggle('store', 'store & rider')}
+        {toggle('fallingPetals', 'falling petals')}
+        {toggle('kitsune', 'kitsune')}
+        {toggle('preciseGpu', 'precise GPU timing')}
+      </div>
+      <div className="frame-setting-row">
+        {aaChanged && <button type="button" onClick={() => location.reload()}>reload</button>}
+        <button type="button" onClick={() => setTuning({ ...TUNING_DEFAULTS })}>site defaults</button>
+      </div>
+    </div>
+  );
+}
+const aaAtLoad = tuning.antialias;
+
 function Audit() {
   const [data, setData] = useState(report);
   useEffect(() => {
@@ -46,6 +100,7 @@ function Audit() {
   }, []);
   return (
     <div className="frame-audit" onClick={(event) => event.stopPropagation()}>
+      <RenderSettings />
       <table>
         <thead><tr><th>scene frame</th><th>main ms</th><th>GPU ms{data.gpuTimers ? '' : ' (n/a)'}</th></tr></thead>
         <tbody>

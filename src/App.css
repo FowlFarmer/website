@@ -2244,6 +2244,15 @@ body[data-lore="open"] .scroll-hint {
   color: #e6e9f0;
 }
 .frame-audit table { border-collapse: collapse; margin-bottom: 8px; }
+.frame-settings { display: grid; gap: 4px; margin-bottom: 10px; }
+.frame-settings strong { color: #b8f5c8; }
+.frame-setting { display: grid; grid-template-columns: 170px 1fr 36px; align-items: center; gap: 8px; }
+.frame-setting--toggle { display: flex; gap: 4px; }
+.frame-setting input[type="range"] { width: 100%; }
+.frame-setting output { text-align: right; }
+.frame-setting select, .frame-settings button { font: inherit; }
+.frame-setting-row { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.frame-settings button { padding: 2px 8px; border: 1px solid #ffffff55; border-radius: 4px; background: #ffffff14; color: inherit; cursor: pointer; }
 .frame-audit th { color: #b8f5c8; font-weight: 600; text-align: left; }
 .frame-audit th, .frame-audit td { padding: 1px 8px 1px 0; vertical-align: top; }
 .frame-audit td:not(:first-child) { text-align: right; }
