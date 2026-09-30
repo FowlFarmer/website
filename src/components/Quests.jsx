@@ -29,7 +29,7 @@ const TAP_SCROLL_TOP_PX = 40;
 // down the screen (the foot of the page's usual area), and has fully by FULL_SPAN of the screen's
 // height more scrolling.
 const FULL_AT = 0.85;
-const FULL_SPAN = 0.35;
+const FULL_SPAN = 1;
 
 function usePhoneLayout() {
   const [phone, setPhone] = useState(() => window.matchMedia(MOBILE_SCENE_QUERY).matches);
