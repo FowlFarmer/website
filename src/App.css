@@ -1591,3 +1591,110 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 
 /* Reserve Avalon’s dark full viewport while its route bundle loads. */
 .main-content.main-content--archive { display: block; width: 100%; max-width: none; padding: 0; min-height: 100svh; background: #060f21; }
+
+/* The small projects card's progress bars (one per project) with skip arrows either side
+   (ProjectFader.jsx), at the top of the card so the arrows don't move as the height changes. */
+.project-fader-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 60%;
+  margin: 0 auto 12px;
+}
+
+.project-fader-controls button {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.project-fader-controls button:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.project-fader-bars {
+  display: flex;
+  flex: 1;
+  gap: 6px;
+}
+
+.project-fader-bar {
+  flex: 1;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.project-fader-bar > div {
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+
+/* The Minecraft ships card (shipsGallery.jsx). Every slide carries all the ships' write-ups stacked
+   in one grid cell with only its own visible, so each slide is as tall as the longest write-up and
+   the card never changes height from ship to ship, at any width. */
+.ship-slide {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+  padding: 0 20px 20px;
+}
+
+.ship-slide > img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.ship-slide-stack { display: grid; align-self: stretch; }
+.ship-slide-stack > * { grid-area: 1 / 1; }
+.ship-slide-stack > [aria-hidden="true"] { visibility: hidden; }
+
+.ship-slide-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.ship-slide-info h3 { margin: 0; font-size: 1.35rem; }
+.ship-slide-info small { margin-top: 2px; opacity: 0.7; letter-spacing: 0.04em; }
+.ship-slide-info p { margin: 12px 0 0; line-height: 1.5; }
+
+.ship-slide-info figure {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  margin: 16px 0 0;
+}
+
+/* Sized to the photo itself (not letterboxed in a wider box) so all four rounded corners show. */
+.ship-slide-info figure img {
+  align-self: flex-start;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 110px;
+}
+
+.ship-slide-info figcaption { margin-top: 6px; font-size: 0.8rem; opacity: 0.7; }
+
+@media (max-width: 900px) {
+  .ship-slide { grid-template-columns: 1fr; gap: 14px; }
+  .ship-slide-info figure img { max-height: 90px; }
+}
