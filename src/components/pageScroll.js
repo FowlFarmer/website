@@ -1,7 +1,7 @@
-// Desktop pages scroll inside .page-scroller (App.jsx) rather than the window, so the fade under the
-// menu bar (a mask on it, App.css) holds still on screen as they scroll. Phones scroll the window,
-// as before. Reading, following and setting the page's scroll all go through here, which covers
-// both: only one of them ever scrolls.
+// Pages scroll inside .page-scroller (App.jsx) rather than the window, so the fade under the menu
+// bar (a mask on it, App.css) holds still on screen as they scroll. Reading, following and setting
+// the page's scroll all go through here, which also covers the window, in case it ever scrolls.
+// (The phone quests page scrolls its own area inside, Quests.jsx.)
 const scroller = () => document.querySelector('.page-scroller');
 
 export const pageScrollY = () => window.scrollY + (scroller()?.scrollTop ?? 0);

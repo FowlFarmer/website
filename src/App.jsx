@@ -42,7 +42,8 @@ function FadeRoutes() {
   const [leaving, setLeaving] = useState(false);
   const mainRef = useRef(null);
   const scrollerRef = useRef(null);
-  // Phones scroll the window, unmasked, so only desktop's scroller needs the backdrop's copy.
+  // The page's scroller needs the backdrop's copy for its glass, except the phone quests page's,
+  // which isn't masked (its own scrolling area is, with its own copy).
   const [phone, setPhone] = useState(() => window.matchMedia(MOBILE_SCENE_QUERY).matches);
   useEffect(() => {
     const query = window.matchMedia(MOBILE_SCENE_QUERY);
@@ -99,7 +100,7 @@ function FadeRoutes() {
 
   return (
     <div className="page-scroller" ref={scrollerRef} tabIndex={-1}>
-      <MirrorHost active={!phone} />
+      <MirrorHost active={!(phone && shown.pathname === '/quests')} />
     <main
       ref={mainRef}
       className={`main-content${shown.pathname === '/avalon' ? ' main-content--archive' : ''}`}

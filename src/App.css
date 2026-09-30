@@ -1175,7 +1175,7 @@ text-align: left;
 /* Desktop pages scroll in here rather than the window (pageScroll.js), so the fade under the menu
    bar holds still on screen: what passes under the bar is hidden, fading in over 16px below its
    bottom edge (.navbar-styles: 10px down, 36px tall). --nav-fade eases in while the bar shows
-   (NavBar.jsx), so there's none over the home page's name. Phones scroll the window, as before. */
+   (NavBar.jsx), so there's none over the home page's name. */
 @property --nav-fade {
   syntax: '<number>';
   inherits: false;
@@ -1211,11 +1211,14 @@ text-align: left;
 .scene-mirror-canvas[data-loaded] { opacity: 1; }
 :root[data-nav-fade] .page-scroller { --nav-fade: 1; }
 body[data-lore="open"] .page-scroller { --nav-fade: 0; }
+/* Phones: faded as the quests page's own area is (experience.css), over 24px from the bar's foot.
+   The quests page has that area, with its own fade, instead. */
 @media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
   .page-scroller {
-    position: static;
-    z-index: auto;
-    overflow: visible;
+    -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / calc(1 - var(--nav-fade))) 46px, #000 70px);
+    mask-image: linear-gradient(to bottom, rgb(0 0 0 / calc(1 - var(--nav-fade))) 46px, #000 70px);
+  }
+  .page-scroller:has(.quests) {
     -webkit-mask-image: none;
     mask-image: none;
   }

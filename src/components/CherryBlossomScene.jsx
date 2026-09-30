@@ -16,6 +16,7 @@ import {
 } from './experience/experienceStage.js';
 import { closeInspo, openInspo } from './lawsonStage.js';
 import { drawSceneMirrors } from './sceneMirror.jsx';
+import { onPageScroll, pageScrollY } from './pageScroll.js';
 import { createChimes } from './experience/kitsuneChimes.js';
 
 const EMPTY_POSE = {
@@ -1462,30 +1463,30 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       backgroundTap = null;
       if (!mobileLayout || reduceMotion || editingActive || !event.isPrimary || event.pointerType !== 'touch') return;
       if (event.target.closest('a, button, input, textarea, select, video, iframe, dialog, [role="button"], [contenteditable], .media-frame, .glass-effect, .glass-effect-2, .scene-editor-panel, .kitsune-tuner, .navbar')) return;
-      backgroundTap = { id: event.pointerId, x: event.clientX, y: event.clientY, at: performance.now(), scroll: window.scrollY };
+      backgroundTap = { id: event.pointerId, x: event.clientX, y: event.clientY, at: performance.now(), scroll: pageScrollY() };
     };
     const cancelTap = () => { backgroundTap = null; };
     const handleTapEnd = (event) => {
       const tap = backgroundTap;
       backgroundTap = null;
       if (!tap || event.pointerId !== tap.id || performance.now() - tap.at > 350 ||
-          Math.hypot(event.clientX - tap.x, event.clientY - tap.y) > 10 || Math.abs(window.scrollY - tap.scroll) > 5) return;
+          Math.hypot(event.clientX - tap.x, event.clientY - tap.y) > 10 || Math.abs(pageScrollY() - tap.scroll) > 5) return;
       // Use the actual canvas rectangle: Safari's toolbar can change the visible
       // area while the stable background canvas remains taller than the screen.
       const bounds = renderer.domElement.getBoundingClientRect();
       petalWind.burst((event.clientX - bounds.left) / bounds.width * 2 - 1,
         1 - (event.clientY - bounds.top) / bounds.height * 2, camera.aspect);
     };
-    let lastScrollY = window.scrollY;
+    let lastScrollY = pageScrollY();
     let lastScrollAt = performance.now();
     let scrollPitch = 0;
     let targetScrollPitch = 0;
     const handleScrollPitch = () => {
       if (!mobileLayout) return;
       const now = performance.now();
-      const deltaY = window.scrollY - lastScrollY;
+      const deltaY = pageScrollY() - lastScrollY;
       const deltaMs = Math.max(now - lastScrollAt, 1);
-      lastScrollY = window.scrollY;
+      lastScrollY = pageScrollY();
       lastScrollAt = now;
       targetScrollPitch = THREE.MathUtils.clamp(
         (deltaY / deltaMs) * (1000 / MOBILE_PITCH_SPEED),
@@ -1658,12 +1659,12 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     window.addEventListener('pointercancel', cancelTap, { passive: true });
     document.addEventListener('pointerleave', handlePointerLeave);
     window.addEventListener('blur', handlePointerLeave);
-    window.addEventListener('scroll', handleScrollPitch, { passive: true });
+    const stopScrollPitch = onPageScroll(handleScrollPitch);
     window.addEventListener('resize', handleResize);
     visualViewport?.addEventListener('resize', updateModelAnchor, { passive: true });
     visualViewport?.addEventListener('scroll', updateModelAnchor, { passive: true });
     document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('scroll', cancelTap, { passive: true });
+    const stopScrollCancel = onPageScroll(cancelTap);
 
     let lastRenderedAt = 0;
     const frameInterval = lowPower ? 1000 / 30 : 0;
@@ -1849,12 +1850,12 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       window.removeEventListener('pointercancel', cancelTap);
       document.removeEventListener('pointerleave', handlePointerLeave);
       window.removeEventListener('blur', handlePointerLeave);
-      window.removeEventListener('scroll', handleScrollPitch);
+      stopScrollPitch();
       window.removeEventListener('resize', handleResize);
       visualViewport?.removeEventListener('resize', updateModelAnchor);
       visualViewport?.removeEventListener('scroll', updateModelAnchor);
       document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('scroll', cancelTap);
+      stopScrollCancel();
       orbitControls.removeEventListener('change', handleOrbitChange);
       transformControls.removeEventListener('objectChange', handleObjectChange);
       transformControls.removeEventListener('dragging-changed', handleDraggingChanged);
