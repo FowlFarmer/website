@@ -5,9 +5,11 @@
 // the kitsune scene shows them.
 export const experiences = [
   {
-    id: 'incoming',
-    company: 'Incoming',
-    dateRange: 'October 2026 - April 2027',
+    id: 'tesla-autopilot',
+    company: 'Tesla Autopilot',
+    region: 'snezhnaya',
+    dateRange: 'Fall 2026',
+    headline: 'AI Platforms',
     location: 'Palo Alto, California',
     hologram: ['#ff2238'],
     emphasis: true,
@@ -136,5 +138,5 @@ export const experiencesOldestFirst = [...listedExperiences].sort((a, b) => a.st
 
 // The kitsune's tails, left to right = newest to oldest. WATonomous counts as newer than
 // Independent Robotics.
-export const kitsuneTails = ['incoming', 'mundane', 'tesla', 'watonomous', 'independent-robotics', 'rapyuta']
+export const kitsuneTails = ['tesla-autopilot', 'mundane', 'tesla', 'watonomous', 'independent-robotics', 'rapyuta']
   .map((id) => experiences.find((role) => role.id === id));
