@@ -104,6 +104,8 @@ const BACKDROP_COVER_BOB_STEPS = [-1, 0, 1];
 // Desktop renders at up to 1.5 pixels per CSS pixel: full Retina (2) cost roughly twice the GPU
 // time in every layer (measured with the frame meter's audit) for a barely visible difference.
 const DESKTOP_PIXEL_RATIO_CAP = 1.5;
+// How long after the page last scrolled it counts as still scrolling (the preview's render settings).
+const SCROLL_SETTLE_MS = 150;
 // The quests page's kitsune draws on its own layer, with its own camera and lights.
 const KITSUNE_LAYER = 3;
 // How long the store and rider, or the kitsune, take to fade out or in.
@@ -1686,6 +1688,9 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     const stopScrollCancel = onPageScroll(cancelTap);
 
     let lastRenderedAt = 0;
+    let lastPageScrollAt = -Infinity;
+    let scrollFrame = 0;
+    const stopScrollWatch = onPageScroll(() => { lastPageScrollAt = performance.now(); });
     // At most 30 frames a second on low-power devices (or the preview's frame cap).
     const capFor = () => tuning.frameCap ?? (lowPower ? 30 : 0);
     let frameInterval = capFor() ? 1000 / capFor() : 0;
@@ -1709,6 +1714,12 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     const animate = (now = performance.now()) => {
       animationFrame = window.requestAnimationFrame(animate);
       if (!visible || now - lastRenderedAt < frameInterval) return;
+      // While the page scrolls (the preview's render settings): draw every other frame, or hold the
+      // last one, leaving the GPU to the scrolling and the glass it moves over.
+      if (tuning.scrolling !== 'full' && now - lastPageScrollAt < SCROLL_SETTLE_MS) {
+        scrollFrame += 1;
+        if (tuning.scrolling === 'paused' || scrollFrame % 2) return;
+      }
       lastRenderedAt = now - ((now - lastRenderedAt) % (frameInterval || 1));
       const frameStart = performance.now();
       profiler.begin('update');
@@ -1894,6 +1905,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       chimes?.dispose();
       setTargetFps(null);
       stopTuning();
+      stopScrollWatch();
       document.body.style.cursor = '';
       renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
       window.clearTimeout(readyTimer);

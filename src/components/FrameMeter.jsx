@@ -77,6 +77,14 @@ function RenderSettings() {
         </select>
       </label>
       <label className="frame-setting">
+        <span>while scrolling</span>
+        <select value={values.scrolling} onChange={(event) => setTuning({ scrolling: event.target.value })}>
+          <option value="full">full rate</option>
+          <option value="half">half rate</option>
+          <option value="paused">paused</option>
+        </select>
+      </label>
+      <label className="frame-setting">
         <span>{riderChanged ? 'rider textures (reload to apply)' : 'rider textures'}</span>
         <select value={values.riderTextures ?? 'site'} onChange={(event) => setTuning({ riderTextures: event.target.value === 'site' ? null : event.target.value })}>
           <option value="site">site default</option>
