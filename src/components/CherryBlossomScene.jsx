@@ -11,7 +11,7 @@ import { createPetalWind } from './petalWind.mjs';
 import { sceneViewport } from './sceneViewport.mjs';
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 import {
-  MOBILE_SCENE_QUERY, PHONE_KITSUNE_SHARE,
+  MOBILE_SCENE_QUERY, PHONE_KITSUNE_SCALE, PHONE_KITSUNE_SHARE,
   closeLore, cycleGlow, experienceStage, openLore, setHovered as setKitsuneHovered, setKitsuneShown,
 } from './experience/experienceStage.js';
 import { closeInspo, openInspo } from './lawsonStage.js';
@@ -1384,10 +1384,12 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           const half = Math.round(width / 2);
           return { x: half, y: inset, width: width - half, height: safeViewportHeight };
         }
-        const bandHeight = Math.round(safeViewportHeight * PHONE_KITSUNE_SHARE);
-        // No wider than PHONE_KITSUNE_ASPECT (a phone on its side), centred.
-        const bandWidth = Math.min(width, Math.round(bandHeight * PHONE_KITSUNE_ASPECT));
-        return { x: Math.round((width - bandWidth) / 2), y: inset, width: bandWidth, height: bandHeight };
+        // The band (no wider than PHONE_KITSUNE_ASPECT), shrunk to PHONE_KITSUNE_SCALE in the
+        // bottom-right corner.
+        const bandHeight = safeViewportHeight * PHONE_KITSUNE_SHARE;
+        const bandWidth = Math.min(width, bandHeight * PHONE_KITSUNE_ASPECT);
+        const shownWidth = Math.round(bandWidth * PHONE_KITSUNE_SCALE);
+        return { x: width - shownWidth, y: inset, width: shownWidth, height: Math.round(bandHeight * PHONE_KITSUNE_SCALE) };
       }
       const { scale } = experienceStage;
       return { x: (1 - scale) * width, y: 0, width: width * scale, height: height * scale };

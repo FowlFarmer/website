@@ -788,15 +788,16 @@
 .tail-light-colour > p { display: flex; align-items: center; gap: 6px; opacity: 1; }
 .tail-light-colour > p span { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.5); }
 
-/* Phones (the scene's phone layout, experienceStage.js MOBILE_SCENE_QUERY): the kitsune is a fixed
-   band across the bottom half of the screen, so the quests page scrolls in its own area between
-   the menu bar and his band, fading out sharply just above his head. The cards stack full width. */
+/* Phones (the scene's phone layout, experienceStage.js MOBILE_SCENE_QUERY): the kitsune sits fixed
+   in the bottom-right corner (his bottom-half band, shrunk), and the quests page scrolls in its own
+   area from the menu bar down to three quarters of the screen, fading out sharply at its foot.
+   The cards stack full width. */
 @media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
   .quests {
     position: fixed;
     top: 54px;
     right: 0;
-    bottom: 50svh;
+    bottom: 25svh;
     left: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -837,8 +838,8 @@
     padding: 0 12px 36px;
   }
   .world-quests .gallery-page > * { width: 100% !important; }
-  /* Just inside the top of his band, clear of the cards above. */
-  .scroll-hint { bottom: calc(50svh - 30px); }
+  /* Just under the cards, beside him in his corner. */
+  .scroll-hint { bottom: calc(25svh - 30px); left: 18%; }
   /* The lore, from the corner of his band (there's no tapping him for it on a phone); hidden while
      it's open. */
   body[data-lore="open"] .lore-button { opacity: 0; pointer-events: none; }
@@ -878,11 +879,13 @@
 @media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
   .static-kitsune-backdrop { object-position: center bottom; }
   .static-kitsune-stills {
-    --band: 50svh;
-    --u: min(var(--band), calc(min(100cqw, 80svh) / 0.78));
+    /* The band shrunk to 0.65 (PHONE_KITSUNE_SCALE) in the bottom-right corner. */
+    --band: calc(50svh * 0.65);
+    --band-width: calc(min(100cqw, 80svh) * 0.65);
+    --u: min(var(--band), calc(var(--band-width) / 0.78));
     right: auto;
     bottom: auto;
-    left: calc(50cqw + (var(--x) - var(--px)) * var(--u) * var(--zoom));
+    left: calc(100cqw - var(--band-width) / 2 + (var(--x) - var(--px)) * var(--u) * var(--zoom));
     top: calc(100cqh - var(--band) / 2 + (var(--y) - var(--py)) * var(--u) * var(--zoom));
     width: calc(var(--w) * var(--u) * var(--zoom));
     height: calc(var(--h) * var(--u) * var(--zoom));
@@ -891,6 +894,7 @@
   @media (orientation: landscape) {
     .static-kitsune-stills {
       --band: 100cqh;
+      --band-width: 50cqw;
       --u: min(100cqh, calc(50cqw / 0.78));
       left: calc(75cqw + (var(--x) - var(--px)) * var(--u) * var(--zoom));
     }
