@@ -736,3 +736,54 @@
   align-items: center;
   transform: none;
 }
+
+/* The kitsune with 3D off (StaticKitsune.jsx): baked stills over the backdrop, placed where the
+   live view draws him. The stills' layout is in units of the view's height (--u: the screen's
+   height, or 1/0.78 of its width on narrower screens, as the live camera keeps), measured from the
+   view's centre (x) and top (y); --s shrinks it to the bottom-right as the live view does. Sized
+   from the corner rather than transformed, so the light layers still add onto the backdrop. */
+.static-kitsune {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  container-type: size;
+  background: #263c61;
+  opacity: 0;
+  transition: opacity 450ms ease-in-out;
+}
+.static-kitsune[data-shown="true"] { opacity: 1; }
+.static-kitsune-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.static-kitsune-stills {
+  --u: min(100cqh, 128.2cqw);
+  position: absolute;
+  right: calc((50cqw - (var(--x) + var(--w)) * var(--u)) * var(--s));
+  bottom: calc((50cqh + var(--u) / 2 - (var(--y) + var(--h)) * var(--u)) * var(--s));
+  width: calc(var(--w) * var(--u) * var(--s));
+  height: calc(var(--h) * var(--u) * var(--s));
+}
+.static-kitsune-stills img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.static-kitsune-light { mix-blend-mode: plus-lighter; }
+
+/* The tail light tuner in the site's scene editor (quests page): below the menu bar, scrolling. */
+.kitsune-tuner--editor {
+  top: 64px;
+  z-index: 160;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+.tail-light-colour { display: grid; gap: 4px; }
+.tail-light-colour > p { display: flex; align-items: center; gap: 6px; opacity: 1; }
+.tail-light-colour > p span { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.5); }

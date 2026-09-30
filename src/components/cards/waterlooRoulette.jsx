@@ -42,8 +42,8 @@ export default function WaterlooRouletteCard() {
             minWidth: 0,
           }}
         >
-          <img
-            src="/waterloo_roulette/favicon-transparent.png"
+          <img loading="lazy" decoding="async"
+            src="/waterloo_roulette/favicon-transparent.webp"
             alt="Waterloo Roulette"
             style={{
               width: "52px",

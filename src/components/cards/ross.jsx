@@ -7,25 +7,25 @@ import QuestTag from '../experience/QuestIcons.jsx';
 export default function GuardianAngel() {
   const _images = [
     <div className="w-full overflow-hidden rounded-lg">
-      <img src="/ross/ross_1.1.jpg" alt="Ross 2" />
+      <img loading="lazy" decoding="async" src="/ross/ross_1.1.jpg" alt="Ross 2" />
     </div>,
     <div className="w-full overflow-hidden rounded-lg">
-      <img src="/ross/ross_1.2.jpg" alt="Ross 3" />
+      <img loading="lazy" decoding="async" src="/ross/ross_1.2.jpg" alt="Ross 3" />
     </div>,
     <div className="w-full overflow-hidden rounded-lg">
-      <img src="/ross/ross_1.3.jpg" alt="Ross 4" />
+      <img loading="lazy" decoding="async" src="/ross/ross_1.3.jpg" alt="Ross 4" />
     </div>,
     <div className="w-full overflow-hidden rounded-lg">
-      <img src="/ross/ross_1.4.jpg" alt="Ross 5" />
+      <img loading="lazy" decoding="async" src="/ross/ross_1.4.jpg" alt="Ross 5" />
     </div>,
     <div className="w-full overflow-hidden rounded-lg">
-      <img src="/ross/ross_1.5.jpg" alt="Ross 6" />
+      <img loading="lazy" decoding="async" src="/ross/ross_1.5.jpg" alt="Ross 6" />
     </div>,
     <div className="w-full overflow-hidden rounded-lg">
-      <img src="/ross/ross_1.6.jpg" alt="Ross 7" />
+      <img loading="lazy" decoding="async" src="/ross/ross_1.6.jpg" alt="Ross 7" />
     </div>,
     <div className="w-full overflow-hidden rounded-lg">
-      <img src="/ross/ross_1.7.jpg" alt="Ross 8" />
+      <img loading="lazy" decoding="async" src="/ross/ross_1.7.jpg" alt="Ross 8" />
     </div>
   ];
   
@@ -43,7 +43,7 @@ export default function GuardianAngel() {
         <QuestTag type="story" />
         <div style={{ display: "flex", gap: "0px", flexWrap: "wrap", }}>
           <div style={{ flex: "1 1 400px", padding: "20px", alignContent: "flex-start", textAlign: "left" }}>
-              <img style={{ borderRadius: "0px", marginTop: "25px" }} src="/ross/htn_banner.webp" alt="HTN Banner" />
+              <img loading="lazy" decoding="async" style={{ borderRadius: "0px", marginTop: "25px" }} src="/ross/htn_banner.webp" alt="HTN Banner" />
             <p style={{ fontWeight: "bold", textAlign: "center" }}>Hack The North 2025 Finalist Project</p>
             <p style={{ fontWeight: "bold", textAlign: "center" }}>
               By Theodore Zhu, Jonathan Shan, Tian Yao, and Andre Ke
@@ -86,7 +86,7 @@ export default function GuardianAngel() {
 
         <div className="flex items-start justify-start" style={{ flex: "1 1 400px", padding: "20px"}}>
               <div style={{ flex: 1, alignItems: "flex-start"}}>
-              <img style={{borderRadius: "0px", marginTop: "25px"}} src="/ross/rosskeynote.webp" alt="Ross Keynote" />
+              <img loading="lazy" decoding="async" style={{borderRadius: "0px", marginTop: "25px"}} src="/ross/rosskeynote.webp" alt="Ross Keynote" />
               <LazyYouTube videoId="FP0lBdZkyqI" title="Ross" />
               </div>
           </div>

@@ -128,14 +128,14 @@ export default function GitHubProfileCard() {
             }}
           >
             <a href={`https://github.com/${username}`} target="_blank" rel="noopener noreferrer">
-              <img
+              <img loading="lazy" decoding="async"
                 src={statsURL}
                 alt={`${username} GitHub stats`}
                 style={{ width: "100%", height: "auto", display: "block", borderRadius: 8 }}
               />
             </a>
             <a href={`https://github.com/${username}`} target="_blank" rel="noopener noreferrer">
-              <img
+              <img loading="lazy" decoding="async"
                 src={topLangsURL}
                 alt={`${username} top languages`}
                 style={{ width: "100%", height: "auto", display: "block", borderRadius: 8 }}

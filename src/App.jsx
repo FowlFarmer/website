@@ -1,8 +1,14 @@
 import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import NavBar from './components/NavBar.jsx';
-import Gallery from './components/Gallery.jsx';
-import Quests from './components/Quests.jsx';
+// The quests page (its cards, the gallery and the traced region emblems) is its own download: the
+// home page fetches it once idle, and a click towards it fetches it at once, while the old page
+// fades out.
+const loadQuests = () => import('./components/Quests.jsx');
+const loadGallery = () => import('./components/Gallery.jsx');
+const Quests = lazy(loadQuests);
+const Gallery = lazy(loadGallery);
+const PAGE_LOADERS = { '/quests': loadQuests };
 import Self from './components/Self.jsx';
 import Contact from './components/Contact.jsx';
 const ExperienceLab = lazy(() => import('./components/ExperienceLab.jsx'));
@@ -12,6 +18,11 @@ const Avalon = lazy(() => import('./components/Avalon.jsx'));
 const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard.jsx'));
 import SceneBackground from './components/SceneBackground.jsx';
 import { experienceStage } from './components/experience/experienceStage.js';
+
+// Dev only: bake the 3D-off kitsune stills (components/experience/bakeKitsuneStills.js).
+if (import.meta.env.DEV) {
+  window.__bakeKitsuneStills = () => import('./components/experience/bakeKitsuneStills.js').then((bake) => bake.bakeKitsuneStills());
+}
 
 import { Analytics } from "@vercel/analytics/react"
 import { usePersistentAnalytics } from './persistentAnalytics.js';
@@ -33,7 +44,15 @@ function FadeRoutes() {
   // the kitsune behind the quests, the Lawson store everywhere else.
   useEffect(() => {
     experienceStage.show = location.pathname === '/quests' ? 'kitsune' : 'lawson';
+    PAGE_LOADERS[location.pathname]?.();
   }, [location.pathname]);
+
+  useEffect(() => {
+    const idle = window.requestIdleCallback ?? ((callback) => window.setTimeout(callback, 2000));
+    const cancel = window.cancelIdleCallback ?? window.clearTimeout;
+    const task = idle(() => loadQuests(), { timeout: 5000 });
+    return () => cancel(task);
+  }, []);
 
   useEffect(() => {
     if (location.pathname === shown.pathname || REDIRECTS.includes(shown.pathname)) {
@@ -63,7 +82,7 @@ function FadeRoutes() {
       main.removeEventListener('transitionend', onFaded);
       window.clearTimeout(fallback);
     };
-  }, [location]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location]);
 
   return (
     <main
@@ -74,7 +93,7 @@ function FadeRoutes() {
       <Routes location={shown}>
         <Route path="/" element={<Navigate to="/self" replace />} />
         <Route path="/self" element={<Self />} />
-        <Route path="/quests" element={<Quests />} />
+        <Route path="/quests" element={<Suspense fallback={null}><Quests /></Suspense>} />
         {/* The gallery's projects are the World Quests now. */}
         <Route path="/gallery" element={<Navigate to="/quests" replace />} />
         <Route path="/contact" element={<Contact />} />
@@ -84,7 +103,7 @@ function FadeRoutes() {
         <Route path="/lab/kitsune" element={<Suspense fallback={null}><KitsuneLab /></Suspense>} />
         <Route path="/avalon" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#060f21' }} />}><Avalon /></Suspense>} />
 
-        <Route path="*" element={<Gallery />} />
+        <Route path="*" element={<Suspense fallback={null}><Gallery /></Suspense>} />
       </Routes>
     </main>
   );
