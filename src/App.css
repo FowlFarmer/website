@@ -966,7 +966,8 @@ yeet
 }
 
 .glass-effect {
-backdrop-filter: blur(8px);
+/* The glass's blur, scaled by --glass-blur-scale (the preview's render settings, frameStats.js). */
+backdrop-filter: blur(calc(8px * var(--glass-blur-scale, 1)));
 background: rgba(5,5,5,0.15);
 border: 3px solid rgba(255,255,255,0.06);
 border-radius: 12px;
@@ -1459,7 +1460,7 @@ body[data-lore="open"] .page-scroller { --nav-fade: 0; }
   font-family: inherit;
   font-weight: 300;
   cursor: default;
-  -webkit-backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(calc(8px * var(--glass-blur-scale, 1)));
   transition: opacity 0.5s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 .blossom-home > .glass-effect:not(.mainBlob) {
@@ -2261,31 +2262,6 @@ body[data-lore="open"] .scroll-hint {
 :root[data-audit-no-mask] :is(.page-scroller, .quests) {
   -webkit-mask-image: none !important;
   mask-image: none !important;
-}
-
-/* The shared glass (sharedGlass.js; the preview's render settings): each card shows the one blurred
-   copy of the scene through a window fixed to the screen and clipped to its shape, with its tint on
-   top, instead of blurring its backdrop itself. The page's copy of the scene isn't needed then. */
-:root[data-glass="shared"] [data-glass-window] {
-  isolation: isolate;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-}
-:root[data-glass="shared"] .scene-mirror { display: none; }
-.glass-window {
-  position: absolute;
-  inset: -3px;
-  z-index: -1;
-  border-radius: 12px;
-  clip-path: inset(0 round 12px);
-  pointer-events: none;
-}
-.glass-window canvas { position: fixed; display: block; }
-.glass-window::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--glass-tint, transparent);
 }
 
 /* The Shower Thoughts card (cards/showerThoughts.jsx): its note, and each entry's title, date and

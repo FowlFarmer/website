@@ -16,7 +16,6 @@ import {
 } from './experience/experienceStage.js';
 import { closeInspo, openInspo } from './lawsonStage.js';
 import { drawSceneMirrors } from './sceneMirror.jsx';
-import { createSharedGlass } from './sharedGlass.js';
 import { onPageScroll, pageScrollY } from './pageScroll.js';
 import {
   SHOW_FRAME_METER, auditOff, createFrameProfiler, markFrame, markLoad, onTuningChange, setTargetFps, tuning,
@@ -1703,10 +1702,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     setTargetFps(capFor() || null);
     // The preview's render settings, live (antialiasing waits for a reload).
     const petalCount = petalField.geometry.instanceCount;
-    // The preview's shared glass (sharedGlass.js): its windows follow the scene's frames.
-    const sharedGlass = SHOW_FRAME_METER ? createSharedGlass() : null;
     const applyTuning = () => {
-      sharedGlass?.setActive(tuning.glassMode === 'shared');
       renderer.setPixelRatio(pixelRatio());
       renderer.setSize(viewportWidth, viewportHeight);
       const frame = kitsuneFrame();
@@ -1890,8 +1886,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       }
       // The frame into the page's copies of the backdrop, for its glass to blur (sceneMirror.jsx).
       profiler.begin('glass copy');
-      if (sharedGlass?.isActive()) sharedGlass.update(renderer.domElement);
-      else drawSceneMirrors(renderer.domElement, mount.dataset.sceneLoaded === 'true');
+      drawSceneMirrors(renderer.domElement, mount.dataset.sceneLoaded === 'true');
       profiler.end('glass copy');
       profiler.endFrame(frameStart);
       markFrame(now);
@@ -1920,7 +1915,6 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       setTargetFps(null);
       stopTuning();
       stopScrollWatch();
-      sharedGlass?.dispose();
       document.body.style.cursor = '';
       renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
       window.clearTimeout(readyTimer);

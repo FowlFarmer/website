@@ -76,13 +76,7 @@ function RenderSettings() {
           <option value="0">none</option>
         </select>
       </label>
-      <label className="frame-setting">
-        <span>glass</span>
-        <select value={values.glassMode} onChange={(event) => setTuning({ glassMode: event.target.value })}>
-          <option value="browser">browser blur (each card)</option>
-          <option value="shared">shared blur (one for all)</option>
-        </select>
-      </label>
+      {slider('glassBlur', 'glass blur (share of normal)', 0, 2, 0.05, 1)}
       <label className="frame-setting">
         <span>while scrolling</span>
         <select value={values.scrolling} onChange={(event) => setTuning({ scrolling: event.target.value })}>

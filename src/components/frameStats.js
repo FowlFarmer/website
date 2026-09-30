@@ -32,7 +32,7 @@ export const TUNING_DEFAULTS = {
   frameCap: null, // null: the site's own (30 on low-power devices); 0: none
   riderTextures: null, // null: the site's own; 'mobile' 2048px, 'low' 1024px, '512' 512px (reload)
   scrolling: 'full', // while the page scrolls: 'full', 'half' (every other frame) or 'paused'
-  glassMode: 'browser', // the cards' glass: 'browser' (each card's backdrop blur) or 'shared' (sharedGlass.js)
+  glassBlur: 1, // the glass cards' blur, as a share of its normal strength (App.css --glass-blur-scale)
   preciseGpu: false, // each stage its own GPU batch, so its timer times it alone
 };
 const TUNING_KEY = 'render-tuning';
@@ -47,8 +47,14 @@ if (SHOW_FRAME_METER && typeof window !== 'undefined') {
   if (off.has('mask')) document.documentElement.dataset.auditNoMask = '';
 }
 const tuningListeners = new Set();
+// The glass cards' blur follows the setting (a CSS variable their backdrop blur scales by).
+const applyGlassBlur = () => {
+  if (SHOW_FRAME_METER && typeof document !== 'undefined') document.documentElement.style.setProperty('--glass-blur-scale', String(tuning.glassBlur));
+};
+applyGlassBlur();
 export function setTuning(patch) {
   Object.assign(tuning, patch);
+  applyGlassBlur();
   try { localStorage.setItem(TUNING_KEY, JSON.stringify(tuning)); } catch { /* As above. */ }
   tuningListeners.forEach((listener) => listener(tuning));
 }
