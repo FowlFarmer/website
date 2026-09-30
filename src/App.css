@@ -1480,8 +1480,10 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   overflow: visible;
 }
 .text-fader { display: grid; }
-.content-switcher-controls { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 20px; }
-.content-switcher-controls button { min-height: 44px; padding: 8px 14px; border: 1px solid #ffffff4d; border-radius: 8px; color: #fff; background: #101a2d40; font: inherit; cursor: pointer; }
+/* The project buttons stay in one row, sharing it evenly however narrow (a label wraps inside its
+   button); the card's columns rearrange around them instead. */
+.content-switcher-controls { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; padding: 16px 20px; }
+.content-switcher-controls button { min-width: 0; min-height: 44px; padding: 8px 10px; overflow-wrap: break-word; border: 1px solid #ffffff4d; border-radius: 8px; color: #fff; background: #101a2d40; font: inherit; cursor: pointer; }
 .content-switcher-controls button[aria-pressed="true"] { color: #232333; background: #fff2f6; border-color: #fff2f6; }
 .hackathon-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
 .hackathon-grid img { display: block; width: 100% !important; }

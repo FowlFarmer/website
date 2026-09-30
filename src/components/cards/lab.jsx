@@ -176,7 +176,7 @@ export default function LabCard() {
         <div className="flex items-start justify-start" style={{ flex: "1 1 350px"}}>            
           <h3>Projects</h3>
               <AnyFaderInline
-              labels={["Plasmid cloning", "Immunoblotting", "DNA binding"]}
+              labels={["Plasmid cloning", <>Immuno<wbr />blotting</>, "DNA binding"]}
               items={[
                   <div><p>Plasmid cloning was performed to create a plasmid that had a specific intronic enhancer and a GFP gene. Electrophoresis, PCR, and bacterial cell culture were performed to cleave and ligate DNA strands using restriction enzymes and ligase. Flow cytometry data showed exceptionally high GFP presence in cells which harbored the plasmid versus control cells without the enhancer inserted plasmid, implying proper cloning of both inserts.</p></div>,
                   <div><p>An antibody that recognized a specific transcription factor was tested by immunoblotting using an acrylamide gel. The gel was then imaged and the results showed that the antibody's engineered function was defective.</p></div>,
