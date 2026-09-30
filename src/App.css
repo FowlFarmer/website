@@ -2262,3 +2262,28 @@ body[data-lore="open"] .scroll-hint {
   -webkit-mask-image: none !important;
   mask-image: none !important;
 }
+
+/* The shared glass (sharedGlass.js; the preview's render settings): each card shows the one blurred
+   copy of the scene through a window fixed to the screen and clipped to its shape, with its tint on
+   top, instead of blurring its backdrop itself. The page's copy of the scene isn't needed then. */
+:root[data-glass="shared"] [data-glass-window] {
+  isolation: isolate;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+:root[data-glass="shared"] .scene-mirror { display: none; }
+.glass-window {
+  position: absolute;
+  inset: -3px;
+  z-index: -1;
+  border-radius: 12px;
+  clip-path: inset(0 round 12px);
+  pointer-events: none;
+}
+.glass-window canvas { position: fixed; display: block; }
+.glass-window::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--glass-tint, transparent);
+}

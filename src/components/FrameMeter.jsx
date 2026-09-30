@@ -77,6 +77,13 @@ function RenderSettings() {
         </select>
       </label>
       <label className="frame-setting">
+        <span>glass</span>
+        <select value={values.glassMode} onChange={(event) => setTuning({ glassMode: event.target.value })}>
+          <option value="browser">browser blur (each card)</option>
+          <option value="shared">shared blur (one for all)</option>
+        </select>
+      </label>
+      <label className="frame-setting">
         <span>while scrolling</span>
         <select value={values.scrolling} onChange={(event) => setTuning({ scrolling: event.target.value })}>
           <option value="full">full rate</option>

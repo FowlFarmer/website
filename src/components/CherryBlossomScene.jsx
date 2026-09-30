@@ -16,6 +16,7 @@ import {
 } from './experience/experienceStage.js';
 import { closeInspo, openInspo } from './lawsonStage.js';
 import { drawSceneMirrors } from './sceneMirror.jsx';
+import { createSharedGlass } from './sharedGlass.js';
 import { onPageScroll, pageScrollY } from './pageScroll.js';
 import {
   SHOW_FRAME_METER, auditOff, createFrameProfiler, markFrame, markLoad, onTuningChange, setTargetFps, tuning,
@@ -104,6 +105,8 @@ const BACKDROP_COVER_BOB_STEPS = [-1, 0, 1];
 // Desktop renders at up to 1.5 pixels per CSS pixel: full Retina (2) cost roughly twice the GPU
 // time in every layer (measured with the frame meter's audit) for a barely visible difference.
 const DESKTOP_PIXEL_RATIO_CAP = 1.5;
+// How early (ms) a frame can come and still count against the frame cap.
+const FRAME_SLACK_MS = 2;
 // How long after the page last scrolled it counts as still scrolling (the preview's render settings).
 const SCROLL_SETTLE_MS = 150;
 // The quests page's kitsune draws on its own layer, with its own camera and lights.
@@ -673,7 +676,8 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     ground.position.y = -0.035;
     scene.add(ground);
 
-    const petalField = createPetalField(random, lowPower ? 160 : 410);
+    // Half the petals they once were: tuned by eye against their GPU cost (the frame meter's audit).
+    const petalField = createPetalField(random, lowPower ? 80 : 205);
     petalField.layers.set(2);
     scene.add(petalField);
 
@@ -1691,13 +1695,18 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     let lastPageScrollAt = -Infinity;
     let scrollFrame = 0;
     const stopScrollWatch = onPageScroll(() => { lastPageScrollAt = performance.now(); });
-    // At most 30 frames a second on low-power devices (or the preview's frame cap).
-    const capFor = () => tuning.frameCap ?? (lowPower ? 30 : 0);
+    // At most 60 frames a second (a 120 Hz display would otherwise draw the scene twice as often),
+    // and 30 on phones and low-memory devices (or the preview's frame cap).
+    const cappedTo30 = window.matchMedia('(pointer: coarse)').matches || (navigator.deviceMemory && navigator.deviceMemory <= 4);
+    const capFor = () => tuning.frameCap ?? (cappedTo30 ? 30 : 60);
     let frameInterval = capFor() ? 1000 / capFor() : 0;
     setTargetFps(capFor() || null);
     // The preview's render settings, live (antialiasing waits for a reload).
     const petalCount = petalField.geometry.instanceCount;
+    // The preview's shared glass (sharedGlass.js): its windows follow the scene's frames.
+    const sharedGlass = SHOW_FRAME_METER ? createSharedGlass() : null;
     const applyTuning = () => {
+      sharedGlass?.setActive(tuning.glassMode === 'shared');
       renderer.setPixelRatio(pixelRatio());
       renderer.setSize(viewportWidth, viewportHeight);
       const frame = kitsuneFrame();
@@ -1713,14 +1722,16 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     const profiler = createFrameProfiler(renderer.getContext());
     const animate = (now = performance.now()) => {
       animationFrame = window.requestAnimationFrame(animate);
-      if (!visible || now - lastRenderedAt < frameInterval) return;
+      // A frame arriving a hair early (the display's timing wobbles) still counts: without the
+      // slack, a 60 cap on a 60 Hz display would drop frames at random.
+      if (!visible || now - lastRenderedAt < frameInterval - FRAME_SLACK_MS) return;
       // While the page scrolls (the preview's render settings): draw every other frame, or hold the
       // last one, leaving the GPU to the scrolling and the glass it moves over.
       if (tuning.scrolling !== 'full' && now - lastPageScrollAt < SCROLL_SETTLE_MS) {
         scrollFrame += 1;
         if (tuning.scrolling === 'paused' || scrollFrame % 2) return;
       }
-      lastRenderedAt = now - ((now - lastRenderedAt) % (frameInterval || 1));
+      lastRenderedAt = now;
       const frameStart = performance.now();
       profiler.begin('update');
 
@@ -1877,7 +1888,8 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       }
       // The frame into the page's copies of the backdrop, for its glass to blur (sceneMirror.jsx).
       profiler.begin('glass copy');
-      drawSceneMirrors(renderer.domElement, mount.dataset.sceneLoaded === 'true');
+      if (sharedGlass?.isActive()) sharedGlass.update(renderer.domElement);
+      else drawSceneMirrors(renderer.domElement, mount.dataset.sceneLoaded === 'true');
       profiler.end('glass copy');
       profiler.endFrame(frameStart);
       markFrame(now);
@@ -1906,6 +1918,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       setTargetFps(null);
       stopTuning();
       stopScrollWatch();
+      sharedGlass?.dispose();
       document.body.style.cursor = '';
       renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
       window.clearTimeout(readyTimer);
