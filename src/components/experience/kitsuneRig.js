@@ -68,7 +68,7 @@ const TAILS = [
 
 // Where he sits on the rock, relative to where the model puts him: metres across (x), up (y) and
 // back toward the camera (z), and a turn in degrees.
-export const DEFAULT_PLACEMENT = { x: -0.94, y: -0.45, z: -10.94, yaw: -101 };
+export const DEFAULT_PLACEMENT = { x: -0.94, y: -0.49, z: -10.94, yaw: -101 };
 // The framing: behind him and off to his left, so he sits on the right of a wide screen with the
 // sky and Fuji open for the role cards on the left.
 export const DEFAULT_CAMERA = { position: [0.79, 1.479, 7.519], target: [-4.598, 3.677, -11.507] };
