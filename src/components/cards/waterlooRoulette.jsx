@@ -43,7 +43,7 @@ export default function WaterlooRouletteCard() {
           }}
         >
           <img loading="lazy" decoding="async"
-            src="/waterloo_roulette/favicon-transparent.webp"
+            src="/waterloo_roulette/scuba.webp"
             alt="Waterloo Roulette"
             style={{
               width: "52px",
