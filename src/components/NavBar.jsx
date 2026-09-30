@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { HashLink } from 'react-router-hash-link';
 import { useLocation } from "react-router-dom";
 import { useNavFormation } from "./navFormation.js";
+import { setNavFadeShown } from "./navFade.js";
 
 export default function Navbar() {
   const { pathname } = useLocation();
@@ -20,6 +21,8 @@ export default function Navbar() {
   const barState = formed ? formation.bar : scrolled;
   const itemsState = formed ? formation.items : scrolled;
   const nav_opacity = formed || home ? undefined : alwaysShown ? { opacity: 1 } : scrollFade;
+  const barShown = formed || home ? barState : alwaysShown || scrolled;
+  React.useEffect(() => setNavFadeShown(barShown), [barShown]);
   return (
     <nav className="navbar">
       <div
