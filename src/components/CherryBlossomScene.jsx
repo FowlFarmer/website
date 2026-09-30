@@ -99,8 +99,9 @@ const BACKDROP_COVER_OVERSCAN = 1.045;
 const BACKDROP_COVER_MAX_SCALE = 256;
 const BACKDROP_COVER_POINTER_STEPS = [-1, 0, 1];
 const BACKDROP_COVER_BOB_STEPS = [-1, 0, 1];
-// Desktop renders at the display's full pixel ratio, so the kitsune stays sharp.
-const DESKTOP_PIXEL_RATIO_CAP = Infinity;
+// Desktop renders at up to 1.5 pixels per CSS pixel: full Retina (2) cost roughly twice the GPU
+// time in every layer (measured with the frame meter's audit) for a barely visible difference.
+const DESKTOP_PIXEL_RATIO_CAP = 1.5;
 // The quests page's kitsune draws on its own layer, with its own camera and lights.
 const KITSUNE_LAYER = 3;
 // How long the store and rider, or the kitsune, take to fade out or in.
@@ -1777,9 +1778,9 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         // is pinned to the screen's bottom-right corner, so the editor's
         // framing and crop are reproduced exactly and only scale down.
         camera.layers.set(0);
-        profiler.begin('sky & petals');
+        profiler.begin('sky');
         renderer.render(scene, camera);
-        profiler.end('sky & petals');
+        profiler.end('sky');
         const background = scene.background;
         scene.background = null;
         renderer.autoClear = false;
@@ -1828,9 +1829,9 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         renderer.setViewport(0, 0, viewportWidth, viewportHeight);
         renderer.clearDepth();
         camera.layers.set(2);
-        profiler.begin('foreground petals');
+        profiler.begin('falling petals');
         if (!auditOff('petals')) renderer.render(scene, camera);
-        profiler.end('foreground petals');
+        profiler.end('falling petals');
         scene.background = background;
         if (import.meta.env.DEV) {
           const signature = `${view.x}|${view.y}|${view.width}|${view.height}`;

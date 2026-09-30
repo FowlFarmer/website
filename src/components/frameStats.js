@@ -5,7 +5,7 @@ export const SHOW_FRAME_METER = import.meta.env.VITE_VERCEL_ENV !== 'production'
 
 // Parts of the page switched off to see what they cost, from the address (not on the production
 // site): ?off=glass,mask,store,petals,kitsune (the glass's scene copy, the scrolling areas' fades,
-// the Lawson store and rider, the foreground petals, the kitsune).
+// the Lawson store and rider, the falling petals, the kitsune).
 const OFF = new Set(SHOW_FRAME_METER && typeof location !== 'undefined'
   ? (new URLSearchParams(location.search).get('off') ?? '').split(',').filter(Boolean)
   : []);
