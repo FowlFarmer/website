@@ -13,7 +13,7 @@ export const experiences = [
     location: 'Palo Alto, California',
     hologram: ['#ff2238'],
     emphasis: true,
-    images: ['/work_experience/incoming/incoming.webp'],
+    images: ['/work_experience/tesla_autopilot/tesla_autopilot.webp'],
     pending: true,
   },
   {
