@@ -1499,6 +1499,10 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 @media (max-width: 820px) {
   .lab-photo-pair { max-width: 100%; }
 }
+/* The narrowest phones: Hack the North's two links smaller again, still side by side (below). */
+@media (max-width: 360px) {
+  .ross-links a .rounded-button { padding: 9px 9px; font-size: 11px; }
+}
 @media (max-width: 600px) {
   .main-content { padding-inline: 12px; }
   .gallery-page > .glass-effect,
@@ -1508,6 +1512,11 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   .blossom-home > .mainBlob { width: 88% !important; }
   .blossom-home > .glass-effect:not(.mainBlob):not(:has(.current-status)) { margin-top: 28px !important; }
   .roulette-intro { flex-direction: column; align-items: flex-start !important; }
+  /* Its play button and stats: across the card's width, centred under the text. */
+  .roulette-side { flex: 1 1 100% !important; }
+  /* Hack the North's two links side by side, a little smaller to fit. */
+  .ross-links { flex-wrap: nowrap !important; gap: 8px !important; }
+  .ross-links .rounded-button { display: inline-block; padding: 10px 14px; font-size: 13px; white-space: nowrap; }
   .hero-content { flex-direction: column; align-items: flex-start; padding: 20px; gap: 16px; }
   .hero-cta { white-space: normal; }
   .big-zoom:hover { transform: none; }

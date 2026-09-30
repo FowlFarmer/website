@@ -66,7 +66,7 @@ export default function GuardianAngel() {
             <span style={{ fontSize: "14px", fontWeight: "bold", marginTop: "15px", display: "inline-block", textAlign: "center"}}>
               @University of Waterloo | Sponsored by Y Combinator, Shopify, Amazon
             </span>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "center", margin: "15px 0" }}>
+            <div className="ross-links" style={{ display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "center", margin: "15px 0" }}>
               <a href="https://devpost.com/software/ross-42pnvi" rel="noopener noreferrer" target="_blank">
                 <span className="rounded-button" style={{ textAlign: "center" }}>Devpost</span>
               </a>

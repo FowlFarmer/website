@@ -69,7 +69,7 @@ export default function WaterlooRouletteCard() {
           </div>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", flex: "0 0 auto" }}>
+        <div className="roulette-side" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", flex: "0 0 auto" }}>
           <a href="https://waterloo.careers" target="_blank" rel="noopener noreferrer">
             <span className="rounded-button">
               play @ waterloo.careers
