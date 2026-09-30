@@ -1,7 +1,20 @@
 // Frame timing for the on-screen meter (FrameMeter.jsx), which shows everywhere but Vercel's
-// production site. The 3D scene marks each frame it draws (markFrame) and says what rate it aims
-// for (setTargetFps: 30 on low-power devices; otherwise null, every display frame).
-export const SHOW_FRAME_METER = import.meta.env.VITE_VERCEL_ENV !== 'production';
+// production site, and there too in a tab opened at /lab/performance/... (App.jsx sends that on to
+// the page after it: /lab/performance/quests is the quests page, meter and all, until the tab
+// closes). The 3D scene marks each frame it draws (markFrame) and says what rate it aims for
+// (setTargetFps: 30 on low-power devices; otherwise null, every display frame).
+export const PERFORMANCE_PATH = '/lab/performance';
+function performanceView() {
+  if (typeof window === 'undefined') return false;
+  const asked = location.pathname.startsWith(PERFORMANCE_PATH);
+  try {
+    if (asked) sessionStorage.setItem('performance-view', 'on');
+    return asked || sessionStorage.getItem('performance-view') === 'on';
+  } catch {
+    return asked;
+  }
+}
+export const SHOW_FRAME_METER = import.meta.env.VITE_VERCEL_ENV !== 'production' || performanceView();
 
 // Render settings to try out (FrameMeter.jsx's panel; not on the production site), remembered on
 // this device; the defaults are the site's own. Parts can also be switched off from the address:

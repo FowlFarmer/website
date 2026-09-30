@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import NavBar from './components/NavBar.jsx';
 // The quests page (its cards, the gallery and the traced region emblems) is its own download: the
 // home page fetches it once idle, and a click towards it fetches it at once, while the old page
@@ -20,7 +20,7 @@ import SceneBackground from './components/SceneBackground.jsx';
 import { MOBILE_SCENE_QUERY, experienceStage } from './components/experience/experienceStage.js';
 import { MirrorHost } from './components/sceneMirror.jsx';
 import FrameMeter from './components/FrameMeter.jsx';
-import { SHOW_FRAME_METER } from './components/frameStats.js';
+import { PERFORMANCE_PATH, SHOW_FRAME_METER } from './components/frameStats.js';
 import { pageScrollTo } from './components/pageScroll.js';
 
 // Dev only: bake the 3D-off kitsune stills (components/experience/bakeKitsuneStills.js).
@@ -37,6 +37,13 @@ import { usePersistentAnalytics } from './persistentAnalytics.js';
 const PAGE_FADE_MS = 350;
 // Paths that only redirect: there's no page to fade out.
 const REDIRECTS = ['/', '/gallery'];
+const isRedirect = (path) => REDIRECTS.includes(path) || path.startsWith(PERFORMANCE_PATH);
+
+// /lab/performance/<page>: the page, with the frame meter on for the tab (frameStats.js).
+function PerformanceView() {
+  const { '*': page } = useParams();
+  return <Navigate to={`/${page || 'self'}`} replace />;
+}
 
 function FadeRoutes() {
   const location = useLocation();
@@ -71,7 +78,7 @@ function FadeRoutes() {
   }, []);
 
   useEffect(() => {
-    if (location.pathname === shown.pathname || REDIRECTS.includes(shown.pathname)) {
+    if (location.pathname === shown.pathname || isRedirect(shown.pathname)) {
       // Same page (a hash or search change), or arriving through a redirect: no fade.
       if (location !== shown) setShown(location);
       setLeaving(false);
@@ -119,6 +126,7 @@ function FadeRoutes() {
         <Route path="/lab/experience" element={<Suspense fallback={null}><ExperienceLab /></Suspense>} />
         <Route path="/lab/shaders" element={<Suspense fallback={null}><RiderShaderLab /></Suspense>} />
         <Route path="/lab/kitsune" element={<Suspense fallback={null}><KitsuneLab /></Suspense>} />
+        <Route path={`${PERFORMANCE_PATH}/*`} element={<PerformanceView />} />
         <Route path="/avalon" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#060f21' }} />}><Avalon /></Suspense>} />
 
         <Route path="*" element={<Suspense fallback={null}><Gallery /></Suspense>} />
