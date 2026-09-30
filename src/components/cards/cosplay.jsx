@@ -37,9 +37,9 @@ export default function CosplayCard() {
     >
       {/* <div style={{ display: "flex", flexWrap: "wrap", width: "80%", gap: "20px", alignContent: "flex-start", */}
         {/* justifyContent: "center", }}> */}
-        {/* The header on the left, like the other cards'. The title's "weed" becomes "weeb". */}
+        {/* The header on the left, like the other cards'. */}
         <div style={{ padding: "20px 20px 4px", textAlign: "left" }}>
-            <h2 style={{ margin: 0 }} aria-label="Smoke weeb everyday">Smoke wee<s>d</s>b everyday</h2>
+            <h2 style={{ margin: 0 }}>Smoke weeb everyday</h2>
             <p style={{ margin: "6px 0 0" }}>tl/dr: big anime/manga fan, went to some cons, and found out cosplay is super fun.</p>
             <p style={{ margin: "4px 0 0" }}>I also enjoy modelling, 3D printing and crafting my own cosplay props.</p>
         </div>
