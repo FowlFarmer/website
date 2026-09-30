@@ -100,12 +100,25 @@ export function glyphInterior(glyph, spacing) {
 // antialiasing seams, while the shape's own outer edge stays exact.
 export function tessellate(mask, seeds, { bucketSize, overlap, maxRadius }) {
   const { x: originX, y: originY, density, width, height, alpha } = mask;
-  const buckets = new Map();
-  seeds.forEach((seed, index) => {
-    const key = `${Math.floor(seed.homeX / bucketSize)},${Math.floor(seed.homeY / bucketSize)}`;
-    if (!buckets.has(key)) buckets.set(key, []);
-    buckets.get(key).push(index);
+  // Seeds filed in a grid of bucketSize squares (a flat array, indexed by number: this runs per
+  // pixel, and string keys made the menu bar's tiling take a quarter of a second).
+  let [minBucketX, minBucketY, maxBucketX, maxBucketY] = [Infinity, Infinity, -Infinity, -Infinity];
+  const seedBuckets = seeds.map((seed) => {
+    const bx = Math.floor(seed.homeX / bucketSize);
+    const by = Math.floor(seed.homeY / bucketSize);
+    minBucketX = Math.min(minBucketX, bx); maxBucketX = Math.max(maxBucketX, bx);
+    minBucketY = Math.min(minBucketY, by); maxBucketY = Math.max(maxBucketY, by);
+    return [bx, by];
   });
+  const gridWidth = maxBucketX - minBucketX + 1;
+  const gridHeight = maxBucketY - minBucketY + 1;
+  const buckets = Array.from({ length: Math.max(gridWidth * gridHeight, 0) }, () => []);
+  seedBuckets.forEach(([bx, by], index) => buckets[(by - minBucketY) * gridWidth + (bx - minBucketX)].push(index));
+  const bucketAt = (bx, by) => {
+    const gx = bx - minBucketX;
+    const gy = by - minBucketY;
+    return gx < 0 || gy < 0 || gx >= gridWidth || gy >= gridHeight ? null : buckets[gy * gridWidth + gx];
+  };
   const labels = new Int32Array(width * height).fill(-1);
   const sumX = new Float64Array(seeds.length);
   const sumY = new Float64Array(seeds.length);
@@ -123,7 +136,9 @@ export function tessellate(mask, seeds, { bucketSize, overlap, maxRadius }) {
       let bestPower = Infinity;
       for (let dy = -1; dy <= 1; dy += 1) {
         for (let dx = -1; dx <= 1; dx += 1) {
-          for (const index of buckets.get(`${bucketX + dx},${bucketY + dy}`) || []) {
+          const bucket = bucketAt(bucketX + dx, bucketY + dy);
+          if (!bucket) continue;
+          for (const index of bucket) {
             const seed = seeds[index];
             const power = (seed.homeX - x) ** 2 + (seed.homeY - y) ** 2 - (seed.cellWeight || 0);
             if (power < bestPower) {

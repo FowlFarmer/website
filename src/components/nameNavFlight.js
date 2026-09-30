@@ -64,13 +64,30 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
     canvas.style.height = `${window.innerHeight}px`;
     context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
     barStale = true;
+    tileBarWhenIdle();
   };
+
+  // Tiling the bar takes a few tens of milliseconds: do it while the page is idle (once the pieces
+  // are ready, and after a resize), not in the frame the petals set off. Not mid-flight, where it
+  // would move their landing spots.
+  const idle = window.requestIdleCallback ?? ((callback) => window.setTimeout(callback, 200));
+  const cancelIdle = window.cancelIdleCallback ?? window.clearTimeout;
+  let barTask = 0;
+  function tileBarWhenIdle() {
+    cancelIdle(barTask);
+    barTask = idle(() => {
+      barTask = 0;
+      if (pieces && phase !== 'forming' && phase !== 'dissolving') prepareBar();
+    }, { timeout: 2000 });
+  }
 
   const clear = () => context.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
   // Normally baked (calligraphyPetals.js); prepared live only if the bake is missing or stale.
   const preparePieces = () => {
-    if (!pieces) pieces = prepareNavPieces(glyphs);
+    if (pieces) return;
+    pieces = prepareNavPieces(glyphs);
+    tileBarWhenIdle();
   };
 
   // Tile the live menu bar with exactly one cell per piece.
@@ -296,6 +313,7 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
   setNavFormation({ managed: true, bar: phase === 'bar', items: phase === 'bar' });
 
   function destroy() {
+    cancelIdle(barTask);
     forced = false;
     onFormed = null;
     window.cancelAnimationFrame(animationFrame);
@@ -335,7 +353,9 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
     },
     prepare: preparePieces,
     usePieces(baked) {
-      if (!pieces) pieces = baked;
+      if (pieces) return;
+      pieces = baked;
+      tileBarWhenIdle();
     },
     // The page is going. A flight up to the bar keeps going to its landing, then cleans up;
     // anything else stops now.
