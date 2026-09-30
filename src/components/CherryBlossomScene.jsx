@@ -104,8 +104,6 @@ const FADE_MS = 450;
 // How long after the scene is up (and the page is idle) the kitsune loads in the background, so the
 // quests page has nothing left to load.
 const KITSUNE_PRELOAD_MS = 2500;
-// On phones the kitsune's camera sits this much further back than on desktop, to fit his fan.
-const PHONE_CAMERA_PULLBACK = 1.0;
 // The widest the phone band gets (width to height), as crop-kitsune-view.mjs's phone views allow.
 const PHONE_KITSUNE_ASPECT = 1.6;
 const LAYOUT_SETTLE_MS = 400;
@@ -1339,16 +1337,10 @@ export default function CherryBlossomScene({ onLowPerformance }) {
             },
           });
           scene.add(kitsune.root);
+          if (import.meta.env.DEV && window.__cherryScene) window.__cherryScene.kitsune = kitsune;
           const frame = kitsuneFrame();
           kitsune.setAspect(frame.width / frame.height);
-          // On phones, moved across to centre him (keeping desktop's height and angle, looking down
-          // onto the ledge) and further back, so his whole fan fits the band.
-          if (mobileLayout) {
-            const across = kitsune.focus().sub(kitsune.target).setY(0);
-            kitsune.base.add(across);
-            kitsune.target.add(across);
-            kitsune.base.sub(kitsune.target).multiplyScalar(PHONE_CAMERA_PULLBACK).add(kitsune.target);
-          }
+          if (mobileLayout) rig.framePhone(kitsune);
           kitsuneGlow = hologram.createGlowLayer(renderer, scene, kitsune.camera);
           kitsuneGlow.setSize(frame.width, frame.height);
           return renderer.compileAsync(kitsune.root, kitsune.camera, scene);

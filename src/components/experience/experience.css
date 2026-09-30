@@ -800,8 +800,8 @@
     left: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
-    mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 28px), transparent);
   }
   .archon-quests {
     width: 100%;
@@ -837,8 +837,11 @@
     padding: 0 12px 36px;
   }
   .world-quests .gallery-page > * { width: 100% !important; }
-  .scroll-hint { bottom: calc(50svh + 12px); }
-  /* The lore, from the corner of his band (there's no tapping him for it on a phone). */
+  /* Just inside the top of his band, clear of the cards above. */
+  .scroll-hint { bottom: calc(50svh - 30px); }
+  /* The lore, from the corner of his band (there's no tapping him for it on a phone); hidden while
+     it's open. */
+  body[data-lore="open"] .lore-button { opacity: 0; pointer-events: none; }
   .lore-button {
     position: fixed;
     right: 14px;
@@ -853,5 +856,23 @@
     font: 500 16px/1 'Inter Variable', sans-serif;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
+  }
+}
+
+/* Phones with 3D off: the stills where the live band draws him (the bottom half of the visible
+   screen, no wider than 1.6 times its height), centred on where the phone camera looks and brought
+   in as it is (--px, --py, --zoom; StaticKitsune.jsx). --u is the band's view height, as the live
+   camera keeps it. Placed in the same layer as the backdrop, so the light layers still add onto it. */
+@media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
+  .static-kitsune-backdrop { object-position: center bottom; }
+  .static-kitsune-stills {
+    --band: 50svh;
+    --u: min(var(--band), calc(min(100cqw, 80svh) / 0.78));
+    right: auto;
+    bottom: auto;
+    left: calc(50cqw + (var(--x) - var(--px)) * var(--u) * var(--zoom));
+    top: calc(100cqh - var(--band) / 2 + (var(--y) - var(--py)) * var(--u) * var(--zoom));
+    width: calc(var(--w) * var(--u) * var(--zoom));
+    height: calc(var(--h) * var(--u) * var(--zoom));
   }
 }

@@ -28,13 +28,14 @@ const YAWS = [-2.5, 0, 2.5, 5, 7.5, 10, 12.5, 15, 17.5];
 const PITCHES = [-1.2, 0, 1.2];
 const ASPECTS = [0.78, 1, 1.33, 1.6, 1.78, 2, 2.4];
 // Phones (CherryBlossomScene.jsx): the kitsune in a band across the bottom of the screen, the camera
-// moved across to centre him (at desktop's height) and pulled back, without mouse sway. Sampled over a range
+// moved across and down toward him (at desktop's angle) and closer, without mouse sway. Sampled over a range
 // of pull-backs and band shapes (a narrow portrait phone to one held sideways).
 // `node scripts/assets/crop-kitsune-view.mjs phone` writes the phone models (keria-phone.glb,
 // cliff-phone.glb), cropped for these views alone, which only the phone layout loads.
 const PHONE = process.argv[2] === 'phone';
-const PHONE_TARGET = [-0.159, 3.677, -11.7054];
-const PHONE_PULLBACKS = [0.85, 1, 1.2, 1.4];
+// Desktop's target moved across to him and PHONE_CAMERA_DROP (0.45) of the way down to his fan.
+const PHONE_TARGET = [-0.159, 2.2113, -11.7054];
+const PHONE_PULLBACKS = [0.75, 0.8, 0.9];
 const PHONE_ASPECTS = [0.6, 0.78, 0.92, 1.2, 1.6];
 const PHONE_YAWS = [5, 7.5, 10];
 

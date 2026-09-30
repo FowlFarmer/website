@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { cycleGlow, experienceStage, openLore, setHovered } from './experienceStage.js';
+import { MOBILE_SCENE_QUERY, cycleGlow, experienceStage, openLore, setHovered } from './experienceStage.js';
 
 // The kitsune when the live scene is off (3D off): stills baked from the real scene
 // (bakeKitsuneStills.js) over the Fuji backdrop, placed where the live view draws him and shrunk
 // to the bottom-right as the page scrolls, the same as the live one. Each state is two layers, a
 // shade (drawn normally) and its light (added, `plus-lighter`), which stack to the live glow.
 // Hovering a tail (the baked hover map says which) lights it and brings up its role card; the
-// role card's cycle lights its tail too; a click on him opens the lore.
+// role card's cycle lights its tail too; a click on him opens the lore. On phones they sit in the
+// live band across the bottom of the screen instead, centred and brought in as the phone camera
+// is (layout.phone), and a tap picks a tail, held until the next tap (the lore has its own button).
 const BASE = '/kitsune-stills';
 const TAILS = 6;
 // Clicks through the page count; ones on anything that handles its own click don't (as live).
@@ -28,6 +30,7 @@ async function pixelsOf(src, scale = 1) {
 }
 
 export default function StaticKitsune({ shown }) {
+  const [phone] = useState(() => window.matchMedia(MOBILE_SCENE_QUERY).matches);
   const [layout, setLayout] = useState(null);
   const [tailsReady, setTailsReady] = useState(false);
   const stillsRef = useRef(null);
@@ -64,6 +67,7 @@ export default function StaticKitsune({ shown }) {
       return null;
     };
     const pick = () => {
+      if (phone) return;
       const at = pointer && experienceStage.hover ? under(pointer.x, pointer.y) : null;
       const tail = typeof at === 'number' ? at : -1;
       if (tail !== hovered) {
@@ -76,7 +80,14 @@ export default function StaticKitsune({ shown }) {
     const handleLeave = () => { pointer = null; };
     const handleClick = (event) => {
       if (event.target.closest(OWN_CLICKS)) return;
-      if (under(event.clientX, event.clientY) !== null) openLore(event.clientX, event.clientY);
+      const at = under(event.clientX, event.clientY);
+      if (phone) {
+        if (!experienceStage.hover) return;
+        hovered = typeof at === 'number' ? at : -1;
+        setHovered(hovered);
+        return;
+      }
+      if (at !== null) openLore(event.clientX, event.clientY);
     };
 
     const step = (now) => {
@@ -108,10 +119,11 @@ export default function StaticKitsune({ shown }) {
       if (hovered >= 0) setHovered(-1);
       document.body.style.cursor = '';
     };
-  }, [layout, shown]);
+  }, [layout, shown, phone]);
 
   const place = layout && {
     '--x': layout.x, '--y': layout.y, '--w': layout.width, '--h': layout.height, '--s': experienceStage.scale,
+    ...(phone && layout.phone ? { '--px': layout.phone.x, '--py': layout.phone.y, '--zoom': layout.phone.zoom } : {}),
   };
   const layers = (name, refs, index) => ['shade', 'light'].map((kind, k) => (
     <img
@@ -125,15 +137,16 @@ export default function StaticKitsune({ shown }) {
       onLoad={name === 'rest' && kind === 'light' ? () => setTailsReady(true) : undefined}
     />
   ));
+  const stills = layout && (
+    <div ref={stillsRef} className="static-kitsune-stills" style={place}>
+      {layers('rest', layersRef.current.rest, 0)}
+      {tailsReady && Array.from({ length: TAILS }, (_, tail) => layers(`tail-${tail}`, layersRef.current.tails, tail))}
+    </div>
+  );
   return (
     <div className="static-kitsune" data-shown={shown} aria-hidden="true">
-      <img className="static-kitsune-backdrop" src="/images/scene/fuji_hd.jpg" alt="" decoding="async" />
-      {layout && (
-        <div ref={stillsRef} className="static-kitsune-stills" style={place}>
-          {layers('rest', layersRef.current.rest, 0)}
-          {tailsReady && Array.from({ length: TAILS }, (_, tail) => layers(`tail-${tail}`, layersRef.current.tails, tail))}
-        </div>
-      )}
+      <img className="static-kitsune-backdrop" src={phone ? '/images/scene/fuji-mobile.jpg' : '/images/scene/fuji_hd.jpg'} alt="" decoding="async" />
+      {stills}
     </div>
   );
 }

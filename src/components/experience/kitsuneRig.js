@@ -74,6 +74,20 @@ function tailPoseMatrix(frame, pose) {
     .multiply(new THREE.Matrix4().makeTranslation(-frame.anchor.x, -frame.anchor.y, -frame.anchor.z));
 }
 
+// The phone layout's camera (CherryBlossomScene.jsx): desktop's, moved across to centre him and
+// PHONE_CAMERA_DROP of the way down to his fan's middle (keeping its angle, looking down onto the
+// ledge), then brought in to PHONE_CAMERA_DISTANCE of desktop's distance, so his fan fills the
+// band. crop-kitsune-view.mjs's phone views and the 3D-off stills' phone placement follow it.
+export const PHONE_CAMERA_DROP = 0.45;
+export const PHONE_CAMERA_DISTANCE = 0.8;
+export function framePhone(kitsune) {
+  const move = kitsune.focus().sub(kitsune.target);
+  move.y *= PHONE_CAMERA_DROP;
+  kitsune.base.add(move);
+  kitsune.target.add(move);
+  kitsune.base.sub(kitsune.target).multiplyScalar(PHONE_CAMERA_DISTANCE).add(kitsune.target);
+}
+
 // Every tail material in use, so the light tuner (TailLightTuner.jsx) can change them live.
 const liveTailMaterials = new Set();
 export function setColorTuning(color, patch) {

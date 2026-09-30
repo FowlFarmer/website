@@ -40,7 +40,10 @@ export default function Quests() {
   const [archon, setArchon] = useState(true);
   // Hidden until the kitsune starts fading in, unless the scene can't show it (3D off, a phone),
   // or it's taking too long.
-  const [revealed, setRevealed] = useState(() => !experienceStage.supported || experienceStage.shown);
+  // On phones the kitsune only starts loading on arrival (sparing their data), so the page doesn't
+  // wait for him there: he fades into his band when he's ready.
+  const [revealed, setRevealed] = useState(() => !experienceStage.supported || experienceStage.shown
+    || window.matchMedia(MOBILE_SCENE_QUERY).matches);
   // The scroll hint shows until you've scrolled a sixteenth of the screen.
   const [scrolled, setScrolled] = useState(() => window.scrollY > window.innerHeight * HINT_SCROLL_FRACTION);
 
