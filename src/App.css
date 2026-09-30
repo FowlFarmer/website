@@ -2244,6 +2244,15 @@ body[data-lore="open"] .scroll-hint {
   color: #e6e9f0;
 }
 .frame-audit table { border-collapse: collapse; margin-bottom: 8px; }
+.frame-settings { display: grid; gap: 4px; margin-bottom: 10px; }
+.frame-settings strong { color: #b8f5c8; }
+.frame-setting { display: grid; grid-template-columns: 170px 1fr 36px; align-items: center; gap: 8px; }
+.frame-setting--toggle { display: flex; gap: 4px; }
+.frame-setting input[type="range"] { width: 100%; }
+.frame-setting output { text-align: right; }
+.frame-setting select, .frame-settings button { font: inherit; }
+.frame-setting-row { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.frame-settings button { padding: 2px 8px; border: 1px solid #ffffff55; border-radius: 4px; background: #ffffff14; color: inherit; cursor: pointer; }
 .frame-audit th { color: #b8f5c8; font-weight: 600; text-align: left; }
 .frame-audit th, .frame-audit td { padding: 1px 8px 1px 0; vertical-align: top; }
 .frame-audit td:not(:first-child) { text-align: right; }
@@ -2252,4 +2261,29 @@ body[data-lore="open"] .scroll-hint {
 :root[data-audit-no-mask] :is(.page-scroller, .quests) {
   -webkit-mask-image: none !important;
   mask-image: none !important;
+}
+
+/* The shared glass (sharedGlass.js; the preview's render settings): each card shows the one blurred
+   copy of the scene through a window fixed to the screen and clipped to its shape, with its tint on
+   top, instead of blurring its backdrop itself. The page's copy of the scene isn't needed then. */
+:root[data-glass="shared"] [data-glass-window] {
+  isolation: isolate;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+:root[data-glass="shared"] .scene-mirror { display: none; }
+.glass-window {
+  position: absolute;
+  inset: -3px;
+  z-index: -1;
+  border-radius: 12px;
+  clip-path: inset(0 round 12px);
+  pointer-events: none;
+}
+.glass-window canvas { position: fixed; display: block; }
+.glass-window::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--glass-tint, transparent);
 }

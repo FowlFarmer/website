@@ -51,7 +51,12 @@ export function MirrorCanvas() {
 // The scene's frame (`source`, just drawn) into every copy, placed where the scene's canvas is;
 // `loaded`: the scene has loaded, so its canvas has faded in (App.css), and the copies do too.
 export function drawSceneMirrors(source, loaded) {
-  if (!canvases.size || auditOff('glass')) return;
+  if (!canvases.size) return;
+  // Switched off to measure (the preview's render settings): cleared, so the scene shows through.
+  if (auditOff('glass')) {
+    canvases.forEach((canvas) => { if (canvas.width) canvas.width = 0; });
+    return;
+  }
   const rect = source.getBoundingClientRect();
   canvases.forEach((canvas) => {
     if (canvas.width !== source.width || canvas.height !== source.height) {

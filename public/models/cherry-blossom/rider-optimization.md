@@ -26,3 +26,23 @@ Phones and other low-power devices load `bicycle-rider-low.glb`: the same geomet
 ```sh
 node scripts/assets/downscale-glb-textures.mjs public/models/cherry-blossom/bicycle-rider-mobile.glb public/models/cherry-blossom/bicycle-rider-low.glb 1024
 ```
+
+Both are then cut to what the scene's camera can ever see (the far side of the rider and bike,
+about a third of the triangles), with everything kept in exactly its original precision (16-bit
+positions and texture coordinates, losslessly recompressed) and the textures untouched:
+
+```sh
+node scripts/assets/crop-store-view.mjs --write
+node scripts/assets/downscale-glb-textures.mjs public/models/cherry-blossom/bicycle-rider-mobile.glb public/models/cherry-blossom/bicycle-rider-low.glb 1024
+```
+
+The uncut model is kept in `assets/store/originals/`. The store goes through the same script but
+keeps every triangle: all of it is in view, and its materials are double-sided.
+
+The site loads `bicycle-rider-512.glb` (textures fit to 512px) on every device: he's drawn under
+~300px tall even on a big screen. The 2048 and 1024px versions stay, to compare in the frame meter's
+render settings on previews. Made with:
+
+```sh
+node scripts/assets/downscale-glb-textures.mjs public/models/cherry-blossom/bicycle-rider-mobile.glb public/models/cherry-blossom/bicycle-rider-512.glb 512
+```

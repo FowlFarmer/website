@@ -1,16 +1,63 @@
 // Frame timing for the on-screen meter (FrameMeter.jsx), which shows everywhere but Vercel's
-// production site. The 3D scene marks each frame it draws (markFrame) and says what rate it aims
-// for (setTargetFps: 30 on low-power devices; otherwise null, every display frame).
-export const SHOW_FRAME_METER = import.meta.env.VITE_VERCEL_ENV !== 'production';
+// production site, and there too in a tab opened at /lab/performance/... (App.jsx sends that on to
+// the page after it: /lab/performance/quests is the quests page, meter and all, until the tab
+// closes). The 3D scene marks each frame it draws (markFrame) and says what rate it aims for
+// (setTargetFps: 30 on low-power devices; otherwise null, every display frame).
+export const PERFORMANCE_PATH = '/lab/performance';
+function performanceView() {
+  if (typeof window === 'undefined') return false;
+  const asked = location.pathname.startsWith(PERFORMANCE_PATH);
+  try {
+    if (asked) sessionStorage.setItem('performance-view', 'on');
+    return asked || sessionStorage.getItem('performance-view') === 'on';
+  } catch {
+    return asked;
+  }
+}
+export const SHOW_FRAME_METER = import.meta.env.VITE_VERCEL_ENV !== 'production' || performanceView();
 
-// Parts of the page switched off to see what they cost, from the address (not on the production
-// site): ?off=glass,mask,store,petals,kitsune (the glass's scene copy, the scrolling areas' fades,
-// the Lawson store and rider, the foreground petals, the kitsune).
-const OFF = new Set(SHOW_FRAME_METER && typeof location !== 'undefined'
-  ? (new URLSearchParams(location.search).get('off') ?? '').split(',').filter(Boolean)
-  : []);
-export const auditOff = (part) => OFF.has(part);
-if (OFF.has('mask') && typeof document !== 'undefined') document.documentElement.dataset.auditNoMask = '';
+// Render settings to try out (FrameMeter.jsx's panel; not on the production site), remembered on
+// this device; the defaults are the site's own. Parts can also be switched off from the address:
+// ?off=glass,mask,store,petals,kitsune (the glass's scene copy, the scrolling areas' fades, the
+// Lawson store and rider, the falling petals, the kitsune).
+export const TUNING_DEFAULTS = {
+  pixelRatio: null, // null: the site's own (the display's, capped)
+  antialias: true, // takes a reload: it's set when the 3D canvas is made
+  petals: 1, // share of the falling petals drawn
+  glowScale: 1, // the kitsune's glow drawn at this share of the resolution
+  glass: true,
+  store: true,
+  fallingPetals: true,
+  kitsune: true,
+  frameCap: null, // null: the site's own (30 on low-power devices); 0: none
+  riderTextures: null, // null: the site's own; 'mobile' 2048px, 'low' 1024px, '512' 512px (reload)
+  scrolling: 'full', // while the page scrolls: 'full', 'half' (every other frame) or 'paused'
+  glassMode: 'browser', // the cards' glass: 'browser' (each card's backdrop blur) or 'shared' (sharedGlass.js)
+  preciseGpu: false, // each stage its own GPU batch, so its timer times it alone
+};
+const TUNING_KEY = 'render-tuning';
+export const tuning = { ...TUNING_DEFAULTS };
+if (SHOW_FRAME_METER && typeof window !== 'undefined') {
+  try { Object.assign(tuning, JSON.parse(localStorage.getItem(TUNING_KEY) || '{}')); } catch { /* Unavailable or unreadable: the defaults. */ }
+  const off = new Set((new URLSearchParams(location.search).get('off') ?? '').split(',').filter(Boolean));
+  if (off.has('glass')) tuning.glass = false;
+  if (off.has('store')) tuning.store = false;
+  if (off.has('petals')) tuning.fallingPetals = false;
+  if (off.has('kitsune')) tuning.kitsune = false;
+  if (off.has('mask')) document.documentElement.dataset.auditNoMask = '';
+}
+const tuningListeners = new Set();
+export function setTuning(patch) {
+  Object.assign(tuning, patch);
+  try { localStorage.setItem(TUNING_KEY, JSON.stringify(tuning)); } catch { /* As above. */ }
+  tuningListeners.forEach((listener) => listener(tuning));
+}
+export function onTuningChange(listener) {
+  tuningListeners.add(listener);
+  return () => tuningListeners.delete(listener);
+}
+const OFF_PARTS = { glass: 'glass', store: 'store', petals: 'fallingPetals', kitsune: 'kitsune' };
+export const auditOff = (part) => SHOW_FRAME_METER && tuning[OFF_PARTS[part]] === false;
 
 const WINDOW_MS = 2000;
 const marks = [];
@@ -59,6 +106,7 @@ export function createFrameProfiler(gl) {
   profile.gpu = Boolean(timer);
   return {
     begin(name) {
+      if (tuning.preciseGpu) gl.flush();
       started = performance.now();
       if (timer && !open) {
         const query = gl.createQuery();
@@ -72,6 +120,7 @@ export function createFrameProfiler(gl) {
         gl.endQuery(timer.TIME_ELAPSED_EXT);
         pending.push(open);
         open = null;
+        if (tuning.preciseGpu) gl.flush();
       }
     },
     endFrame(frameStart) {
