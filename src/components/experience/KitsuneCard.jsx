@@ -71,10 +71,10 @@ function RoleContent({ role, sizer = false, paired = false }) {
       {role.images?.length > 0 && (
         <div className="kitsune-role-media">
           {sizer
-            ? <div style={{ width: '100%', aspectRatio: paired && role.images.length > 1 ? '8 / 3' : '4 / 3' }} />
+            ? <div style={{ width: '100%', aspectRatio: paired && role.images.length > 1 ? '8 / 3' : role.imageAspect ?? '4 / 3' }} />
             : paired && role.images.length > 1
               ? <PairedImages images={role.images} alt={role.company ?? ''} />
-              : <CyclingImage images={role.images} alt={role.company ?? ''} />}
+              : <CyclingImage images={role.images} alt={role.company ?? ''} aspect={role.imageAspect} />}
         </div>
       )}
     </>

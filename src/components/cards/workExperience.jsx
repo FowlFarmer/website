@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { listedExperiences as experiences } from '../../data/experience.js';
 
-export function CyclingImage({ images, alt }) {
+// `aspect`: the photos' shape (4:3 unless a role gives its own).
+export function CyclingImage({ images, alt, aspect = '4 / 3' }) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
@@ -13,7 +14,7 @@ export function CyclingImage({ images, alt }) {
   }, [images]);
 
   return (
-    <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', borderRadius: '10px', overflow: 'hidden' }}>
+    <div style={{ position: 'relative', width: '100%', aspectRatio: aspect, borderRadius: '10px', overflow: 'hidden' }}>
       {images.map((src, i) => (
         <img
           key={i}

@@ -14,6 +14,8 @@ export const experiences = [
     hologram: ['#ff2238'],
     emphasis: true,
     images: ['/work_experience/tesla_autopilot/tesla_autopilot.webp'],
+    // Its photo is square: shown whole, taller than the others' 4:3.
+    imageAspect: '1 / 1',
     pending: true,
   },
   {
