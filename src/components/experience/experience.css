@@ -885,8 +885,9 @@
   .world-quests .project-fader-controls { width: 80%; margin-top: 26px; }
   /* Just under the cards, beside him in his corner. */
   .scroll-hint { bottom: calc(15svh - 30px); left: 18%; }
-  /* To the right of it, pointing at him. */
-  .tap-hint { left: calc(18% + 62px); }
+  /* To the right of it, pointing at him; gone while the page covers him (Quests.jsx). */
+  .tap-hint { left: calc(18% + 62px); transition: opacity 200ms ease; }
+  .quests[data-full-box] ~ .tap-hint { opacity: 0; }
   /* The lore, from the bottom-left corner (a tap on him skips his card instead); hidden while it's
      open. */
   body[data-lore="open"] .lore-button { opacity: 0; pointer-events: none; }

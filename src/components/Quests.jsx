@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Gallery from './Gallery.jsx';
 import KitsuneCard from './experience/KitsuneCard.jsx';
 import KitsuneLore from './experience/KitsuneLore.jsx';
@@ -25,11 +25,11 @@ const REVEAL_FALLBACK_MS = 8000;
 const HINT_SCROLL_FRACTION = 0.0625;
 // Scrolled further down than this (px), a tap on him goes back up to the role card.
 const TAP_SCROLL_TOP_PX = 40;
-// Phones: the page starts taking the whole screen when the Hack the North card's top is this far
-// down the screen (the foot of the page's usual area), and has fully by FULL_SPAN of the screen's
-// height more scrolling.
+// Phones: the page starts taking the whole screen as the waterloo.careers card appears (its top
+// this far down the screen: the foot of the page's usual area), and has fully once the Hack the
+// North card after it has come FULL_PAST of the screen's height further up.
 const FULL_AT = 0.85;
-const FULL_SPAN = 1;
+const FULL_PAST = 0.33;
 
 function usePhoneLayout() {
   const [phone, setPhone] = useState(() => window.matchMedia(MOBILE_SCENE_QUERY).matches);
@@ -60,8 +60,9 @@ export default function Quests() {
   // Phones: a tap on him moves the role card on, or, scrolled down the page, goes back up to it.
   // The "tap →" hint beside the scroll hint shows until the first.
   const [skips, setSkips] = useState(0);
-  // Phones: whether the page has started taking the whole screen (below).
-  const [full, setFull] = useState(false);
+  // The World Quests cards never need this page's state: made once, so the page's own re-renders
+  // (the role card, the hints) don't re-render all of them mid-scroll.
+  const gallery = useMemo(() => <Gallery />, []);
   const [tapped, setTapped] = useState(false);
   useEffect(() => onKitsuneTap(() => {
     setTapped(true);
@@ -90,16 +91,27 @@ export default function Quests() {
       experienceStage.hover = inArchon;
       experienceStage.scale = phone ? 1 : 1 - 0.5 * Math.min(Math.max(y / height, 0), 1);
       setArchon(inArchon);
-      // Phones: as the Hack the North card comes into view, the page grows to the whole screen,
-      // over him, its new foot fading in with the scroll (experience.css --full-foot). The box
-      // grows while that foot is still invisible, so nothing jumps.
+      // Phones: from the waterloo.careers card appearing to a little past the Hack the North card
+      // (#Ross marks it; the waterloo.careers card is just before), the page grows to the whole
+      // screen, over him, its new foot fading in with the scroll (experience.css --full-foot). The
+      // box grows while that foot is still invisible, so nothing jumps.
       const ross = phone && pageRef.current.querySelector('#Ross');
-      if (ross) {
-        const foot = Math.min(Math.max((window.innerHeight * FULL_AT - ross.getBoundingClientRect().top) / (window.innerHeight * FULL_SPAN), 0), 1);
+      const waterloo = ross?.previousElementSibling;
+      if (waterloo) {
+        // In scroll positions: where the waterloo.careers card's top reaches the line (not before
+        // the top: it can already peek in there), and where the Hack the North card is FULL_PAST
+        // beyond it.
+        const page = pageRef.current;
+        const line = window.innerHeight * FULL_AT - page.getBoundingClientRect().top;
+        const at = (element) => element.getBoundingClientRect().top - page.getBoundingClientRect().top + page.scrollTop - line;
+        const from = Math.max(at(waterloo), 0);
+        const to = at(ross) + window.innerHeight * FULL_PAST;
+        const foot = Math.min(Math.max((page.scrollTop - from) / Math.max(to - from, 1), 0), 1);
         pageRef.current.style.setProperty('--full-foot', foot.toFixed(3));
+        // Set straight on the element (the "tap →" hint hides off it too, experience.css): a
+        // re-render of the whole page here, mid-scroll, cost a visible hitch on phones.
         if (foot > 0) pageRef.current.dataset.fullBox = '';
         else delete pageRef.current.dataset.fullBox;
-        setFull(foot > 0);
       }
     };
     update();
@@ -126,14 +138,14 @@ export default function Quests() {
           <KitsuneCard hovered={hovered} running={archon && revealed} sizeToTallest={phone} skips={skips} />
         </section>
         <section className="world-quests" aria-label="World Quests">
-          <Gallery />
+          {gallery}
         </section>
         {!phone && lore}
         {!phone && hint}
       </div>
       {phone && lore}
       {phone && hint}
-      {phone && revealed && !tapped && !full && <p className="scroll-hint tap-hint" aria-hidden="true">tap →</p>}
+      {phone && revealed && !tapped && <p className="scroll-hint tap-hint" aria-hidden="true">tap →</p>}
       {phone && revealed && (
         <button type="button" className="lore-button" aria-label="Inspo" onClick={() => openLore(0, 0)}>?</button>
       )}
