@@ -11,7 +11,7 @@ import './experience.css';
 const CYCLE_MS = 7000;
 const FIRST = kitsuneTails.findIndex((role) => role.id === 'tesla');
 
-// Phones: the photos two at a time side by side (a lone photo fills both halves), in order, each
+// Phones: the photos two at a time side by side, in order, each
 // pair taking over from the last as CyclingImage's single photos do.
 function PairedImages({ images, alt }) {
   const [first, setFirst] = useState(0);
@@ -21,10 +21,10 @@ function PairedImages({ images, alt }) {
     const id = setInterval(() => setFirst((index) => (index + 2) % count), 2800);
     return () => clearInterval(id);
   }, [count]);
-  const shown = count === 1 ? [0] : [first, (first + 1) % count];
+  const shown = [first, (first + 1) % count];
   // A photo fading out stays on the side it was shown on.
   const sides = useRef([]);
-  shown.forEach((index, slot) => { sides.current[index] = count === 1 ? 'both' : slot ? 'right' : 'left'; });
+  shown.forEach((index, slot) => { sides.current[index] = slot ? 'right' : 'left'; });
   return (
     <div className="kitsune-role-pair">
       {images.map((src, index) => {
@@ -46,7 +46,8 @@ function PairedImages({ images, alt }) {
 }
 
 // One role's card content. As a `sizer` (an invisible stand-in, for sizing) its photos are an
-// empty box of the same shape, so nothing loads. `paired` (phones): its photos two at a time.
+// empty box of the same shape, so nothing loads. `paired` (phones): its photos two at a time (a
+// lone one as it is).
 function RoleContent({ role, sizer = false, paired = false }) {
   return (
     <>
@@ -70,8 +71,8 @@ function RoleContent({ role, sizer = false, paired = false }) {
       {role.images?.length > 0 && (
         <div className="kitsune-role-media">
           {sizer
-            ? <div style={{ width: '100%', aspectRatio: paired ? '8 / 3' : '4 / 3' }} />
-            : paired
+            ? <div style={{ width: '100%', aspectRatio: paired && role.images.length > 1 ? '8 / 3' : '4 / 3' }} />
+            : paired && role.images.length > 1
               ? <PairedImages images={role.images} alt={role.company ?? ''} />
               : <CyclingImage images={role.images} alt={role.company ?? ''} />}
         </div>
