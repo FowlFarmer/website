@@ -8,13 +8,8 @@ import InspoPopup from './InspoPopup.jsx';
 import StaticKitsune from './experience/StaticKitsune.jsx';
 import { onPageScroll, pageScrollY } from './pageScroll.js';
 import { MirrorCanvas, useMirrorHosts } from './sceneMirror.jsx';
+import { onSoundChange, setSoundOn, soundOn } from './soundSetting.js';
 const STORAGE_KEY = 'scene-low-performance';
-
-// Sound on or off, remembered; off until turned on.
-const SOUND_KEY = 'site-sound';
-function storedSound() {
-  try { return localStorage.getItem(SOUND_KEY) === 'on'; } catch { return false; }
-}
 
 // A speaker, with sound waves when on, crossed out when off.
 function SoundIcon({ on }) {
@@ -127,12 +122,9 @@ export default function SceneBackground() {
     setNotice(null);
     try { localStorage.setItem(STORAGE_KEY, String(next)); } catch { /* Storage can be unavailable in private browsing. */ }
   }
-  const [soundOn, setSoundOn] = useState(storedSound);
-  function toggleSound() {
-    const next = !soundOn;
-    setSoundOn(next);
-    try { localStorage.setItem(SOUND_KEY, next ? 'on' : 'off'); } catch { /* Storage can be unavailable in private browsing. */ }
-  }
+  const [sound, setSound] = useState(soundOn);
+  useEffect(() => onSoundChange(setSound), []);
+  const toggleSound = () => setSoundOn(!sound);
   const underNav = navPinned || scrolledPastNav;
   const mirrorHosts = useMirrorHosts();
   // The backdrop's layers again in each masked scrolling area, for its glass to blur (sceneMirror.jsx).
@@ -166,7 +158,7 @@ export default function SceneBackground() {
       visible={!underNav}
       staticMode={staticMode}
       onToggle={toggle}
-      soundOn={soundOn}
+      soundOn={sound}
       onSoundToggle={toggleSound}
       notice={notice}
       noticeVisible={noticeVisible}
@@ -176,7 +168,7 @@ export default function SceneBackground() {
       visible={underNav}
       staticMode={staticMode}
       onToggle={toggle}
-      soundOn={soundOn}
+      soundOn={sound}
       onSoundToggle={toggleSound}
       notice={notice}
       noticeVisible={noticeVisible}

@@ -211,6 +211,28 @@ export function createTailPhysics({ tails, frame, scale = 1 }) {
     chain.previous[node].addScaledVector(delta, weight);
     if (!settling) chain.previous[node].lerp(chain.points[node], CONTACT_FRICTION * Math.min(Math.abs(weight) * 10, 1));
   };
+  // How hard tails meet, for the chimes (kitsuneChimes.js): per pair of tails, the fastest they've
+  // closed on each other at a contact (units per second) since takeImpacts last read it. Tails
+  // resting against each other close at nothing; ones knocked together, fast.
+  const impacts = new Float32Array(chains.length * chains.length);
+  const velocityA = new THREE.Vector3();
+  const velocityB = new THREE.Vector3();
+  const velocityScratch = new THREE.Vector3();
+  // A chain's velocity (per step) at `f` along its nodes (node index plus fraction), into `out`.
+  const velocityAt = (chain, f, out) => {
+    const node = Math.min(Math.floor(f), chain.points.length - 2);
+    const t = f - node;
+    out.subVectors(chain.points[node], chain.previous[node]).multiplyScalar(1 - t);
+    return out.addScaledVector(velocityScratch.subVectors(chain.points[node + 1], chain.previous[node + 1]), t);
+  };
+  const ringNodes = (chain, ring) => Math.min(chain.skin.rings[ring].u * (chain.points.length - 1), chain.points.length - 1 - 1e-4);
+  // A contact between tails i and j closing at `closing` (per step) along the contact normal.
+  const noteImpact = (i, j, closing) => {
+    if (settling || closing <= 0) return;
+    const pair = Math.min(i, j) * chains.length + Math.max(i, j);
+    impacts[pair] = Math.max(impacts[pair], closing / STEP);
+  };
+
   const pointA = new THREE.Vector3();
   const pointB = new THREE.Vector3();
   const collideCores = () => {
@@ -232,6 +254,11 @@ export function createTailPhysics({ tails, frame, scale = 1 }) {
             if (distance >= reach) continue;
             deepest = Math.max(deepest, reach - distance);
             if (distance < 1e-6) push.copy(frame.side); else push.divideScalar(distance);
+            if (!settling) {
+              velocityAt(a, m + s, velocityA);
+              velocityAt(b, n + t, velocityB);
+              noteImpact(i, j, velocityA.sub(velocityB).dot(push));
+            }
             let correction = (reach - distance) * 0.5;
             if (!settling) correction = Math.min(correction * CONTACT_SOFTNESS, maxCorrection);
             shift(a, m, push, -correction * (1 - s));
@@ -263,6 +290,11 @@ export function createTailPhysics({ tails, frame, scale = 1 }) {
               const depth = penetration(point, b, ringB);
               if (!depth) return;
               deepest = Math.max(deepest, depth);
+              if (!settling) {
+                velocityAt(a, ringNodes(a, onRings[0][0]), velocityA);
+                velocityAt(b, (ringNodes(b, ringB) + ringNodes(b, ringB + 1)) / 2, velocityB);
+                noteImpact(i, j, velocityB.sub(velocityA).dot(bestNormal));
+              }
               // Share the correction: A's side moves out, B's segment moves the other way.
               onRings.forEach(([ring, weight]) => nudge(a, ring, push.copy(bestNormal).multiplyScalar(depth * 0.5 * weight)));
               nudge(b, ringB, push.copy(bestNormal).multiplyScalar(-depth * 0.25));
@@ -412,6 +444,17 @@ export function createTailPhysics({ tails, frame, scale = 1 }) {
         clock += STEP;
         step(clock);
         accumulator -= STEP;
+      }
+    },
+    // Each pair of tails that has met since the last call, and how fast they closed (units per
+    // second): calls `hear(i, j, speed)`, then forgets them.
+    takeImpacts(hear) {
+      for (let i = 0; i < chains.length; i += 1) {
+        for (let j = i + 1; j < chains.length; j += 1) {
+          const pair = i * chains.length + j;
+          if (impacts[pair] > 0) hear(i, j, impacts[pair]);
+          impacts[pair] = 0;
+        }
       }
     },
     // A gust at a world position moving with a world velocity (units per second).

@@ -16,6 +16,7 @@ import {
 } from './experience/experienceStage.js';
 import { closeInspo, openInspo } from './lawsonStage.js';
 import { drawSceneMirrors } from './sceneMirror.jsx';
+import { createChimes } from './experience/kitsuneChimes.js';
 
 const EMPTY_POSE = {
   position: [0, 0, 0],
@@ -1320,6 +1321,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     // under the petals, and is lit only by its own lights.
     let kitsune = null;
     let kitsuneGlow = null;
+    let chimes = null;
     let kitsuneLoading = false;
     let kitsuneReady = false;
     let kitsuneWanted = false;
@@ -1339,6 +1341,8 @@ export default function CherryBlossomScene({ onLowPerformance }) {
             },
           });
           scene.add(kitsune.root);
+          chimes = createChimes();
+          if (import.meta.env.DEV && window.__cherryScene) window.__cherryScene.chimes = chimes;
           if (import.meta.env.DEV && window.__cherryScene) window.__cherryScene.kitsune = kitsune;
           const frame = kitsuneFrame();
           if (mobileLayout) kitsune.setPhoneView(frame.width / frame.height);
@@ -1791,6 +1795,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           // The role card's cycling tail lights up and fades out over its turn.
           kitsune.setHighlight(experienceStage.cycleTail, cycleGlow(now));
           kitsune.update(Math.min(windDt, 0.05), now);
+          chimes?.update(kitsune, kitsuneAlpha, Math.min(windDt, 0.05));
           const shown = kitsuneView(viewportWidth, viewportHeight);
           kitsuneGlow.render(shown.x, shown.y, shown.width, shown.height, kitsuneAlpha);
         }
@@ -1830,6 +1835,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       modelFade?.dispose();
       kitsuneGlow?.dispose();
       kitsune?.dispose();
+      chimes?.dispose();
       document.body.style.cursor = '';
       renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
       window.clearTimeout(readyTimer);

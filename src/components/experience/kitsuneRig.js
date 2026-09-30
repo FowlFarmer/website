@@ -554,5 +554,8 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
     clearHover: () => setHovered(-1),
     setHighlight,
     focus: () => kitsune.localToWorld(focus.clone()),
+    // The tails' physics and their length, for the chimes (kitsuneChimes.js).
+    physics,
+    tailLength: TAIL_LENGTH,
   };
 }
