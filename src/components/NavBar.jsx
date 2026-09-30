@@ -1,14 +1,14 @@
 import React from "react";
-import useScrollThresholdFade from "./jias-react-components/tools/useScrollThresholdFade";
+import usePageScrollFade from "./usePageScrollFade.js";
+import { pageScrollTo } from "./pageScroll.js";
 import { Link } from "react-router-dom";
 import { HashLink } from 'react-router-hash-link';
 import { useLocation } from "react-router-dom";
 import { useNavFormation } from "./navFormation.js";
-import { setNavFadeShown } from "./navFade.js";
 
 export default function Navbar() {
   const { pathname } = useLocation();
-  const scrollFade = useScrollThresholdFade(80, Infinity, 300);
+  const scrollFade = usePageScrollFade(80);
   const formation = useNavFormation();
   const alwaysShown = pathname === "/contact" || pathname === "/quests" || pathname.startsWith("/avalon");
   // The name's petals build the bar, then its items fade in: on the home page, and on the way to
@@ -22,7 +22,12 @@ export default function Navbar() {
   const itemsState = formed ? formation.items : scrolled;
   const nav_opacity = formed || home ? undefined : alwaysShown ? { opacity: 1 } : scrollFade;
   const barShown = formed || home ? barState : alwaysShown || scrolled;
-  React.useEffect(() => setNavFadeShown(barShown), [barShown]);
+  // The page fades out under the bar while it shows (.page-scroller, App.css).
+  React.useEffect(() => {
+    if (!barShown) return undefined;
+    document.documentElement.dataset.navFade = "";
+    return () => { delete document.documentElement.dataset.navFade; };
+  }, [barShown]);
   return (
     <nav className="navbar">
       <div
@@ -40,7 +45,7 @@ export default function Navbar() {
             // Already home: scroll back to the top instead of re-navigating.
             if (pathname === "/self") {
               e.preventDefault();
-              window.scrollTo({ top: 0, behavior: "smooth" });
+              pageScrollTo({ top: 0, behavior: "smooth" });
             }
           }}
         >

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Gallery from './Gallery.jsx';
 import KitsuneCard from './experience/KitsuneCard.jsx';
 import KitsuneLore from './experience/KitsuneLore.jsx';
+import { onPageScroll, pageScrollY } from './pageScroll.js';
 import {
   MOBILE_SCENE_QUERY, experienceStage, onHoveredChange, onKitsuneShown, openLore,
 } from './experience/experienceStage.js';
@@ -45,7 +46,7 @@ export default function Quests() {
   const [revealed, setRevealed] = useState(() => !experienceStage.supported || experienceStage.shown
     || window.matchMedia(MOBILE_SCENE_QUERY).matches);
   // The scroll hint shows until you've scrolled a sixteenth of the screen.
-  const [scrolled, setScrolled] = useState(() => window.scrollY > window.innerHeight * HINT_SCROLL_FRACTION);
+  const [scrolled, setScrolled] = useState(() => pageScrollY() > window.innerHeight * HINT_SCROLL_FRACTION);
 
   useEffect(() => onHoveredChange(setHovered), []);
   useEffect(() => {
@@ -58,11 +59,10 @@ export default function Quests() {
   }, [revealed]);
 
   useEffect(() => {
-    // Phones scroll the page's own area; elsewhere the window scrolls.
-    const scroller = phone ? pageRef.current : window;
+    // Phones scroll the page's own area; elsewhere the page scrolls (pageScroll.js).
     const position = () => (phone
       ? { y: pageRef.current.scrollTop, height: pageRef.current.clientHeight }
-      : { y: window.scrollY, height: window.innerHeight });
+      : { y: pageScrollY(), height: window.innerHeight });
     const update = () => {
       const { y, height } = position();
       if (y > height * HINT_SCROLL_FRACTION) setScrolled(true);
@@ -72,9 +72,11 @@ export default function Quests() {
       setArchon(inArchon);
     };
     update();
-    scroller.addEventListener('scroll', update, { passive: true });
+    const scroller = pageRef.current;
+    if (phone) scroller.addEventListener('scroll', update, { passive: true });
+    const stopFollowing = phone ? () => scroller.removeEventListener('scroll', update) : onPageScroll(update);
     return () => {
-      scroller.removeEventListener('scroll', update);
+      stopFollowing();
       // The kitsune keeps its size while it fades out; the scene switches back to the store with
       // the address (App.jsx).
       experienceStage.hover = true;

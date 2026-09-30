@@ -18,6 +18,7 @@ const Avalon = lazy(() => import('./components/Avalon.jsx'));
 const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard.jsx'));
 import SceneBackground from './components/SceneBackground.jsx';
 import { experienceStage } from './components/experience/experienceStage.js';
+import { pageScrollTo } from './components/pageScroll.js';
 
 // Dev only: bake the 3D-off kitsune stills (components/experience/bakeKitsuneStills.js).
 if (import.meta.env.DEV) {
@@ -39,6 +40,9 @@ function FadeRoutes() {
   const [shown, setShown] = useState(location);
   const [leaving, setLeaving] = useState(false);
   const mainRef = useRef(null);
+  const scrollerRef = useRef(null);
+  // Desktop pages scroll in .page-scroller (pageScroll.js): focused, so the keyboard scrolls it.
+  useEffect(() => { scrollerRef.current.focus({ preventScroll: true }); }, []);
 
   // The scene behind switches with the address, as the old page starts fading, not once it's gone:
   // the kitsune behind the quests, the Lawson store everywhere else.
@@ -69,7 +73,7 @@ function FadeRoutes() {
     const swap = () => {
       main.removeEventListener('transitionend', onFaded);
       window.clearTimeout(fallback);
-      window.scrollTo({ top: 0, behavior: 'instant' });
+      pageScrollTo({ top: 0, behavior: 'instant' });
       setShown(location);
       setLeaving(false);
     };
@@ -85,6 +89,7 @@ function FadeRoutes() {
   }, [location]);
 
   return (
+    <div className="page-scroller" ref={scrollerRef} tabIndex={-1}>
     <main
       ref={mainRef}
       className={`main-content${shown.pathname === '/avalon' ? ' main-content--archive' : ''}`}
@@ -106,6 +111,7 @@ function FadeRoutes() {
         <Route path="*" element={<Suspense fallback={null}><Gallery /></Suspense>} />
       </Routes>
     </main>
+    </div>
   );
 }
 

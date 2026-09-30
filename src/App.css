@@ -1172,6 +1172,39 @@ text-align: left;
   margin: 0 auto;
 }
 
+/* Desktop pages scroll in here rather than the window (pageScroll.js), so the fade under the menu
+   bar holds still on screen: what passes under the bar is hidden, fading in over 16px below its
+   bottom edge (.navbar-styles: 10px down, 36px tall). --nav-fade eases in while the bar shows
+   (NavBar.jsx), so there's none over the home page's name. Phones scroll the window, as before. */
+@property --nav-fade {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+.page-scroller {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  overflow-x: hidden;
+  overflow-y: auto;
+  outline: none;
+  --nav-fade: 0;
+  transition: --nav-fade 350ms ease;
+  -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / calc(1 - var(--nav-fade))) 46px, #000 62px);
+  mask-image: linear-gradient(to bottom, rgb(0 0 0 / calc(1 - var(--nav-fade))) 46px, #000 62px);
+}
+:root[data-nav-fade] .page-scroller { --nav-fade: 1; }
+body[data-lore="open"] .page-scroller { --nav-fade: 0; }
+@media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
+  .page-scroller {
+    position: static;
+    z-index: auto;
+    overflow: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
 .main-content:has(.avalon-blog) {
   display: block;
   width: 100%;

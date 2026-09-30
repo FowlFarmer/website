@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import useScrollThresholdFade from './jias-react-components/tools/useScrollThresholdFade.jsx';
+import usePageScrollFade from './usePageScrollFade.js';
+import { onPageScroll, pageScrollY } from './pageScroll.js';
 import DBHCard from './cards/dbh.jsx';
 import { Link, useNavigate } from 'react-router-dom';
 import { formNav } from './navFormation.js';
@@ -13,11 +14,11 @@ import Macbook from './jias-react-components/tools/Macbook.jsx';
 
 function homePanelsAreVisible() {
     if (typeof window === "undefined") return 0;
-    return (window.scrollY || 0) >= 80 ? 1 : 0;
+    return pageScrollY() >= 80 ? 1 : 0;
 }
 
 export default function Self() {
-    const first_blob_opacity = useScrollThresholdFade(-1, 300, 300);
+    const first_blob_opacity = usePageScrollFade(-1, 300);
     const [homePanelOpacity, setHomePanelOpacity] = useState(homePanelsAreVisible);
     const navigate = useNavigate();
     // The name flies up into the menu bar (as on scrolling) while the quests open.
@@ -31,8 +32,7 @@ export default function Self() {
     useEffect(() => {
         const update = () => setHomePanelOpacity(homePanelsAreVisible());
         update();
-        window.addEventListener("scroll", update, { passive: true });
-        return () => window.removeEventListener("scroll", update);
+        return onPageScroll(update);
     }, []);
 
     return (
