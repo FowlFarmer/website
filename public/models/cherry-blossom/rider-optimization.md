@@ -39,8 +39,9 @@ node scripts/assets/downscale-glb-textures.mjs public/models/cherry-blossom/bicy
 The uncut model is kept in `assets/store/originals/`. The store goes through the same script but
 keeps every triangle: all of it is in view, and its materials are double-sided.
 
-`bicycle-rider-512.glb` (textures fit to 512px) is only a trial, chosen from the frame meter's render
-settings on previews:
+The site loads `bicycle-rider-512.glb` (textures fit to 512px) on every device: he's drawn under
+~300px tall even on a big screen. The 2048 and 1024px versions stay, to compare in the frame meter's
+render settings on previews. Made with:
 
 ```sh
 node scripts/assets/downscale-glb-textures.mjs public/models/cherry-blossom/bicycle-rider-mobile.glb public/models/cherry-blossom/bicycle-rider-512.glb 512

@@ -1094,11 +1094,12 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         material.dispose();
       });
     });
-    // Phones and other low-power devices get the rider with quarter-size textures: it's drawn
-    // small there, and its 2048px textures took ~64 MB of GPU memory.
+    // The rider with 512px textures everywhere: he's drawn under ~300px tall even on a big screen,
+    // and the 2048px ones took ~64 MB of GPU memory (the 2048 and 1024px versions stay, to compare
+    // in the frame meter's render settings).
     const loadModelAssets = () => Promise.all([
       loader.loadAsync('/models/lawson/lawson-mobile.glb'),
-      loader.loadAsync(`/models/cherry-blossom/bicycle-rider-${(SHOW_FRAME_METER && tuning.riderTextures) || (lowPower || mobileLayout ? 'low' : 'mobile')}.glb`),
+      loader.loadAsync(`/models/cherry-blossom/bicycle-rider-${(SHOW_FRAME_METER && tuning.riderTextures) || '512'}.glb`),
     ]);
     const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
     // The scene's saved framing: the default, then any pose saved from the editor.
