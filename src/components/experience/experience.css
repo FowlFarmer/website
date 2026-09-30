@@ -787,3 +787,71 @@
 .tail-light-colour { display: grid; gap: 4px; }
 .tail-light-colour > p { display: flex; align-items: center; gap: 6px; opacity: 1; }
 .tail-light-colour > p span { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.5); }
+
+/* Phones (the scene's phone layout, experienceStage.js MOBILE_SCENE_QUERY): the kitsune is a fixed
+   band across the bottom half of the screen, so the quests page scrolls in its own area between
+   the menu bar and his band, fading out sharply just above his head. The cards stack full width. */
+@media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
+  .quests {
+    position: fixed;
+    top: 54px;
+    right: 0;
+    bottom: 50svh;
+    left: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+  }
+  .archon-quests {
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 8px 12px 20px;
+  }
+  /* As tall as the tallest role's card (KitsuneCard's invisible sizers share its one grid cell),
+     so World Quests below stay put as the card changes. */
+  .kitsune-role-slot {
+    position: relative;
+    top: auto;
+    left: auto;
+    display: grid;
+    width: 100%;
+    transform: none;
+  }
+  .kitsune-role-slot > * {
+    grid-area: 1 / 1;
+    align-self: start;
+  }
+  .kitsune-role-sizer { visibility: hidden; }
+  .kitsune-role {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 44px 16px 18px;
+  }
+  .kitsune-role-media { flex: none; width: 100%; }
+  .world-quests {
+    width: 100%;
+    margin: 0;
+    padding: 0 12px 36px;
+  }
+  .world-quests .gallery-page > * { width: 100% !important; }
+  .scroll-hint { bottom: calc(50svh + 12px); }
+  /* The lore, from the corner of his band (there's no tapping him for it on a phone). */
+  .lore-button {
+    position: fixed;
+    right: 14px;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    z-index: 50;
+    width: 34px;
+    height: 34px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    background: rgba(24, 31, 45, 0.35);
+    color: #fff;
+    font: 500 16px/1 'Inter Variable', sans-serif;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+}

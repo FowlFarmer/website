@@ -11,6 +11,7 @@ import { createPetalWind } from './petalWind.mjs';
 import { sceneViewport } from './sceneViewport.mjs';
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 import {
+  MOBILE_SCENE_QUERY, PHONE_KITSUNE_SHARE,
   closeLore, cycleGlow, experienceStage, openLore, setHovered as setKitsuneHovered, setKitsuneShown,
 } from './experience/experienceStage.js';
 import { closeInspo, openInspo } from './lawsonStage.js';
@@ -94,7 +95,6 @@ const BACKDROP_COVER_OVERSCAN = 1.045;
 const BACKDROP_COVER_MAX_SCALE = 256;
 const BACKDROP_COVER_POINTER_STEPS = [-1, 0, 1];
 const BACKDROP_COVER_BOB_STEPS = [-1, 0, 1];
-const MOBILE_SCENE_QUERY = '(max-width: 767px), (pointer: coarse) and (max-width: 1024px)';
 // Desktop renders at the display's full pixel ratio, so the kitsune stays sharp.
 const DESKTOP_PIXEL_RATIO_CAP = Infinity;
 // The quests page's kitsune draws on its own layer, with its own camera and lights.
@@ -104,6 +104,10 @@ const FADE_MS = 450;
 // How long after the scene is up (and the page is idle) the kitsune loads in the background, so the
 // quests page has nothing left to load.
 const KITSUNE_PRELOAD_MS = 2500;
+// On phones the kitsune's camera sits this much further back than on desktop, to fit his fan.
+const PHONE_CAMERA_PULLBACK = 1.0;
+// The widest the phone band gets (width to height), as crop-kitsune-view.mjs's phone views allow.
+const PHONE_KITSUNE_ASPECT = 1.6;
 const LAYOUT_SETTLE_MS = 400;
 
 // A pass drawn into its own buffer, then onto the screen inside a viewport at an opacity, tone
@@ -621,7 +625,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     renderer.setPixelRatio(captureMode ? (mobileLayout ? 2 : 1) : Math.min(window.devicePixelRatio, lowPower ? 1.1 : DESKTOP_PIXEL_RATIO_CAP));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     // The quests page's kitsune shows on desktop only, for now.
-    experienceStage.supported = !mobileLayout;
+    experienceStage.supported = true;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.94;
@@ -1104,7 +1108,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     // Arriving straight on the quests page, the store and rider are hidden behind the kitsune: the
     // backdrop comes up alone so the kitsune can load first, and the store, rider and their
     // lighting follow once it's showing (or at once, heading home). Anywhere else, all together.
-    const modelsFirst = !(window.location.pathname === '/quests' && !mobileLayout);
+    const modelsFirst = window.location.pathname !== '/quests';
     // Drawn only once their shaders are compiled, in the background (compiling them on their
     // first frame froze the page for a couple of seconds on a first visit).
     let modelsReady = false;
@@ -1188,6 +1192,12 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         setupModels(models);
         applySavedPose();
         measureStoreWidth();
+        // The saved pose puts the backdrop back where desktop has it; phones frame it themselves
+        // (afresh: the camera it was last framed for hasn't moved, so it would skip).
+        if (mobileLayout) {
+          mobileBackdropReady = false;
+          frameMobileBackdrop();
+        }
         await compileModels();
         if (!disposed) modelsReady = true;
       }).catch((error) => console.error('Unable to load the convenience store scene.', error));
@@ -1267,8 +1277,9 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         }
 
         mount.dataset.sceneLoaded = 'true';
-        // Load the kitsune in the background once the page has settled, so the quests page doesn't.
-        preloadTimer = window.setTimeout(() => {
+        // Load the kitsune in the background once the page has settled, so the quests page doesn't
+        // wait for it. Not on phones: there it waits for the quests page, sparing their data.
+        if (!mobileLayout) preloadTimer = window.setTimeout(() => {
           (window.requestIdleCallback ?? ((callback) => callback()))(() => { kitsuneWanted = true; }, { timeout: 3000 });
         }, KITSUNE_PRELOAD_MS);
         readyTimer = window.setTimeout(
@@ -1318,7 +1329,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     const loadKitsune = () => {
       kitsuneLoading = true;
       Promise.all([import('./experience/kitsuneRig.js'), import('./experience/kitsuneHologram.js')])
-        .then(([rig, hologram]) => rig.loadKitsuneAssets(loader).then((assets) => {
+        .then(([rig, hologram]) => rig.loadKitsuneAssets(loader, { phone: mobileLayout }).then((assets) => {
           if (disposed) return undefined;
           kitsune = rig.createKitsune(assets, {
             layer: KITSUNE_LAYER,
@@ -1328,9 +1339,18 @@ export default function CherryBlossomScene({ onLowPerformance }) {
             },
           });
           scene.add(kitsune.root);
-          kitsune.setAspect(viewportWidth / viewportHeight);
+          const frame = kitsuneFrame();
+          kitsune.setAspect(frame.width / frame.height);
+          // On phones, moved across to centre him (keeping desktop's height and angle, looking down
+          // onto the ledge) and further back, so his whole fan fits the band.
+          if (mobileLayout) {
+            const across = kitsune.focus().sub(kitsune.target).setY(0);
+            kitsune.base.add(across);
+            kitsune.target.add(across);
+            kitsune.base.sub(kitsune.target).multiplyScalar(PHONE_CAMERA_PULLBACK).add(kitsune.target);
+          }
           kitsuneGlow = hologram.createGlowLayer(renderer, scene, kitsune.camera);
-          kitsuneGlow.setSize(viewportWidth, viewportHeight);
+          kitsuneGlow.setSize(frame.width, frame.height);
           return renderer.compileAsync(kitsune.root, kitsune.camera, scene);
         }))
         .then(() => {
@@ -1362,9 +1382,23 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     // Where the kitsune's view sits on screen, in CSS pixels from the bottom left: scaled down
     // about the bottom-right corner.
     const kitsuneShown = () => kitsune && kitsuneAlpha > 0;
+    // On phones he's a fixed band across the bottom of the visible screen instead (above any part
+    // of the canvas under Safari's toolbar), and doesn't shrink.
     const kitsuneView = (width, height) => {
+      if (mobileLayout) {
+        const inset = Math.max(0, viewportHeight - safeViewportHeight);
+        const bandHeight = Math.round(safeViewportHeight * PHONE_KITSUNE_SHARE);
+        // No wider than PHONE_KITSUNE_ASPECT (a phone on its side), centred.
+        const bandWidth = Math.min(width, Math.round(bandHeight * PHONE_KITSUNE_ASPECT));
+        return { x: Math.round((width - bandWidth) / 2), y: inset, width: bandWidth, height: bandHeight };
+      }
       const { scale } = experienceStage;
       return { x: (1 - scale) * width, y: 0, width: width * scale, height: height * scale };
+    };
+    // The kitsune's view at full size, which his camera and glow are sized to.
+    const kitsuneFrame = () => {
+      const { width, height } = kitsuneView(viewportWidth, viewportHeight);
+      return mobileLayout ? { width, height } : { width: viewportWidth, height: viewportHeight };
     };
     // The pointer over the kitsune's view, -1 to 1 each way, or null when it's off the view.
     const kitsuneAt = (event) => {
@@ -1388,6 +1422,12 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     const handleKitsuneClick = (event) => {
       if (event.target.closest('a, button, input, textarea, select, label, video, iframe, dialog, [role="button"], [role="dialog"], [contenteditable], .media-frame, .navbar, .scene-editor-panel, .kitsune-tuner, .scene-performance-control, .popup-backdrop')) return;
       const at = kitsuneAt(event);
+      // On phones there's no hover: a tap on the kitsune picks the tail under it (its archon quest
+      // shows) and holds it until the next tap; the lore opens from its own button (Quests.jsx).
+      if (at && mobileLayout) {
+        if (experienceStage.hover) kitsune.pointer(at.x, at.y, event.timeStamp, true);
+        return;
+      }
       if (at && kitsune.hits(at.x, at.y)) openLore(event.clientX, event.clientY);
       else if (lawsonHit(event)) openInspo();
     };
@@ -1598,8 +1638,9 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       );
       renderer.setPixelRatio(captureMode ? (mobileLayout ? 2 : 1) : Math.min(window.devicePixelRatio, lowPower ? 1.1 : DESKTOP_PIXEL_RATIO_CAP));
       renderer.setSize(width, height);
-      kitsune?.setAspect(width / height);
-      kitsuneGlow?.setSize(width, height);
+      const frame = kitsuneFrame();
+      kitsune?.setAspect(frame.width / frame.height);
+      kitsuneGlow?.setSize(frame.width, frame.height);
       if (mobileLayout) frameMobileBackdrop();
       updateBackdropCover();
     };
@@ -1633,7 +1674,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       pointer.lerp(targetPointer, 0.035);
       if (captureMode) pointer.set(0, 0);
       const windDt = (now - lastWindFrameAt) / 1000;
-      if (!kitsune && !kitsuneLoading && (kitsuneWanted || experienceStage.show === 'kitsune') && !mobileLayout && mount.dataset.sceneLoaded === 'true') loadKitsune();
+      if (!kitsune && !kitsuneLoading && (kitsuneWanted || experienceStage.show === 'kitsune') && mount.dataset.sceneLoaded === 'true') loadKitsune();
       // Deferred store and rider: at once when heading home, else once the kitsune has been up a
       // while and the page is idle.
       if (!modelsRequested && mount.dataset.sceneLoaded === 'true') {

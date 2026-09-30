@@ -122,6 +122,9 @@ export default function CalligraphyName() {
     };
 
     const resize = () => {
+      // Taken off the page (leaving home), the banner measures 0 wide: keep its last size, which
+      // the name's petals flying up into the menu bar are still drawn at.
+      if (!wrapper.clientWidth) return;
       const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
       unitScale = wrapper.clientWidth / VIEW_WIDTH;
       const cssWidth = (VIEW_WIDTH + BLEED * 2) * unitScale;

@@ -57,7 +57,7 @@ export const COLOR_TUNING = {
 // Where the tails sit relative to him, all moved as one piece: metres across (x), up (y) and back
 // (z) in his own frame, and a turn in degrees about his tailbone (yaw about his up, pitch about
 // his side, roll about his back). Tuned live in the scene editor (TailPoseTuner.jsx).
-export const TAIL_POSE = { x: -0.28, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0 };
+export const TAIL_POSE = { x: -0.13, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0 };
 const liveKitsunes = new Set();
 export function setTailPose(patch) {
   Object.assign(TAIL_POSE, patch);
@@ -107,8 +107,10 @@ const SWAY_YAW_RIGHT = THREE.MathUtils.degToRad(17.5);
 const SWAY_PITCH = THREE.MathUtils.degToRad(1.2);
 const SWAY_EASE = 3;
 
-export function loadKitsuneAssets(loader) {
-  return Promise.all([MODEL_URL, TAIL_URL, CLIFF_URL, ...BLOSSOM_URLS].map((url) => loader.loadAsync(url)));
+// `phone`: the figure and rock cropped for the phone layout's camera instead (crop-kitsune-view.mjs).
+export function loadKitsuneAssets(loader, { phone = false } = {}) {
+  const phoneVersion = (url) => (phone ? url.replace(/\.glb$/, '-phone.glb') : url);
+  return Promise.all([phoneVersion(MODEL_URL), TAIL_URL, phoneVersion(CLIFF_URL), ...BLOSSOM_URLS].map((url) => loader.loadAsync(url)));
 }
 
 // A seeded random source, so the blossoms land in the same places every visit.

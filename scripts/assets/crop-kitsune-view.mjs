@@ -27,11 +27,22 @@ const DEFAULT_CAMERA = { position: [0.79, 1.479, 7.519], target: [-4.598, 3.677,
 const YAWS = [-2.5, 0, 2.5, 5, 7.5, 10, 12.5, 15, 17.5];
 const PITCHES = [-1.2, 0, 1.2];
 const ASPECTS = [0.78, 1, 1.33, 1.6, 1.78, 2, 2.4];
+// Phones (CherryBlossomScene.jsx): the kitsune in a band across the bottom of the screen, the camera
+// moved across to centre him (at desktop's height) and pulled back, without mouse sway. Sampled over a range
+// of pull-backs and band shapes (a narrow portrait phone to one held sideways).
+// `node scripts/assets/crop-kitsune-view.mjs phone` writes the phone models (keria-phone.glb,
+// cliff-phone.glb), cropped for these views alone, which only the phone layout loads.
+const PHONE = process.argv[2] === 'phone';
+const PHONE_TARGET = [-0.159, 3.677, -11.7054];
+const PHONE_PULLBACKS = [0.85, 1, 1.2, 1.4];
+const PHONE_ASPECTS = [0.6, 0.78, 0.92, 1.2, 1.6];
+const PHONE_YAWS = [5, 7.5, 10];
 
-// World placements of each mesh in the running scene, keyed by node name.
+// World placements of each mesh in the running scene, keyed by node name: read with the original
+// (uncompressed) models loaded, since compressing them folds an offset and scale into their nodes.
 const PLACEMENTS = {
   keria: {
-    '': [-0.181638, 0, 0.934447, 0, 0, 0.951936, 0, 0, -0.934447, 0, -0.181638, 0, -0.760563, -0.456936, -12.618116, 1],
+    '': [-0.181638, 0, 0.934447, 0, 0, 0.951936, 0, 0, -0.934447, 0, -0.181638, 0, -0.760563, -0.496936, -12.618116, 1],
   },
   cliff: {
     'Cliff_Stone': [-8.031453, 0, -6.535787, 0, 0, 10.354745, 0, 0, 6.535787, 0, -8.031453, 0, 1.754251, -8.908831, -5.685424, 1],
@@ -41,27 +52,34 @@ const PLACEMENTS = {
 };
 
 // Every camera the scene can show: kitsuneRig.js's framing, its field of view per aspect, and its
-// mouse sway (turning about the target).
+// mouse sway (turning about the target); or, for the phone models, the phone framing.
 function cameras() {
-  const base = new THREE.Vector3().fromArray(DEFAULT_CAMERA.position);
-  const target = new THREE.Vector3().fromArray(DEFAULT_CAMERA.target);
+  const offset = new THREE.Vector3().fromArray(DEFAULT_CAMERA.position).sub(new THREE.Vector3().fromArray(DEFAULT_CAMERA.target));
+  const framings = PHONE
+    ? [{ target: PHONE_TARGET, pullbacks: PHONE_PULLBACKS, aspects: PHONE_ASPECTS, yaws: PHONE_YAWS, pitches: [0] }]
+    : [{ target: DEFAULT_CAMERA.target, pullbacks: [1], aspects: ASPECTS, yaws: YAWS, pitches: PITCHES }];
   const list = [];
-  for (const aspect of ASPECTS) {
-    for (const yaw of YAWS) {
-      for (const pitch of PITCHES) {
-        const camera = new THREE.PerspectiveCamera(30, aspect, 0.05, 80);
-        camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(15)) * Math.max(1, 0.78 / aspect)));
-        camera.updateProjectionMatrix();
-        const offset = base.clone().sub(target);
-        const right = new THREE.Vector3().crossVectors(offset, camera.up).normalize();
-        offset.applyAxisAngle(camera.up, THREE.MathUtils.degToRad(yaw)).applyAxisAngle(right, THREE.MathUtils.degToRad(pitch));
-        camera.position.copy(target).add(offset);
-        camera.lookAt(target);
-        camera.updateMatrixWorld();
-        list.push({
-          position: camera.position.clone(),
-          viewProjection: new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse),
-        });
+  for (const framing of framings) {
+    const target = new THREE.Vector3().fromArray(framing.target);
+    for (const pullback of framing.pullbacks) {
+      for (const aspect of framing.aspects) {
+        for (const yaw of framing.yaws) {
+          for (const pitch of framing.pitches) {
+            const camera = new THREE.PerspectiveCamera(30, aspect, 0.05, 80);
+            camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(15)) * Math.max(1, 0.78 / aspect)));
+            camera.updateProjectionMatrix();
+            const turned = offset.clone().multiplyScalar(pullback);
+            const right = new THREE.Vector3().crossVectors(turned, camera.up).normalize();
+            turned.applyAxisAngle(camera.up, THREE.MathUtils.degToRad(yaw)).applyAxisAngle(right, THREE.MathUtils.degToRad(pitch));
+            camera.position.copy(target).add(turned);
+            camera.lookAt(target);
+            camera.updateMatrixWorld();
+            list.push({
+              position: camera.position.clone(),
+              viewProjection: new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse),
+            });
+          }
+        }
       }
     }
   }
@@ -252,8 +270,8 @@ for (const [name, checkFacing, blankTextures] of [['keria', true, false], ['clif
     // The cliff as optimize-kitsune-cliff.mjs compresses it.
     await document.transform(prune(), meshopt({ encoder: MeshoptEncoder, level: 'high' }));
   }
-  const output = `public/models/kitsune/${name}.glb`;
+  const output = `public/models/kitsune/${name}${PHONE ? "-phone" : ""}.glb`;
   await io.write(output, document);
   const [was, now] = [(await stat(`assets/kitsune/originals/${name}.glb`)).size, (await stat(output)).size];
-  console.log(`${name}.glb: ${(was / 1024 / 1024).toFixed(2)} MB → ${(now / 1024 / 1024).toFixed(2)} MB`);
+  console.log(`${output}: ${(was / 1024 / 1024).toFixed(2)} MB → ${(now / 1024 / 1024).toFixed(2)} MB`);
 }

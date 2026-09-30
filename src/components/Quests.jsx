@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Gallery from './Gallery.jsx';
 import KitsuneCard from './experience/KitsuneCard.jsx';
 import KitsuneLore from './experience/KitsuneLore.jsx';
-import { experienceStage, onHoveredChange, onKitsuneShown } from './experience/experienceStage.js';
+import {
+  MOBILE_SCENE_QUERY, experienceStage, onHoveredChange, onKitsuneShown, openLore,
+} from './experience/experienceStage.js';
 import './experience/experience.css';
 
 // The quests page, always over the kitsune: the Lawson scene behind the site shows the kitsune in
@@ -11,12 +13,29 @@ import './experience/experience.css';
 // below, where the tails only catch the wind. Over that first screen of scrolling, the kitsune
 // shrinks to half size in the bottom-right corner. Arriving, the store fades out and the page waits
 // for the kitsune, then both fade in together.
+// On phones the kitsune is a fixed band across the bottom of the screen that never shrinks: the
+// page scrolls in its own area above him, fading out just before his head (experience.css). There's
+// no hover, so a tap on a tail picks its archon quest (CherryBlossomScene.jsx), and the lore opens
+// from a button in the corner instead of a tap on him.
 // Show the page anyway if the kitsune hasn't come in by then (a slow connection, a failed load).
 const REVEAL_FALLBACK_MS = 8000;
 // How far down, as a fraction of the screen height, before the scroll hint goes away.
 const HINT_SCROLL_FRACTION = 0.0625;
 
+function usePhoneLayout() {
+  const [phone, setPhone] = useState(() => window.matchMedia(MOBILE_SCENE_QUERY).matches);
+  useEffect(() => {
+    const query = window.matchMedia(MOBILE_SCENE_QUERY);
+    const update = () => setPhone(query.matches);
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+  return phone;
+}
+
 export default function Quests() {
+  const phone = usePhoneLayout();
+  const pageRef = useRef(null);
   const [hovered, setHovered] = useState(-1);
   const [archon, setArchon] = useState(true);
   // Hidden until the kitsune starts fading in, unless the scene can't show it (3D off, a phone),
@@ -34,33 +53,50 @@ export default function Quests() {
   }, [revealed]);
 
   useEffect(() => {
+    // Phones scroll the page's own area; elsewhere the window scrolls.
+    const scroller = phone ? pageRef.current : window;
+    const position = () => (phone
+      ? { y: pageRef.current.scrollTop, height: pageRef.current.clientHeight }
+      : { y: window.scrollY, height: window.innerHeight });
     const update = () => {
-      if (window.scrollY > window.innerHeight * HINT_SCROLL_FRACTION) setScrolled(true);
-      const inArchon = window.scrollY < window.innerHeight / 2;
+      const { y, height } = position();
+      if (y > height * HINT_SCROLL_FRACTION) setScrolled(true);
+      const inArchon = y < height / 2;
       experienceStage.hover = inArchon;
-      experienceStage.scale = 1 - 0.5 * Math.min(Math.max(window.scrollY / window.innerHeight, 0), 1);
+      experienceStage.scale = phone ? 1 : 1 - 0.5 * Math.min(Math.max(y / height, 0), 1);
       setArchon(inArchon);
     };
     update();
-    window.addEventListener('scroll', update, { passive: true });
+    scroller.addEventListener('scroll', update, { passive: true });
     return () => {
-      window.removeEventListener('scroll', update);
+      scroller.removeEventListener('scroll', update);
       // The kitsune keeps its size while it fades out; the scene switches back to the store with
       // the address (App.jsx).
       experienceStage.hover = true;
     };
-  }, []);
+  }, [phone]);
 
+  // The lore and the scroll hint sit inside the page, fading with it; on phones they go outside
+  // its scrolling area instead, which would fade them out at its bottom edge.
+  const lore = <KitsuneLore />;
+  const hint = !scrolled && <p className="scroll-hint" aria-hidden="true">↓ scroll</p>;
   return (
-    <div className="quests" data-revealed={revealed}>
-      <section className="archon-quests" aria-label="Archon Quests">
-        <KitsuneCard hovered={hovered} running={archon && revealed} />
-      </section>
-      <section className="world-quests" aria-label="World Quests">
-        <Gallery />
-      </section>
-      <KitsuneLore />
-      {!scrolled && <p className="scroll-hint" aria-hidden="true">↓ scroll</p>}
-    </div>
+    <>
+      <div ref={pageRef} className="quests" data-revealed={revealed}>
+        <section className="archon-quests" aria-label="Archon Quests">
+          <KitsuneCard hovered={hovered} running={archon && revealed} sizeToTallest={phone} />
+        </section>
+        <section className="world-quests" aria-label="World Quests">
+          <Gallery />
+        </section>
+        {!phone && lore}
+        {!phone && hint}
+      </div>
+      {phone && lore}
+      {phone && hint}
+      {phone && revealed && (
+        <button type="button" className="lore-button" aria-label="Inspo" onClick={() => openLore(0, 0)}>?</button>
+      )}
+    </>
   );
 }
