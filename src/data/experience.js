@@ -8,6 +8,7 @@ export const experiences = [
     id: 'tesla-autopilot',
     company: 'Tesla Autopilot',
     region: 'snezhnaya',
+    logo: '/work_experience/tesla/tesla_logo.jpeg',
     dateRange: 'Fall 2026',
     headline: 'AI Platforms',
     location: 'Palo Alto, California',
