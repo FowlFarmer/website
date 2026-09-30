@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { onPageScroll, pageScrollTo, pageScrollY } from '../pageScroll.js';
 
 // A scroll story pins a full-screen stage while its tall section scrolls past. Progress runs
 // 0 → 1 across the section: first an overview of every role, then each role in turn.
@@ -20,11 +21,11 @@ export function useSectionProgress(sectionRef) {
       if (!frame) frame = window.requestAnimationFrame(update);
     };
     update();
-    window.addEventListener('scroll', schedule, { passive: true });
+    const stopFollowing = onPageScroll(schedule);
     window.addEventListener('resize', schedule);
     return () => {
       window.cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', schedule);
+      stopFollowing();
       window.removeEventListener('resize', schedule);
     };
   }, [sectionRef]);
@@ -49,8 +50,8 @@ export const roleProgress = (index, count) => INTRO_SPAN + ((index + 0.5) * (1 -
 
 export function scrollToProgress(section, progress) {
   const bounds = section.getBoundingClientRect();
-  const top = window.scrollY + bounds.top;
-  window.scrollTo({ top: top + progress * (bounds.height - window.innerHeight), behavior: 'smooth' });
+  const top = pageScrollY() + bounds.top;
+  pageScrollTo({ top: top + progress * (bounds.height - window.innerHeight), behavior: 'smooth' });
 }
 
 export const clamp01 = (value) => Math.min(Math.max(value, 0), 1);

@@ -4,6 +4,7 @@ import { PIECE_DIRECTIONS, petalRadius, tracePiece } from './petalPieces.js';
 import { loadBakedPetals, prepareGlyphPetals, wordFontReady } from './calligraphyPetals.js';
 import { createNavFlight } from './nameNavFlight.js';
 import { setNavFormHandler } from './navFormation.js';
+import { onPageScroll, pageScrollY } from './pageScroll.js';
 
 // Canvas bleed around the banner, in viewBox units, so petals can drift past it.
 const BLEED = 110;
@@ -323,7 +324,7 @@ export default function CalligraphyName() {
         glyphStates.forEach((other, otherIndex) => { if (otherIndex !== index) engineRef.current.settle(otherIndex); });
         prepare(state);
         state.touch = touch;
-        state.openedAtScroll = window.scrollY;
+        state.openedAtScroll = pageScrollY();
         if (reduceMotion) {
           for (const petal of state.small) {
             petal.x = petal.target.x;
@@ -411,7 +412,7 @@ export default function CalligraphyName() {
     };
     const handleScroll = () => {
       glyphStates.forEach((state, index) => {
-        if (state.mode === 'bloom' && Math.abs(window.scrollY - state.openedAtScroll) > SCROLL_CLOSE_PX) {
+        if (state.mode === 'bloom' && Math.abs(pageScrollY() - state.openedAtScroll) > SCROLL_CLOSE_PX) {
           engineRef.current.settle(index);
         }
       });
@@ -467,12 +468,12 @@ export default function CalligraphyName() {
     const observer = new ResizeObserver(resize);
     observer.observe(wrapper);
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    const stopFollowingScroll = onPageScroll(handleScroll);
 
     return () => {
       setNavFormHandler(null);
       navFlight?.release();
-      window.removeEventListener('scroll', handleScroll);
+      stopFollowingScroll();
       window.cancelAnimationFrame(animationFrame);
       timers.forEach((timer) => window.clearTimeout(timer));
       unmounted = true;

@@ -2,10 +2,10 @@
 // Requires: npm i react-github-calendar
 import React, { useEffect, useRef } from "react";
 import GitHubCalendar from "react-github-calendar";
-import useScrollThresholdFade from "../jias-react-components/tools/useScrollThresholdFade.jsx";
+import usePageScrollFade from "../usePageScrollFade.js";
 
 export default function GitHubProfileCard() {
-  const fadeStyle = useScrollThresholdFade(80, 8000000, 300);
+  const fadeStyle = usePageScrollFade(80, 8000000);
   const username = "FowlFarmer";
 
   const base = "https://github-readme-stats.vercel.app/api";

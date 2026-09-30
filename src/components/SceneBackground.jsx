@@ -5,6 +5,7 @@ const Scene = lazy(() => import('./CherryBlossomScene.jsx'));
 const CursorTrail = lazy(() => import('./SakuraCursorTrail.jsx'));
 import InspoPopup from './InspoPopup.jsx';
 import StaticKitsune from './experience/StaticKitsune.jsx';
+import { onPageScroll, pageScrollY } from './pageScroll.js';
 const STORAGE_KEY = 'scene-low-performance';
 
 function storedPerformanceChoice() {
@@ -56,7 +57,7 @@ function PerformanceToggle({ staticMode, onToggle, notice, noticeVisible, placem
 export default function SceneBackground() {
   const { pathname } = useLocation();
   const navPinned = pathname === '/contact' || pathname === '/quests' || pathname.startsWith('/avalon');
-  const [scrolledPastNav, setScrolledPastNav] = useState(() => window.scrollY >= 80);
+  const [scrolledPastNav, setScrolledPastNav] = useState(() => pageScrollY() >= 80);
   const initialChoice = storedPerformanceChoice();
   const [staticMode, setStaticMode] = useState(() => {
     if (initialChoice === 'true') return true;
@@ -77,10 +78,9 @@ export default function SceneBackground() {
   }, []);
   useEffect(() => {
     if (navPinned) return undefined;
-    const update = () => setScrolledPastNav(window.scrollY >= 80);
+    const update = () => setScrolledPastNav(pageScrollY() >= 80);
     update();
-    window.addEventListener('scroll', update, { passive: true });
-    return () => window.removeEventListener('scroll', update);
+    return onPageScroll(update);
   }, [navPinned]);
   useEffect(() => {
     if (!notice) return;

@@ -1,6 +1,7 @@
 import { PIECE_DIRECTIONS, petalRadius, shapeMask, tessellate, tracePiece } from './petalPieces.js';
 import { prepareNavPieces } from './calligraphyPetals.js';
 import { setNavFormation } from './navFormation.js';
+import { onPageScroll, pageScrollY } from './pageScroll.js';
 
 // Scrolling past the intro, the name bursts into petals that fly up and tile the menu bar.
 // The same large petals as the hover burst; each reshapes into its slice of the bar as it lands.
@@ -41,7 +42,7 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
   const context = canvas.getContext('2d');
   // phase: 'banner' (the name shows), 'forming', 'bar' (the menu bar shows), 'clearing'
   // (bar items fading out before it breaks up), 'dissolving' (petals flying home).
-  let phase = window.scrollY >= NAV_SCROLL_THRESHOLD ? 'bar' : 'banner';
+  let phase = pageScrollY() >= NAV_SCROLL_THRESHOLD ? 'bar' : 'banner';
   let pieces = null;
   let barRows = 0;
   let barStale = true;
@@ -285,7 +286,7 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
 
   const update = () => {
     if (forced) return;
-    const wanted = window.scrollY >= NAV_SCROLL_THRESHOLD;
+    const wanted = pageScrollY() >= NAV_SCROLL_THRESHOLD;
     if (wanted) {
       if (phase === 'banner' && !pendingForm) {
         quietHover();
@@ -319,7 +320,7 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
 
   resize();
   window.addEventListener('resize', resize);
-  window.addEventListener('scroll', update, { passive: true });
+  const stopFollowingScroll = onPageScroll(update);
   if (phase === 'bar') glyphs.forEach((_, index) => setGlyphMode(index, 'nav'));
   setNavFormation({ managed: true, bar: phase === 'bar', items: phase === 'bar' });
 
@@ -331,7 +332,7 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
     window.clearTimeout(clearTimer);
     pendingForm = false;
     window.removeEventListener('resize', resize);
-    window.removeEventListener('scroll', update);
+    stopFollowingScroll();
     setNavFormation({ managed: false, bar: false, items: false });
     canvas.width = 0;
     canvas.height = 0;
@@ -374,7 +375,7 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
       if (phase === 'forming' && forced) {
         released = true;
         window.removeEventListener('resize', resize);
-        window.removeEventListener('scroll', update);
+        stopFollowingScroll();
       } else destroy();
     },
     destroy,

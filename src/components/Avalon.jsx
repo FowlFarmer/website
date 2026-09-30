@@ -4,6 +4,7 @@ import avalonPosts from '../data/avalonPosts.js';
 import { memories, questlines } from '../data/avalonArchive.js';
 import './avalon/Avalon.css';
 import ArchiveEmblems from './avalon/ArchiveEmblems.jsx';
+import { pageScrollTo } from './pageScroll.js';
 
 const ArchiveScene = lazy(() => import('./avalon/ArchiveScene.jsx'));
 const sections = [
@@ -48,7 +49,7 @@ export default function Avalon() {
   const [storageNotice, setStorageNotice] = useState('');
   useEffect(() => {
     if (firstRender.current) { firstRender.current = false; return; }
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    pageScrollTo({ top: 0, behavior: 'instant' });
     if (collection) heading.current?.focus();
     else portalRefs.current[previousCollection.current]?.focus();
     previousCollection.current = collection;
