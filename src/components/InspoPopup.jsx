@@ -7,11 +7,13 @@ import { onSoundChange, soundOn } from './soundSetting.js';
 // (soundSetting.js), and stopped when it closes or sound goes off. Only desktop opens the popup
 // (a click on the store; phones never do, CherryBlossomScene.jsx).
 const CHIME_URL = '/sounds/fami-mart.mp3';
+// The recording is mastered loud: played well below full volume, under the page's other sounds.
+const CHIME_VOLUME = 0.25;
 let chime = null;
 
 function playChime() {
   if (!soundOn()) return;
-  chime ??= new Audio(CHIME_URL);
+  chime ??= Object.assign(new Audio(CHIME_URL), { volume: CHIME_VOLUME });
   chime.currentTime = 0;
   chime.play().catch(() => {});
 }
