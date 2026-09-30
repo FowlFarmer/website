@@ -67,7 +67,11 @@ export default function ProjectFader({
   useEffect(() => {
     if (!contentRef.current) return undefined;
     const measure = () => {
-      const h = contentRef.current?.getBoundingClientRect().height ?? 0;
+      // The rect is in zoomed screen pixels (phone cards use `zoom: 0.9`) but the height is set in
+      // the card's own pixels, so undo the zoom or the bottom of the item gets clipped.
+      const el = contentRef.current;
+      const rect = el?.getBoundingClientRect();
+      const h = rect?.width ? rect.height * (el.offsetWidth / rect.width) : 0;
       if (h > 0) setTargetH(h);
     };
     const observer = new ResizeObserver(measure);
