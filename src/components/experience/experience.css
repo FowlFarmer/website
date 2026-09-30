@@ -838,6 +838,10 @@
     padding: 0 12px 36px;
   }
   .world-quests .gallery-page > * { width: 100% !important; }
+  /* The cards a touch smaller, content and all (their text is sized from the page, so zoom rather
+     than font-size); they still fill their width. */
+  .kitsune-role-slot,
+  .world-quests .gallery-page > * { zoom: 0.9; }
   /* Just under the cards, beside him in his corner. */
   .scroll-hint { bottom: calc(25svh - 30px); left: 18%; }
   /* The lore, from the corner of his band (there's no tapping him for it on a phone); hidden while
