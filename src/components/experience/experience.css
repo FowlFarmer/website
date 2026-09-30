@@ -817,20 +817,21 @@
 @media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
   .quests {
     position: fixed;
-    top: 54px;
+    top: 46px; /* the menu bar's foot: cards fade out under it, as on desktop */
     right: 0;
     bottom: 15svh;
     left: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 28px), transparent);
-    mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 28px), transparent);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 24px, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to bottom, transparent, #000 24px, #000 calc(100% - 28px), transparent);
   }
   .archon-quests {
     width: 100%;
     height: auto;
     margin: 0;
-    padding: 8px 12px 20px;
+    /* Clear of the fade under the menu bar at the top. */
+    padding: 24px 12px 20px;
   }
   /* As tall as the tallest role's card (KitsuneCard's invisible sizers share its one grid cell),
      so World Quests below stay put as the card changes. */
@@ -898,8 +899,8 @@
       right: 50%;
       bottom: 0;
       width: 50%;
-      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 20px), transparent);
-      mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 20px), transparent);
+      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 24px, #000 calc(100% - 20px), transparent);
+      mask-image: linear-gradient(to bottom, transparent, #000 24px, #000 calc(100% - 20px), transparent);
     }
     .scroll-hint { bottom: 14px; left: 25%; }
     .tap-hint { left: calc(25% + 62px); }
@@ -910,10 +911,10 @@
   @media (orientation: portrait) {
     .quests[data-full-box] {
       bottom: 0;
-      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(85svh - 54px - 28px),
-        rgb(0 0 0 / var(--full-foot)) calc(85svh - 54px), rgb(0 0 0 / var(--full-foot)) calc(100% - 28px), transparent);
-      mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(85svh - 54px - 28px),
-        rgb(0 0 0 / var(--full-foot)) calc(85svh - 54px), rgb(0 0 0 / var(--full-foot)) calc(100% - 28px), transparent);
+      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 24px, #000 calc(85svh - 46px - 28px),
+        rgb(0 0 0 / var(--full-foot)) calc(85svh - 46px), rgb(0 0 0 / var(--full-foot)) calc(100% - 28px), transparent);
+      mask-image: linear-gradient(to bottom, transparent, #000 24px, #000 calc(85svh - 46px - 28px),
+        rgb(0 0 0 / var(--full-foot)) calc(85svh - 46px), rgb(0 0 0 / var(--full-foot)) calc(100% - 28px), transparent);
     }
   }
   .lore-button {
