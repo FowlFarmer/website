@@ -12,7 +12,7 @@ import { sceneViewport } from './sceneViewport.mjs';
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 import {
   MOBILE_SCENE_QUERY, PHONE_HIGHLIGHT_BOOST, PHONE_KITSUNE_SCALE, PHONE_KITSUNE_SHARE,
-  closeLore, cycleGlow, experienceStage, openLore, phoneKitsuneTap, setHovered as setKitsuneHovered, setKitsuneShown, skipRole,
+  closeLore, cycleGlow, experienceStage, openLore, phoneKitsuneTap, setHovered as setKitsuneHovered, setKitsuneShown, tapKitsune,
 } from './experience/experienceStage.js';
 import { closeInspo, openInspo } from './lawsonStage.js';
 import { drawSceneMirrors } from './sceneMirror.jsx';
@@ -1422,10 +1422,10 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     // click (links, buttons, fields, videos, photos that open) don't.
     const handleKitsuneClick = (event) => {
       if (event.target.closest('a, button, input, textarea, select, label, video, iframe, dialog, [role="button"], [role="dialog"], [contenteditable], .media-frame, .navbar, .scene-editor-panel, .kitsune-tuner, .scene-performance-control, .popup-backdrop')) return;
-      // On phones there's no hover: a tap on the kitsune skips to the next role's card; the lore
-      // opens from its own button (Quests.jsx).
+      // On phones there's no hover: a tap on the kitsune moves the role card on (Quests.jsx); the
+      // lore opens from its own button.
       if (mobileLayout) {
-        if (kitsuneShown() && !editingActive && phoneKitsuneTap(event)) skipRole();
+        if (kitsuneShown() && !editingActive && phoneKitsuneTap(event)) tapKitsune();
         return;
       }
       const at = kitsuneAt(event);

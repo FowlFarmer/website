@@ -863,6 +863,8 @@
   .world-quests .project-fader-controls { width: 80%; margin-top: 26px; }
   /* Just under the cards, beside him in his corner. */
   .scroll-hint { bottom: calc(15svh - 30px); left: 18%; }
+  /* To the right of it, pointing at him. */
+  .tap-hint { left: calc(18% + 62px); }
   /* The lore, from the bottom-left corner (a tap on him skips his card instead); hidden while it's
      open. */
   body[data-lore="open"] .lore-button { opacity: 0; pointer-events: none; }
@@ -877,6 +879,7 @@
       mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 20px), transparent);
     }
     .scroll-hint { bottom: 14px; left: 25%; }
+    .tap-hint { left: calc(25% + 62px); }
   }
   .lore-button {
     position: fixed;

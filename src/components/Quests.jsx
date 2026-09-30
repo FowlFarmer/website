@@ -5,7 +5,7 @@ import KitsuneLore from './experience/KitsuneLore.jsx';
 import { onPageScroll, pageScrollY } from './pageScroll.js';
 import { MirrorHost } from './sceneMirror.jsx';
 import {
-  MOBILE_SCENE_QUERY, experienceStage, onHoveredChange, onKitsuneShown, openLore,
+  MOBILE_SCENE_QUERY, experienceStage, onHoveredChange, onKitsuneShown, onKitsuneTap, openLore,
 } from './experience/experienceStage.js';
 import './experience/experience.css';
 
@@ -23,6 +23,8 @@ import './experience/experience.css';
 const REVEAL_FALLBACK_MS = 8000;
 // How far down, as a fraction of the screen height, before the scroll hint goes away.
 const HINT_SCROLL_FRACTION = 0.0625;
+// Scrolled further down than this (px), a tap on him goes back up to the role card.
+const TAP_SCROLL_TOP_PX = 40;
 
 function usePhoneLayout() {
   const [phone, setPhone] = useState(() => window.matchMedia(MOBILE_SCENE_QUERY).matches);
@@ -50,6 +52,16 @@ export default function Quests() {
   const [scrolled, setScrolled] = useState(() => pageScrollY() > window.innerHeight * HINT_SCROLL_FRACTION);
 
   useEffect(() => onHoveredChange(setHovered), []);
+  // Phones: a tap on him moves the role card on, or, scrolled down the page, goes back up to it.
+  // The "tap →" hint beside the scroll hint shows until the first.
+  const [skips, setSkips] = useState(0);
+  const [tapped, setTapped] = useState(false);
+  useEffect(() => onKitsuneTap(() => {
+    setTapped(true);
+    const page = pageRef.current;
+    if (page && page.scrollTop > TAP_SCROLL_TOP_PX) page.scrollTo({ top: 0, behavior: 'smooth' });
+    else setSkips((count) => count + 1);
+  }), []);
   useEffect(() => {
     if (revealed) return undefined;
     const fallback = window.setTimeout(() => setRevealed(true), REVEAL_FALLBACK_MS);
@@ -93,7 +105,7 @@ export default function Quests() {
       <div ref={pageRef} className="quests" data-revealed={revealed}>
         <MirrorHost active={phone} />
         <section className="archon-quests" aria-label="Archon Quests">
-          <KitsuneCard hovered={hovered} running={archon && revealed} sizeToTallest={phone} />
+          <KitsuneCard hovered={hovered} running={archon && revealed} sizeToTallest={phone} skips={skips} />
         </section>
         <section className="world-quests" aria-label="World Quests">
           <Gallery />
@@ -103,6 +115,7 @@ export default function Quests() {
       </div>
       {phone && lore}
       {phone && hint}
+      {phone && revealed && !tapped && <p className="scroll-hint tap-hint" aria-hidden="true">tap →</p>}
       {phone && revealed && (
         <button type="button" className="lore-button" aria-label="Inspo" onClick={() => openLore(0, 0)}>?</button>
       )}

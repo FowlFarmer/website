@@ -17,8 +17,9 @@ export const PHONE_KITSUNE_SHARE = 0.5;
 export const PHONE_KITSUNE_SCALE = 0.65;
 // ...and the tail his card is on glows this many times brighter there (kitsuneRig.js).
 export const PHONE_HIGHLIGHT_BOOST = 1.5;
-// A tap on him skips to the next role's card: anywhere in his view, grown this far (px) out from
-// the screen's edges, and not on the quests page's scrolling area (which sits over part of it).
+// A tap on him (Quests.jsx: the next role's card, or back up to it): anywhere in his view, grown
+// this far (px) out from the screen's edges, and not on the quests page's scrolling area (which
+// sits over part of it).
 const PHONE_TAP_SLOP = 40;
 export function phoneKitsuneTap(event) {
   if (event.target.closest('.quests')) return false;
@@ -33,13 +34,13 @@ export function phoneKitsuneTap(event) {
     };
   return event.clientX >= width - band.width - PHONE_TAP_SLOP && event.clientY >= height - band.height - PHONE_TAP_SLOP;
 }
-const skipListeners = new Set();
-export function skipRole() {
-  skipListeners.forEach((listener) => listener());
+const tapListeners = new Set();
+export function tapKitsune() {
+  tapListeners.forEach((listener) => listener());
 }
-export function onSkipRole(listener) {
-  skipListeners.add(listener);
-  return () => skipListeners.delete(listener);
+export function onKitsuneTap(listener) {
+  tapListeners.add(listener);
+  return () => tapListeners.delete(listener);
 }
 
 export const experienceStage = {

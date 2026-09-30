@@ -4,7 +4,7 @@ import { CyclingImage, LogoBadge } from '../cards/workExperience.jsx';
 import QuestTag from './QuestIcons.jsx';
 import { REGION_ICONS } from './RegionIcons.jsx';
 import { kitsuneTails } from '../../data/experience.js';
-import { experienceStage, onSkipRole } from './experienceStage.js';
+import { experienceStage } from './experienceStage.js';
 import './experience.css';
 
 // How long each role's card stays up before moving on to the next tail.
@@ -88,7 +88,7 @@ function RoleContent({ role, sizer = false, paired = false }) {
 // fades out over those 7 seconds, standing in for a progress bar (experienceStage.cycleTail).
 // `sizeToTallest` (phones): every role's card sits invisibly in the same place, so the card area
 // is always as tall as the tallest and the page below it doesn't jump as the cards change.
-export default function KitsuneCard({ hovered = -1, running = true, sizeToTallest = false }) {
+export default function KitsuneCard({ hovered = -1, running = true, sizeToTallest = false, skips = 0 }) {
   const [active, setActive] = useState(FIRST);
   const holding = hovered >= 0;
 
@@ -107,8 +107,13 @@ export default function KitsuneCard({ hovered = -1, running = true, sizeToTalles
     return () => clearTimeout(timer);
   }, [running, holding, hovered, active]);
   useEffect(() => () => { experienceStage.cycleTail = -1; }, []);
-  // A tap on him (phones) skips to the next role, its 7 seconds starting afresh.
-  useEffect(() => onSkipRole(() => setActive((index) => (index + 1) % kitsuneTails.length)), []);
+  // Each new `skips` (a tap on him, on phones) moves on to the next role, its 7 seconds afresh.
+  const lastSkips = useRef(skips);
+  useEffect(() => {
+    if (skips === lastSkips.current) return;
+    lastSkips.current = skips;
+    setActive((index) => (index + 1) % kitsuneTails.length);
+  }, [skips]);
 
   const role = kitsuneTails[active];
   return (
