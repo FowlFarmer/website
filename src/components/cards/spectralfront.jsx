@@ -33,8 +33,9 @@ export default function SpectralFrontCard() {
         </div>
       </div>
 
+      {/* The screenshot shrinks beside the text down to a narrow card, then they stack. */}
       <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-        <div style={{ flex: "1.15 1 520px", minWidth: 0 }}>
+        <div style={{ flex: "1.15 1 338px", minWidth: 0 }}>
           <div
             style={{
               width: "100%",
@@ -58,7 +59,7 @@ export default function SpectralFrontCard() {
           </div>
         </div>
 
-        <div style={{ flex: "1 1 360px", alignContent: "center" }}>
+        <div style={{ flex: "1 1 234px", alignContent: "center" }}>
           <p style={{ marginTop: 0 }}>
             Spectral Front is a live tactical artillery game where players define
             functions to shoot enemies, move ships, manage energy, and fight around
