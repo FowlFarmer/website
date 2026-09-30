@@ -801,12 +801,9 @@
     left: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    transition: bottom 300ms ease;
     -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 28px), transparent);
     mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 28px), transparent);
   }
-  /* Past the waterloo.careers card (Quests.jsx), the whole screen, over him. */
-  .quests[data-full] { bottom: 0; }
   .archon-quests {
     width: 100%;
     height: auto;
@@ -883,6 +880,18 @@
     }
     .scroll-hint { bottom: 14px; left: 25%; }
     .tap-hint { left: calc(25% + 62px); }
+  }
+  /* Upright, once the Hack the North card is in view (Quests.jsx): the whole screen, over him. The
+     box grows with its new foot (below the usual 85%) invisible, which fades in with the scroll
+     (--full-foot, 0 to 1, set by Quests.jsx). */
+  @media (orientation: portrait) {
+    .quests[data-full-box] {
+      bottom: 0;
+      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(85svh - 54px - 28px),
+        rgb(0 0 0 / var(--full-foot)) calc(85svh - 54px), rgb(0 0 0 / var(--full-foot)) calc(100% - 28px), transparent);
+      mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(85svh - 54px - 28px),
+        rgb(0 0 0 / var(--full-foot)) calc(85svh - 54px), rgb(0 0 0 / var(--full-foot)) calc(100% - 28px), transparent);
+    }
   }
   .lore-button {
     position: fixed;

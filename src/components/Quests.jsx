@@ -25,6 +25,11 @@ const REVEAL_FALLBACK_MS = 8000;
 const HINT_SCROLL_FRACTION = 0.0625;
 // Scrolled further down than this (px), a tap on him goes back up to the role card.
 const TAP_SCROLL_TOP_PX = 40;
+// Phones: the page starts taking the whole screen when the Hack the North card's top is this far
+// down the screen (the foot of the page's usual area), and has fully by FULL_SPAN of the screen's
+// height more scrolling.
+const FULL_AT = 0.85;
+const FULL_SPAN = 0.35;
 
 function usePhoneLayout() {
   const [phone, setPhone] = useState(() => window.matchMedia(MOBILE_SCENE_QUERY).matches);
@@ -55,6 +60,7 @@ export default function Quests() {
   // Phones: a tap on him moves the role card on, or, scrolled down the page, goes back up to it.
   // The "tap →" hint beside the scroll hint shows until the first.
   const [skips, setSkips] = useState(0);
+  // Phones: whether the page has started taking the whole screen (below).
   const [full, setFull] = useState(false);
   const [tapped, setTapped] = useState(false);
   useEffect(() => onKitsuneTap(() => {
@@ -84,9 +90,17 @@ export default function Quests() {
       experienceStage.hover = inArchon;
       experienceStage.scale = phone ? 1 : 1 - 0.5 * Math.min(Math.max(y / height, 0), 1);
       setArchon(inArchon);
-      // Phones: past the waterloo.careers card, the page takes the whole screen, over him.
-      const past = phone && pageRef.current.querySelector('#Ross');
-      if (past) setFull(past.getBoundingClientRect().top <= pageRef.current.getBoundingClientRect().top);
+      // Phones: as the Hack the North card comes into view, the page grows to the whole screen,
+      // over him, its new foot fading in with the scroll (experience.css --full-foot). The box
+      // grows while that foot is still invisible, so nothing jumps.
+      const ross = phone && pageRef.current.querySelector('#Ross');
+      if (ross) {
+        const foot = Math.min(Math.max((window.innerHeight * FULL_AT - ross.getBoundingClientRect().top) / (window.innerHeight * FULL_SPAN), 0), 1);
+        pageRef.current.style.setProperty('--full-foot', foot.toFixed(3));
+        if (foot > 0) pageRef.current.dataset.fullBox = '';
+        else delete pageRef.current.dataset.fullBox;
+        setFull(foot > 0);
+      }
     };
     update();
     const scroller = pageRef.current;
@@ -106,7 +120,7 @@ export default function Quests() {
   const hint = !scrolled && <p className="scroll-hint" aria-hidden="true">↓ scroll</p>;
   return (
     <>
-      <div ref={pageRef} className="quests" data-revealed={revealed} data-full={full || undefined}>
+      <div ref={pageRef} className="quests" data-revealed={revealed} >
         <MirrorHost active={phone} />
         <section className="archon-quests" aria-label="Archon Quests">
           <KitsuneCard hovered={hovered} running={archon && revealed} sizeToTallest={phone} skips={skips} />
