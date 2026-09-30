@@ -842,6 +842,18 @@
   /* The lore, from the corner of his band (there's no tapping him for it on a phone); hidden while
      it's open. */
   body[data-lore="open"] .lore-button { opacity: 0; pointer-events: none; }
+  /* A phone on its side: the kitsune takes the right half of the screen, full height
+     (CherryBlossomScene.jsx), and the page scrolls down the left half. */
+  @media (orientation: landscape) {
+    .quests {
+      right: 50%;
+      bottom: 0;
+      width: 50%;
+      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 20px), transparent);
+      mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 20px), transparent);
+    }
+    .scroll-hint { bottom: 14px; left: 25%; }
+  }
   .lore-button {
     position: fixed;
     right: 14px;
@@ -874,5 +886,13 @@
     top: calc(100cqh - var(--band) / 2 + (var(--y) - var(--py)) * var(--u) * var(--zoom));
     width: calc(var(--w) * var(--u) * var(--zoom));
     height: calc(var(--h) * var(--u) * var(--zoom));
+  }
+  /* On its side: the right half of the screen, full height, as the live view. */
+  @media (orientation: landscape) {
+    .static-kitsune-stills {
+      --band: 100cqh;
+      --u: min(100cqh, calc(50cqw / 0.78));
+      left: calc(75cqw + (var(--x) - var(--px)) * var(--u) * var(--zoom));
+    }
   }
 }

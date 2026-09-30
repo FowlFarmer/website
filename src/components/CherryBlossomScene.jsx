@@ -1379,6 +1379,11 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     const kitsuneView = (width, height) => {
       if (mobileLayout) {
         const inset = Math.max(0, viewportHeight - safeViewportHeight);
+        // A phone on its side: the right half of the screen, full height, with the page on the left.
+        if (width > safeViewportHeight) {
+          const half = Math.round(width / 2);
+          return { x: half, y: inset, width: width - half, height: safeViewportHeight };
+        }
         const bandHeight = Math.round(safeViewportHeight * PHONE_KITSUNE_SHARE);
         // No wider than PHONE_KITSUNE_ASPECT (a phone on its side), centred.
         const bandWidth = Math.min(width, Math.round(bandHeight * PHONE_KITSUNE_ASPECT));
