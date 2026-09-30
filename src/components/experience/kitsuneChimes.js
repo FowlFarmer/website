@@ -10,7 +10,9 @@ import { onSoundChange, soundOn } from '../soundSetting.js';
 // - The bed: the loop swells with how much the tails are moving (their tips' speed) and falls
 //   silent at rest, brightening as it swells.
 // Only with sound on (soundSetting.js), once the page has been tapped or clicked (browsers hold
-// sound until then), and as much as he's showing.
+// sound until then), and as much as he's showing. Leaving the quests page fades everything out over
+// LEAVE_FADE seconds, strikes still ringing included (setPresent), and coming back fades it in.
+const LEAVE_FADE = 0.6;
 const STRIKES_URL = '/sounds/chime-strikes.mp3';
 const BED_URL = '/sounds/chime-bed.mp3';
 // Semitones from the recording's pitch, tails left to right.
@@ -71,6 +73,7 @@ export function createChimes() {
   let voices = 0;
   let lastStrike = -1;
   let played = 0;
+  let present = true;
   const pairRest = new Map();
   const tailRest = new Float64Array(NOTES.length);
 
@@ -82,7 +85,7 @@ export function createChimes() {
     if (navigator.audioSession) navigator.audioSession.type = 'ambient';
     context = new AudioContextClass({ latencyHint: 'interactive' });
     master = context.createGain();
-    master.gain.value = MASTER;
+    master.gain.value = present ? MASTER : 0;
     const limiter = context.createDynamicsCompressor();
     limiter.threshold.value = -12;
     limiter.ratio.value = 8;
@@ -181,6 +184,17 @@ export function createChimes() {
     bedFilter.frequency.setTargetAtTime(2500 + 9000 * bedLevel, now, 0.1);
   };
 
+  // Whether the quests page, where he is, is the one showing (the scene tells it every frame).
+  const setPresent = (next) => {
+    if (next === present) return;
+    present = next;
+    if (!master) return;
+    const now = context.currentTime;
+    master.gain.cancelScheduledValues(now);
+    master.gain.setValueAtTime(master.gain.value, now);
+    master.gain.linearRampToValueAtTime(present ? MASTER : 0, now + LEAVE_FADE);
+  };
+
   const dispose = () => {
     stopListening();
     window.removeEventListener('pointerdown', unlock);
@@ -191,6 +205,7 @@ export function createChimes() {
 
   return {
     update,
+    setPresent,
     dispose,
     // For checking in development: whether it's running, and what it's played.
     state: () => ({ context: context?.state ?? 'none', ready, strikes: strikes.length, played, bed: +bedLevel.toFixed(3) }),

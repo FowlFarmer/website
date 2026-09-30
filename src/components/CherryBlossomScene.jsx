@@ -1871,6 +1871,8 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           kitsuneGlow.render(shown.x, shown.y, shown.width, shown.height, kitsuneAlpha);
           profiler.end('kitsune: draw & glow');
         }
+        // The tails' chimes fade out as soon as the page heads off the quests page, and back in on return.
+        chimes?.setPresent(experienceStage.show === 'kitsune');
         renderer.setViewport(0, 0, viewportWidth, viewportHeight);
         renderer.clearDepth();
         camera.layers.set(2);
