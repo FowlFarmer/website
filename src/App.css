@@ -965,13 +965,20 @@ yeet
   /* overflow: visible; */
 }
 
+/* The site's glass, the same for every card: the glass cards and the quests page's role card
+   (experience.css .kitsune-role). Its blur scales by --glass-blur-scale (the preview's render
+   settings, frameStats.js). */
+.glass-effect,
+.kitsune-role {
+  -webkit-backdrop-filter: blur(calc(8px * var(--glass-blur-scale, 1)));
+  backdrop-filter: blur(calc(8px * var(--glass-blur-scale, 1)));
+  background: rgba(5, 5, 5, 0.15);
+  border: 3px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  box-shadow: 0 3px 4px 3px rgba(150, 150, 150, 0.05); /* subtle shadow */
+}
+
 .glass-effect {
-/* The glass's blur, scaled by --glass-blur-scale (the preview's render settings, frameStats.js). */
-backdrop-filter: blur(calc(8px * var(--glass-blur-scale, 1)));
-background: rgba(5,5,5,0.15);
-border: 3px solid rgba(255,255,255,0.06);
-border-radius: 12px;
-box-shadow: 0 3px 4px 3px rgba(150,150,150,0.05); /* subtle shadow */
 cursor: pointer;
 transition: all 0.2s ease-in-out, opacity 0.5s ease-in-out;
 color: white;

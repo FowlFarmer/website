@@ -623,12 +623,7 @@
   align-items: center;
   gap: 28px;
   padding: 52px 20px 28px; /* sides match the quest tag's inset */
-  border: 3px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  background: rgba(14, 12, 34, 0.3);
-  backdrop-filter: blur(calc(10px * var(--glass-blur-scale, 1)));
-  -webkit-backdrop-filter: blur(calc(10px * var(--glass-blur-scale, 1)));
-  box-shadow: 0 3px 4px 3px rgba(150, 150, 150, 0.05), 0 24px 60px rgba(8, 6, 30, 0.25);
+  /* Its glass is the site's, shared with the glass cards (App.css .glass-effect). */
   text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
 }
 
