@@ -1,9 +1,8 @@
 import avalonPosts from './avalonPosts.js';
 
-// The Shower Thoughts card's entries (cards/showerThoughts.jsx), oldest first: each a title, a
-// date and its paragraphs. The first is Avalon's first post.
+// The Shower Thoughts card's entries (cards/showerThoughts.jsx), newest first: each a title, a
+// date and its paragraphs. The last is Avalon's first post.
 const showerThoughts = [
-  avalonPosts[0],
   {
     slug: 'technoepistemic-hubris',
     title: 'Technoepistemic Hubris',
@@ -13,6 +12,7 @@ const showerThoughts = [
       'This is not the first time in history in which such a gravitational case of this fallacy has occured. A nuclear weapon is no more complex than consumer electronics. A different universe could have deemed a nuke with similar complexity to be much less, or even much more destructive. And had we been born on a slightly smaller planet, low orbital rocketry would not be revered as such complex engineering.',
     ],
   },
+  avalonPosts[0],
 ];
 
 export default showerThoughts;
