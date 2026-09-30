@@ -610,6 +610,10 @@
   width: min(660px, 44vw);
   transform: translateY(-50%);
   pointer-events: none;
+  /* Never the browser's scroll anchor: it keeps whatever it anchors on still by scrolling the
+     page, so each role's card coming and going (a different height, or none mid-swap) scrolled
+     everything under it. */
+  overflow-anchor: none;
 }
 
 .kitsune-role {
