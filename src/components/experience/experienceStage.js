@@ -13,7 +13,7 @@ const listeners = new Set();
 // experience.css repeats the query for the page's own layout.
 export const MOBILE_SCENE_QUERY = '(max-width: 767px), (pointer: coarse) and (max-width: 1024px)';
 export const PHONE_KITSUNE_SHARE = 0.5;
-// ...drawn at this size, centred along the bottom, with the page's cards above and beside.
+// ...drawn at this size, pinned to the bottom-right corner, with the page's cards above and beside.
 export const PHONE_KITSUNE_SCALE = 0.65;
 
 export const experienceStage = {

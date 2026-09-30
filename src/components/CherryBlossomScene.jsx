@@ -1384,12 +1384,12 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           const half = Math.round(width / 2);
           return { x: half, y: inset, width: width - half, height: safeViewportHeight };
         }
-        // The band (no wider than PHONE_KITSUNE_ASPECT), shrunk to PHONE_KITSUNE_SCALE, centred
-        // along the bottom.
+        // The band (no wider than PHONE_KITSUNE_ASPECT), shrunk to PHONE_KITSUNE_SCALE in the
+        // bottom-right corner.
         const bandHeight = safeViewportHeight * PHONE_KITSUNE_SHARE;
         const bandWidth = Math.min(width, bandHeight * PHONE_KITSUNE_ASPECT);
         const shownWidth = Math.round(bandWidth * PHONE_KITSUNE_SCALE);
-        return { x: Math.round((width - shownWidth) / 2), y: inset, width: shownWidth, height: Math.round(bandHeight * PHONE_KITSUNE_SCALE) };
+        return { x: width - shownWidth, y: inset, width: shownWidth, height: Math.round(bandHeight * PHONE_KITSUNE_SCALE) };
       }
       const { scale } = experienceStage;
       return { x: (1 - scale) * width, y: 0, width: width * scale, height: height * scale };

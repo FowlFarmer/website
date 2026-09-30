@@ -789,7 +789,7 @@
 .tail-light-colour > p span { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.5); }
 
 /* Phones (the scene's phone layout, experienceStage.js MOBILE_SCENE_QUERY): the kitsune sits fixed
-   at the middle of the bottom (his bottom-half band, shrunk), and the quests page scrolls in its own
+   in the bottom-right corner (his bottom-half band, shrunk), and the quests page scrolls in its own
    area from the menu bar down to three quarters of the screen, fading out sharply at its foot.
    The cards stack full width. */
 @media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
@@ -860,8 +860,8 @@
      than font-size); they still fill their width. */
   .kitsune-role-slot,
   .world-quests .gallery-page > * { zoom: 0.9; }
-  /* Just under the cards, beside him. */
-  .scroll-hint { bottom: calc(25svh - 30px); left: 38px; }
+  /* Just under the cards, beside him in his corner. */
+  .scroll-hint { bottom: calc(25svh - 30px); left: 18%; }
   /* The lore, from the corner of his band (there's no tapping him for it on a phone); hidden while
      it's open. */
   body[data-lore="open"] .lore-button { opacity: 0; pointer-events: none; }
@@ -901,13 +901,13 @@
 @media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
   .static-kitsune-backdrop { object-position: center bottom; }
   .static-kitsune-stills {
-    /* The band shrunk to 0.65 (PHONE_KITSUNE_SCALE), centred along the bottom. */
+    /* The band shrunk to 0.65 (PHONE_KITSUNE_SCALE) in the bottom-right corner. */
     --band: calc(50svh * 0.65);
     --band-width: calc(min(100cqw, 80svh) * 0.65);
     --u: min(var(--band), calc(var(--band-width) / 0.78));
     right: auto;
     bottom: auto;
-    left: calc(50cqw + (var(--x) - var(--px)) * var(--u) * var(--zoom));
+    left: calc(100cqw - var(--band-width) / 2 + (var(--x) - var(--px)) * var(--u) * var(--zoom));
     top: calc(100cqh - var(--band) / 2 + (var(--y) - var(--py)) * var(--u) * var(--zoom));
     width: calc(var(--w) * var(--u) * var(--zoom));
     height: calc(var(--h) * var(--u) * var(--zoom));
