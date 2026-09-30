@@ -422,7 +422,7 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
   let highlightAmount = 0;
   const setHighlight = (index, amount) => {
     highlighted = index;
-    highlightAmount = amount;
+    highlightAmount = Number.isFinite(amount) ? amount : 0;
   };
   const setHovered = (index) => {
     if (index === hovered) return;
@@ -475,7 +475,10 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
   const setSway = (x, y) => swayGoal.set(x, y);
 
   // `still` holds the tails where they are (the glow still eases), for baking stills of them.
-  const update = (seconds, now, { still = false } = {}) => {
+  const update = (step, now, { still = false } = {}) => {
+    // A bad or backwards step (a stalled or restarted clock) must not reach the physics or the glow:
+    // one invalid value in the tails' light is smeared over the whole picture by the bloom.
+    const seconds = Number.isFinite(step) ? Math.max(step, 0) : 0;
     // Mouse sway: the camera turns a little about its target, following the pointer.
     sway.lerp(swayGoal, Math.min(seconds * SWAY_EASE, 1));
     const offset = base.clone().sub(target);
@@ -500,6 +503,7 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
       uniforms.hoverShare.value = hoverShare;
       const target = index === hovered ? 1 : index === highlighted ? highlightAmount : 0;
       uniforms.hoverAmount.value += (target - uniforms.hoverAmount.value) * Math.min(seconds * 6, 1);
+      if (!Number.isFinite(uniforms.hoverAmount.value)) uniforms.hoverAmount.value = 0;
     });
     if (colliders) {
       const array = colliders.geometry.attributes.position.array;

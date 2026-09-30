@@ -101,6 +101,11 @@ const FRAGMENT = /* glsl */ `
     glow *= body * intensity * lift * layerGain;
     // Hover deepens dark glass as well as brightening the glow.
     cover *= body * layerGain * 2.5 * (1.0 + (intensity * lift - 1.0) * 0.9);
+    // Never let an invalid value out: the bloom would spread it over the whole picture.
+    if (any(isnan(glow)) || any(isinf(glow)) || isnan(cover) || isinf(cover)) {
+      glow = vec3(0.0);
+      cover = 0.0;
+    }
     gl_FragColor = vec4(clamp(glow, 0.0, 16.0), clamp(cover, 0.0, 1.0));
   }
 `;
