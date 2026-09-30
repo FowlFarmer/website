@@ -790,14 +790,14 @@
 
 /* Phones (the scene's phone layout, experienceStage.js MOBILE_SCENE_QUERY): the kitsune sits fixed
    in the bottom-right corner (his bottom-half band, shrunk), and the quests page scrolls in its own
-   area from the menu bar down to three quarters of the screen, fading out sharply at its foot.
+   area from the menu bar down to 85% of the screen, fading out sharply at its foot.
    The cards stack full width. */
 @media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
   .quests {
     position: fixed;
     top: 54px;
     right: 0;
-    bottom: 25svh;
+    bottom: 15svh;
     left: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -860,10 +860,12 @@
      than font-size); they still fill their width. */
   .kitsune-role-slot,
   .world-quests .gallery-page > * { zoom: 0.9; }
+  /* The small projects card's progress bars, below its World Quest tag rather than beside it. */
+  .world-quests .project-fader-controls { width: 80%; margin-top: 26px; }
   /* Just under the cards, beside him in his corner. */
-  .scroll-hint { bottom: calc(25svh - 30px); left: 18%; }
-  /* The lore, from the corner of his band (there's no tapping him for it on a phone); hidden while
-     it's open. */
+  .scroll-hint { bottom: calc(15svh - 30px); left: 18%; }
+  /* The lore, from the bottom-left corner (a tap on him skips his card instead); hidden while it's
+     open. */
   body[data-lore="open"] .lore-button { opacity: 0; pointer-events: none; }
   /* A phone on its side: the kitsune takes the right half of the screen, full height
      (CherryBlossomScene.jsx), and the page scrolls down the left half. */
@@ -879,16 +881,17 @@
   }
   .lore-button {
     position: fixed;
-    right: 14px;
+    left: 14px;
     bottom: calc(14px + env(safe-area-inset-bottom));
     z-index: 50;
-    width: 34px;
-    height: 34px;
+    width: 27px;
+    height: 27px;
+    padding: 0;
     border: 1px solid rgba(255, 255, 255, 0.35);
     border-radius: 50%;
     background: rgba(24, 31, 45, 0.35);
     color: #fff;
-    font: 500 16px/1 'Inter Variable', sans-serif;
+    font: 500 13px/1 'Inter Variable', sans-serif;
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
   }

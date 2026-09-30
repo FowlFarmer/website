@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { MOBILE_SCENE_QUERY, cycleGlow, experienceStage, openLore, setHovered } from './experienceStage.js';
+import { MOBILE_SCENE_QUERY, cycleGlow, experienceStage, openLore, phoneKitsuneTap, setHovered, skipRole } from './experienceStage.js';
 
 // The kitsune when the live scene is off (3D off): stills baked from the real scene
 // (bakeKitsuneStills.js) over the Fuji backdrop, placed where the live view draws him and shrunk
@@ -8,7 +8,7 @@ import { MOBILE_SCENE_QUERY, cycleGlow, experienceStage, openLore, setHovered } 
 // Hovering a tail (the baked hover map says which) lights it and brings up its role card; the
 // role card's cycle lights its tail too; a click on him opens the lore. On phones they sit in the
 // live band across the bottom of the screen instead, centred and brought in as the phone camera
-// is (layout.phone), and a tap picks a tail, held until the next tap (the lore has its own button).
+// is (layout.phone), and a tap on him skips to the next role's card (the lore has its own button).
 const BASE = '/kitsune-stills';
 const TAILS = 6;
 // Clicks through the page count; ones on anything that handles its own click don't (as live).
@@ -80,13 +80,11 @@ export default function StaticKitsune({ shown }) {
     const handleLeave = () => { pointer = null; };
     const handleClick = (event) => {
       if (event.target.closest(OWN_CLICKS)) return;
-      const at = under(event.clientX, event.clientY);
       if (phone) {
-        if (!experienceStage.hover) return;
-        hovered = typeof at === 'number' ? at : -1;
-        setHovered(hovered);
+        if (phoneKitsuneTap(event)) skipRole();
         return;
       }
+      const at = under(event.clientX, event.clientY);
       if (at !== null) openLore(event.clientX, event.clientY);
     };
 

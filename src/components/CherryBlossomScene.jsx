@@ -11,8 +11,8 @@ import { createPetalWind } from './petalWind.mjs';
 import { sceneViewport } from './sceneViewport.mjs';
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 import {
-  MOBILE_SCENE_QUERY, PHONE_KITSUNE_SCALE, PHONE_KITSUNE_SHARE,
-  closeLore, cycleGlow, experienceStage, openLore, setHovered as setKitsuneHovered, setKitsuneShown,
+  MOBILE_SCENE_QUERY, PHONE_HIGHLIGHT_BOOST, PHONE_KITSUNE_SCALE, PHONE_KITSUNE_SHARE,
+  closeLore, cycleGlow, experienceStage, openLore, phoneKitsuneTap, setHovered as setKitsuneHovered, setKitsuneShown, skipRole,
 } from './experience/experienceStage.js';
 import { closeInspo, openInspo } from './lawsonStage.js';
 
@@ -1331,6 +1331,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           if (disposed) return undefined;
           kitsune = rig.createKitsune(assets, {
             layer: KITSUNE_LAYER,
+            highlightBoost: mobileLayout ? PHONE_HIGHLIGHT_BOOST : 1,
             onHover: (index) => {
               document.body.style.cursor = index >= 0 ? 'pointer' : '';
               setKitsuneHovered(index);
@@ -1420,13 +1421,13 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     // click (links, buttons, fields, videos, photos that open) don't.
     const handleKitsuneClick = (event) => {
       if (event.target.closest('a, button, input, textarea, select, label, video, iframe, dialog, [role="button"], [role="dialog"], [contenteditable], .media-frame, .navbar, .scene-editor-panel, .kitsune-tuner, .scene-performance-control, .popup-backdrop')) return;
-      const at = kitsuneAt(event);
-      // On phones there's no hover: a tap on the kitsune picks the tail under it (its archon quest
-      // shows) and holds it until the next tap; the lore opens from its own button (Quests.jsx).
-      if (at && mobileLayout) {
-        if (experienceStage.hover) kitsune.pointer(at.x, at.y, event.timeStamp, true);
+      // On phones there's no hover: a tap on the kitsune skips to the next role's card; the lore
+      // opens from its own button (Quests.jsx).
+      if (mobileLayout) {
+        if (kitsuneShown() && !editingActive && phoneKitsuneTap(event)) skipRole();
         return;
       }
+      const at = kitsuneAt(event);
       if (at && kitsune.hits(at.x, at.y)) openLore(event.clientX, event.clientY);
       else if (lawsonHit(event)) openInspo();
     };

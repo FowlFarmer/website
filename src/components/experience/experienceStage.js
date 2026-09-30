@@ -15,6 +15,32 @@ export const MOBILE_SCENE_QUERY = '(max-width: 767px), (pointer: coarse) and (ma
 export const PHONE_KITSUNE_SHARE = 0.5;
 // ...drawn at this size, pinned to the bottom-right corner, with the page's cards above and beside.
 export const PHONE_KITSUNE_SCALE = 0.65;
+// ...and the tail his card is on glows this many times brighter there (kitsuneRig.js).
+export const PHONE_HIGHLIGHT_BOOST = 1.5;
+// A tap on him skips to the next role's card: anywhere in his view, grown this far (px) out from
+// the screen's edges, and not on the quests page's scrolling area (which sits over part of it).
+const PHONE_TAP_SLOP = 40;
+export function phoneKitsuneTap(event) {
+  if (event.target.closest('.quests')) return false;
+  const { innerWidth: width, innerHeight: height } = window;
+  // On its side he has the right half of the screen; upright, his shrunk band in the corner
+  // (CherryBlossomScene.jsx kitsuneView).
+  const band = width > height
+    ? { width: width / 2, height }
+    : {
+      width: Math.min(width, height * PHONE_KITSUNE_SHARE * 1.6) * PHONE_KITSUNE_SCALE,
+      height: height * PHONE_KITSUNE_SHARE * PHONE_KITSUNE_SCALE,
+    };
+  return event.clientX >= width - band.width - PHONE_TAP_SLOP && event.clientY >= height - band.height - PHONE_TAP_SLOP;
+}
+const skipListeners = new Set();
+export function skipRole() {
+  skipListeners.forEach((listener) => listener());
+}
+export function onSkipRole(listener) {
+  skipListeners.add(listener);
+  return () => skipListeners.delete(listener);
+}
 
 export const experienceStage = {
   show: 'lawson', scale: 1, hover: true, supported: false, hovered: -1, shown: false,

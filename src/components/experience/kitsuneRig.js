@@ -257,7 +257,8 @@ function buildHoverShell(chain) {
 // Build the kitsune from its loaded assets. Everything is in `root` (on `layer`, lit only by its own
 // lights). `camera` frames it; `base` and `target` are the camera's held pose, which the mouse sway
 // turns away from each frame. `onHover` hears the tail under the pointer (-1 for none).
-export function createKitsune([figureScene, tailScene, cliffScene, ...blossomScenes], { layer = 0, shadows = false, onHover } = {}) {
+// `highlightBoost`: how many times brighter the highlighted tail (setHighlight) glows at its peak.
+export function createKitsune([figureScene, tailScene, cliffScene, ...blossomScenes], { layer = 0, shadows = false, onHover, highlightBoost = 1 } = {}) {
   const root = new THREE.Group();
   root.name = 'Kitsune';
 
@@ -503,11 +504,12 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
       // Emphasised tails glow more at rest, and take a bigger share of the hover boost.
       const { glow: restGlow, hover: hoverShare } = TAIL_ROLES[index];
       const { uniforms } = material;
-      uniforms.intensity.value = restGlow;
       uniforms.hoverShare.value = hoverShare;
       const target = index === hovered ? 1 : index === highlighted ? highlightAmount : 0;
       uniforms.hoverAmount.value += (target - uniforms.hoverAmount.value) * Math.min(seconds * 6, 1);
       if (!Number.isFinite(uniforms.hoverAmount.value)) uniforms.hoverAmount.value = 0;
+      const boost = index === highlighted && index !== hovered ? 1 + (highlightBoost - 1) * uniforms.hoverAmount.value : 1;
+      uniforms.intensity.value = restGlow * boost;
     });
     if (colliders) {
       const array = colliders.geometry.attributes.position.array;
