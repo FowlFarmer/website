@@ -1618,6 +1618,15 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   height: 24px;
   padding: 0;
 }
+/* "3D off": a slight red, so it's clear the scene is switched off. */
+.scene-performance-control button[aria-label="3D background"][aria-checked="false"] {
+  border-color: rgba(255, 120, 130, 0.45);
+  background: rgba(150, 30, 45, 0.35);
+  color: #ffd9dc;
+}
+.scene-performance-control button[aria-label="3D background"][aria-checked="false"]:hover {
+  background: rgba(170, 35, 50, 0.5);
+}
 .scene-performance-control button:hover {
   background: rgba(24, 31, 45, 0.45);
   color: #fff;
