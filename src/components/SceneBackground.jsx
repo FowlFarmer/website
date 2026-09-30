@@ -10,6 +10,24 @@ import { onPageScroll, pageScrollY } from './pageScroll.js';
 import { MirrorCanvas, useMirrorHosts } from './sceneMirror.jsx';
 const STORAGE_KEY = 'scene-low-performance';
 
+// Sound on or off, remembered; off until turned on.
+const SOUND_KEY = 'site-sound';
+function storedSound() {
+  try { return localStorage.getItem(SOUND_KEY) === 'on'; } catch { return false; }
+}
+
+// A speaker, with sound waves when on, crossed out when off.
+function SoundIcon({ on }) {
+  return (
+    <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2.5 6h2.5l3.5-3v10l-3.5-3h-2.5z" fill="currentColor" />
+      {on
+        ? <><path d="M10.8 5.8a3 3 0 0 1 0 4.4" /><path d="M12.6 4a5.5 5.5 0 0 1 0 8" /></>
+        : <><path d="M11 6l3.5 4" /><path d="M14.5 6l-3.5 4" /></>}
+    </svg>
+  );
+}
+
 function storedPerformanceChoice() {
   try { return localStorage.getItem(STORAGE_KEY); } catch { return null; }
 }
@@ -25,7 +43,7 @@ const PERFORMANCE_NOTICES = {
   },
 };
 
-function PerformanceToggle({ staticMode, onToggle, notice, noticeVisible, placement, visible }) {
+function PerformanceToggle({ staticMode, onToggle, soundOn, onSoundToggle, notice, noticeVisible, placement, visible }) {
   return (
     <div
       className={`scene-performance-control scene-performance-control--${placement}${visible ? '' : ' is-hidden'}`}
@@ -42,6 +60,17 @@ function PerformanceToggle({ staticMode, onToggle, notice, noticeVisible, placem
           <span className="scene-performance-notice-hint">{notice.hint}</span>
         </>}
       </span>
+      <button
+        type="button"
+        className="scene-sound-toggle"
+        role="switch"
+        aria-checked={soundOn}
+        aria-label="Sound"
+        tabIndex={visible ? 0 : -1}
+        onClick={onSoundToggle}
+      >
+        <SoundIcon on={soundOn} />
+      </button>
       <button
         type="button"
         role="switch"
@@ -98,6 +127,12 @@ export default function SceneBackground() {
     setNotice(null);
     try { localStorage.setItem(STORAGE_KEY, String(next)); } catch { /* Storage can be unavailable in private browsing. */ }
   }
+  const [soundOn, setSoundOn] = useState(storedSound);
+  function toggleSound() {
+    const next = !soundOn;
+    setSoundOn(next);
+    try { localStorage.setItem(SOUND_KEY, next ? 'on' : 'off'); } catch { /* Storage can be unavailable in private browsing. */ }
+  }
   const underNav = navPinned || scrolledPastNav;
   const mirrorHosts = useMirrorHosts();
   // The backdrop's layers again in each masked scrolling area, for its glass to blur (sceneMirror.jsx).
@@ -131,6 +166,8 @@ export default function SceneBackground() {
       visible={!underNav}
       staticMode={staticMode}
       onToggle={toggle}
+      soundOn={soundOn}
+      onSoundToggle={toggleSound}
       notice={notice}
       noticeVisible={noticeVisible}
     />
@@ -139,6 +176,8 @@ export default function SceneBackground() {
       visible={underNav}
       staticMode={staticMode}
       onToggle={toggle}
+      soundOn={soundOn}
+      onSoundToggle={toggleSound}
       notice={notice}
       noticeVisible={noticeVisible}
     />

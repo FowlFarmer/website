@@ -1583,6 +1583,14 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   -webkit-appearance: none;
   transition: background 0.2s ease, color 0.2s ease;
 }
+/* The sound switch beside it: a square as tall as the 3D switch. */
+.scene-performance-control .scene-sound-toggle {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+}
 .scene-performance-control button:hover {
   background: rgba(24, 31, 45, 0.45);
   color: #fff;
