@@ -1782,55 +1782,40 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
    the card never changes height from ship to ship, at any width. */
 .ship-slide {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-  align-items: start;
-  gap: 24px;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 28px;
   padding: 0 20px 20px;
 }
 
-.ship-slide > img {
-  width: 100%;
+.ship-photos {
+  display: grid;
   aspect-ratio: 16 / 9;
-  object-fit: cover;
+  overflow: hidden;
   border-radius: 8px;
 }
 
-.ship-slide-stack { display: grid; align-self: stretch; }
+.ship-photos > img {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  transition: opacity 0.8s ease;
+}
+
+.ship-photos > img[aria-hidden="true"] { opacity: 0; }
+
+.ship-slide-stack { display: grid; }
 .ship-slide-stack > * { grid-area: 1 / 1; }
 .ship-slide-stack > [aria-hidden="true"] { visibility: hidden; }
 
-.ship-slide-info {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-}
-
+.ship-slide-info { text-align: left; }
 .ship-slide-info h3 { margin: 0; font-size: 1.35rem; }
-.ship-slide-info small { margin-top: 2px; opacity: 0.7; letter-spacing: 0.04em; }
-.ship-slide-info p { margin: 12px 0 0; line-height: 1.5; }
-
-.ship-slide-info figure {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  margin: 16px 0 0;
-}
-
-/* Sized to the photo itself (not letterboxed in a wider box) so all four rounded corners show. */
-.ship-slide-info figure img {
-  align-self: flex-start;
-  width: auto;
-  max-width: 100%;
-  height: auto;
-  max-height: 110px;
-}
-
-.ship-slide-info figcaption { margin-top: 6px; font-size: 0.8rem; opacity: 0.7; }
+.ship-slide-info p { margin: 10px 0 0; line-height: 1.55; }
 
 @media (max-width: 900px) {
   .ship-slide { grid-template-columns: 1fr; gap: 14px; }
-  .ship-slide-info figure img { max-height: 90px; }
 }
 
 /* A popup in the middle of the screen (Popup.jsx), over an invisible layer that closes it when
