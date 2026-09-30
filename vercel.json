@@ -4,7 +4,7 @@
   ],
   "functions": {
     "api/**": {
-      "excludeFiles": "{dist,node_modules,public,src,.next,*.cache}/**"
+      "excludeFiles": "{assets,dist,docs,node_modules,public,scripts,src,.next,*.cache}/**"
     }
   }
 }
