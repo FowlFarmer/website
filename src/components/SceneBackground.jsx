@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 
 const Scene = lazy(() => import('./CherryBlossomScene.jsx'));
@@ -6,6 +7,7 @@ const CursorTrail = lazy(() => import('./SakuraCursorTrail.jsx'));
 import InspoPopup from './InspoPopup.jsx';
 import StaticKitsune from './experience/StaticKitsune.jsx';
 import { onPageScroll, pageScrollY } from './pageScroll.js';
+import { MirrorCanvas, useMirrorHosts } from './sceneMirror.jsx';
 const STORAGE_KEY = 'scene-low-performance';
 
 function storedPerformanceChoice() {
@@ -97,7 +99,21 @@ export default function SceneBackground() {
     try { localStorage.setItem(STORAGE_KEY, String(next)); } catch { /* Storage can be unavailable in private browsing. */ }
   }
   const underNav = navPinned || scrolledPastNav;
+  const mirrorHosts = useMirrorHosts();
+  // The backdrop's layers again in each masked scrolling area, for its glass to blur (sceneMirror.jsx).
+  const mirror = <>
+    <div className="scene-snapshot">
+      <picture>
+        <source media="(max-aspect-ratio: 1/1)" srcSet="/images/scene/snapshot-mobile.webp" />
+        <img src="/images/scene/snapshot-desktop.webp" alt="" />
+      </picture>
+    </div>
+    {!staticMode && <MirrorCanvas />}
+    {staticMode && questsVisited && <StaticKitsune shown={onQuests} mirror />}
+    <div className="blossom-atmosphere" />
+  </>;
   return <>
+    {mirrorHosts.map((host, index) => createPortal(mirror, host, `mirror-${index}`))}
     <div className="scene-snapshot" aria-hidden="true">
       <picture>
         <source media="(max-aspect-ratio: 1/1)" srcSet="/images/scene/snapshot-mobile.webp" />

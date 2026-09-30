@@ -17,7 +17,8 @@ const KitsuneLab = lazy(() => import('./components/KitsuneLab.jsx'));
 const Avalon = lazy(() => import('./components/Avalon.jsx'));
 const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard.jsx'));
 import SceneBackground from './components/SceneBackground.jsx';
-import { experienceStage } from './components/experience/experienceStage.js';
+import { MOBILE_SCENE_QUERY, experienceStage } from './components/experience/experienceStage.js';
+import { MirrorHost } from './components/sceneMirror.jsx';
 import { pageScrollTo } from './components/pageScroll.js';
 
 // Dev only: bake the 3D-off kitsune stills (components/experience/bakeKitsuneStills.js).
@@ -41,6 +42,14 @@ function FadeRoutes() {
   const [leaving, setLeaving] = useState(false);
   const mainRef = useRef(null);
   const scrollerRef = useRef(null);
+  // Phones scroll the window, unmasked, so only desktop's scroller needs the backdrop's copy.
+  const [phone, setPhone] = useState(() => window.matchMedia(MOBILE_SCENE_QUERY).matches);
+  useEffect(() => {
+    const query = window.matchMedia(MOBILE_SCENE_QUERY);
+    const change = () => setPhone(query.matches);
+    query.addEventListener('change', change);
+    return () => query.removeEventListener('change', change);
+  }, []);
   // Desktop pages scroll in .page-scroller (pageScroll.js): focused, so the keyboard scrolls it.
   useEffect(() => { scrollerRef.current.focus({ preventScroll: true }); }, []);
 
@@ -90,6 +99,7 @@ function FadeRoutes() {
 
   return (
     <div className="page-scroller" ref={scrollerRef} tabIndex={-1}>
+      <MirrorHost active={!phone} />
     <main
       ref={mainRef}
       className={`main-content${shown.pathname === '/avalon' ? ' main-content--archive' : ''}`}

@@ -1193,6 +1193,22 @@ text-align: left;
   -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / calc(1 - var(--nav-fade))) 46px, #000 62px);
   mask-image: linear-gradient(to bottom, rgb(0 0 0 / calc(1 - var(--nav-fade))) 46px, #000 62px);
 }
+/* The backdrop again, behind a masked scrolling area's content, for its glass to blur (sceneMirror.jsx).
+   Its canvas sits where the scene's does, fading in with it. */
+.scene-mirror {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.scene-mirror-canvas {
+  position: fixed;
+  display: block;
+  opacity: 0;
+  filter: saturate(1.06) contrast(1.025);
+  transition: opacity 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.scene-mirror-canvas[data-loaded] { opacity: 1; }
 :root[data-nav-fade] .page-scroller { --nav-fade: 1; }
 body[data-lore="open"] .page-scroller { --nav-fade: 0; }
 @media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {

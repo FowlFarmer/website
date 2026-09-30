@@ -3,6 +3,7 @@ import Gallery from './Gallery.jsx';
 import KitsuneCard from './experience/KitsuneCard.jsx';
 import KitsuneLore from './experience/KitsuneLore.jsx';
 import { onPageScroll, pageScrollY } from './pageScroll.js';
+import { MirrorHost } from './sceneMirror.jsx';
 import {
   MOBILE_SCENE_QUERY, experienceStage, onHoveredChange, onKitsuneShown, openLore,
 } from './experience/experienceStage.js';
@@ -90,6 +91,7 @@ export default function Quests() {
   return (
     <>
       <div ref={pageRef} className="quests" data-revealed={revealed}>
+        <MirrorHost active={phone} />
         <section className="archon-quests" aria-label="Archon Quests">
           <KitsuneCard hovered={hovered} running={archon && revealed} sizeToTallest={phone} />
         </section>

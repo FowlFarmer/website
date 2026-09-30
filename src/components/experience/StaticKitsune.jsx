@@ -29,7 +29,12 @@ async function pixelsOf(src, scale = 1) {
   return { width: canvas.width, height: canvas.height, data: context.getImageData(0, 0, canvas.width, canvas.height).data };
 }
 
-export default function StaticKitsune({ shown }) {
+// How lit each tail is now, shared with the page's copy of the backdrop (sceneMirror.jsx).
+const shownLit = new Float32Array(TAILS);
+
+// `mirror`: the copy inside a masked scrolling area, for its glass to blur (sceneMirror.jsx): it
+// only shows what the real one does.
+export default function StaticKitsune({ shown, mirror = false }) {
   const [phone] = useState(() => window.matchMedia(MOBILE_SCENE_QUERY).matches);
   const [layout, setLayout] = useState(null);
   const [tailsReady, setTailsReady] = useState(false);
@@ -50,7 +55,19 @@ export default function StaticKitsune({ shown }) {
     let shade = null;
     let pointer = null;
     let hovered = -1;
-    const lit = new Float32Array(TAILS);
+    const lit = mirror ? shownLit : new Float32Array(TAILS);
+    if (mirror) {
+      const step = () => {
+        frame = window.requestAnimationFrame(step);
+        const most = Math.max(...lit);
+        const { rest, tails } = layersRef.current;
+        rest.forEach((layer) => { if (layer) layer.style.opacity = String(1 - most); });
+        tails.forEach((layer, index) => { if (layer) layer.style.opacity = String(lit[Math.floor(index / 2)]); });
+        stillsRef.current?.style.setProperty('--s', String(experienceStage.scale));
+      };
+      frame = window.requestAnimationFrame(step);
+      return () => window.cancelAnimationFrame(frame);
+    }
     pixelsOf(`${BASE}/hover-map.png`).then((pixels) => { hoverMap = pixels; });
     pixelsOf(`${BASE}/rest-shade.webp`, 0.25).then((pixels) => { shade = pixels; });
 
@@ -100,6 +117,7 @@ export default function StaticKitsune({ shown }) {
         lit[tail] += (target - lit[tail]) * Math.min(seconds * 6, 1);
         most = Math.max(most, lit[tail]);
       }
+      shownLit.set(lit);
       const { rest, tails } = layersRef.current;
       rest.forEach((layer) => { if (layer) layer.style.opacity = String(1 - most); });
       tails.forEach((layer, index) => { if (layer) layer.style.opacity = String(lit[Math.floor(index / 2)]); });
@@ -117,7 +135,7 @@ export default function StaticKitsune({ shown }) {
       if (hovered >= 0) setHovered(-1);
       document.body.style.cursor = '';
     };
-  }, [layout, shown, phone]);
+  }, [layout, shown, phone, mirror]);
 
   const place = layout && {
     '--x': layout.x, '--y': layout.y, '--w': layout.width, '--h': layout.height, '--s': experienceStage.scale,

@@ -15,6 +15,7 @@ import {
   closeLore, cycleGlow, experienceStage, openLore, phoneKitsuneTap, setHovered as setKitsuneHovered, setKitsuneShown, skipRole,
 } from './experience/experienceStage.js';
 import { closeInspo, openInspo } from './lawsonStage.js';
+import { drawSceneMirrors } from './sceneMirror.jsx';
 
 const EMPTY_POSE = {
   position: [0, 0, 0],
@@ -1806,6 +1807,8 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           }
         }
       }
+      // The frame into the page's copies of the backdrop, for its glass to blur (sceneMirror.jsx).
+      drawSceneMirrors(renderer.domElement, mount.dataset.sceneLoaded === 'true');
       if (captureMode && captureRequested.current) {
         captureRequested.current = false;
         renderer.domElement.toBlob(async blob => {
