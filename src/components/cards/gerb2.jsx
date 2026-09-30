@@ -1,6 +1,7 @@
 import React from 'react';
 import TextFader from '../ResponsiveTextFader.jsx';
 import LazyYouTube from '../LazyYouTube.jsx';
+import QuestTag from '../experience/QuestIcons.jsx';
 
 export default function Gerb2Card() {
 //   const dbh_blob_opacity = useScrollThresholdFade(80, 800, 300);
@@ -18,6 +19,7 @@ export default function Gerb2Card() {
         // ...dbh_blob_opacity
       }}
     >
+      <QuestTag type="world" />
       <div style={{ display: "flex", flexWrap: "wrap", gap: "20px"}}>
         <div style={{ flex: "1 1 360px", padding: "20px", alignContent: "flex-start" }}>
             <h2 style={{marginTop: "0px"}}>Gerb II: Electric Boogaloo (A simulated differential drive robot)</h2>

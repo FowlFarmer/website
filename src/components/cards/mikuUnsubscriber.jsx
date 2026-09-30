@@ -27,7 +27,9 @@ const projects = [
   },
 ];
 
-export default function MikuUnsubscriberCards() {
+// Miku Explains and YouTube Subscription Sweeper side by side, as one entry of the small projects
+// card (smallProjects.jsx): two plain sections that wrap to one column when there isn't room.
+export default function MikuUnsubscriberProjects() {
   const renderProjectImage = (project) => {
     if (project.images) {
       return (
@@ -71,34 +73,30 @@ export default function MikuUnsubscriberCards() {
   return (
     <div
       style={{
-        width: "90%",
-        marginTop: "40px",
         display: "flex",
         gap: "20px",
         flexWrap: "wrap",
+        padding: "0 20px 20px",
       }}
     >
       {projects.map((project) => (
         <article
           key={project.title}
-          className="glass-effect"
           style={{
             flex: "1 1 360px",
             minWidth: 0,
-            overflow: "hidden",
             textAlign: "left",
           }}
         >
           <div
             style={{
-              padding: "20px",
               display: "flex",
               flexDirection: "column",
               minHeight: "100%",
               boxSizing: "border-box",
             }}
           >
-            <p style={{ margin: "0 0 16px", fontWeight: "bold" }}>{project.title}</p>
+            <h2 style={{ margin: "0 0 16px" }}>{project.title}</h2>
             <div
               style={{
                 width: "100%",

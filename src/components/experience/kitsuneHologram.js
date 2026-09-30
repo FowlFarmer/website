@@ -3,6 +3,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
 
 // Holographic tails: mostly light added over the scene, so it shows through them. The sculpt's fur is many
 // overlapping locks, so a pixel can cross several surfaces of one tail; each surface therefore
@@ -180,6 +181,62 @@ export function createGlowComposer(renderer, scene, camera) {
       composer.setSize(width, height);
     },
     dispose: () => composer.dispose(),
+  };
+}
+
+// The same glow as a layer over a scene that's already drawn: `camera`'s view of `scene` (which
+// should hold nothing else on that camera's layers) goes through the bloom into its own
+// transparent buffer, then onto the screen in premultiplied form, over whatever is there, inside
+// the given viewport, at the given opacity. The bloom's halo lands like a screen blend. `warm`
+// runs the bloom once off screen, so its shaders are compiled before it's first seen.
+export function createGlowLayer(renderer, scene, camera) {
+  const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType }));
+  composer.renderToScreen = false;
+  composer.addPass(new RenderPass(scene, camera, null, new THREE.Color(0x000000), 0));
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(1, 1), 0.55, 0.5, 0.9));
+  const quad = new FullScreenQuad(new THREE.ShaderMaterial({
+    uniforms: { tDiffuse: { value: null }, opacity: { value: 1 } },
+    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: `uniform sampler2D tDiffuse;
+      uniform float opacity;
+      varying vec2 vUv;
+      void main() {
+        gl_FragColor = texture2D(tDiffuse, vUv);
+        #include <colorspace_fragment>
+        gl_FragColor *= opacity;
+      }`,
+    depthTest: false,
+    depthWrite: false,
+    toneMapped: false,
+    transparent: true,
+    blending: THREE.CustomBlending,
+    blendEquation: THREE.AddEquation,
+    blendSrc: THREE.OneFactor,
+    blendDst: THREE.OneMinusSrcAlphaFactor,
+    blendSrcAlpha: THREE.OneFactor,
+    blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
+  }));
+  const render = (x, y, width, height, opacity = 1) => {
+    composer.render();
+    quad.material.uniforms.tDiffuse.value = composer.readBuffer.texture;
+    quad.material.uniforms.opacity.value = opacity;
+    renderer.setRenderTarget(null);
+    renderer.setViewport(x, y, width, height);
+    quad.render(renderer);
+  };
+  return {
+    render,
+    setSize: (width, height) => {
+      composer.setPixelRatio(renderer.getPixelRatio());
+      composer.setSize(width, height);
+    },
+    // Fully transparent, so nothing shows; the caller restores its viewport afterwards.
+    warm: () => render(0, 0, 1, 1, 0),
+    dispose: () => {
+      composer.dispose();
+      quad.material.dispose();
+      quad.dispose();
+    },
   };
 }
 

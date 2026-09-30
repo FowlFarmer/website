@@ -1,7 +1,8 @@
 import React from 'react';
-import InlinePdf from '../jias-react-components/tools/pdf.jsx';
+import InlinePdf from '../LazyPdf.jsx';
 import AnyFaderInline from '../ProjectSwitcher.jsx';
 import HorizontalCycleBar from '../jias-react-components/tools/itemscycle.jsx';
+import QuestTag from '../experience/QuestIcons.jsx';
 
 export default function LabCard() {
 //   const dbh_blob_opacity = useScrollThresholdFade(80, 800, 300);
@@ -155,13 +156,14 @@ export default function LabCard() {
         // ...dbh_blob_opacity
       }}
     >
+      <QuestTag type="story" />
       <div style={{ display: "flex", flexWrap: "wrap", gap: "20px", padding: "20px", justifyContent: "center" }}>
         <div className="flex items-start justify-start" style={{ flex: "1 1 350px"}}>
           <div style={{ flex: 1, alignItems: "flex-start"}}>
             <h2 style={{marginTop: "0px"}}>From Bench to Breakthroughs</h2>
             <p>Between 11th and 12th grade, I worked as a co-op lab intern for the Laboratory of Rodney P. DeKoter in the Department of Microbiology and Immunology at Western University. Throughout this term, I completed 3 projects listed below.</p>
             <p>Through my lab experiences, I overcame many challenges. Notably, when I started I was in 11th grade, and had not even take 12th grade biology at the time, let alone university-level life sciences courses. Thus, many concepts were understood by my coworkers but foreign to me which led me to struggle with experiments and make mistakes my peers wouldn't have. However, my struggles weren't in vain: Anything that I didn’t know how to do I learned through determined study and then trial. I overcame hurdles through practice and demonstrated the willingness to learn.</p>
-            <p><strong>Published in a paper in the Journal of Immunology.</strong></p>
+            <p><strong>Published in the Journal of Immunology.</strong></p>
           </div>
         </div>
         <div style={{ flex: "0.8 0.8 350px", display: "flex", alignContent: "center", justifyContent: "center", textAlign: "center" }}>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { experiences } from '../../data/experience.js';
+import { listedExperiences as experiences } from '../../data/experience.js';
 
 export function CyclingImage({ images, alt }) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -43,7 +43,7 @@ export function LogoBadge({ logo, company }) {
       overflow: 'hidden', flexShrink: 0,
       background: 'white', border: '1px solid rgba(255,255,255,0.2)',
     }}>
-      {!err
+      {!err && logo
         ? <img src={logo} alt="" onError={() => setErr(true)} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
         : <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', fontSize: '0.5rem', fontWeight: 700, color: '#111' }}>{initials}</span>
       }

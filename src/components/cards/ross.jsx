@@ -2,6 +2,7 @@ import React from 'react';
 import HorizontalCycleBarCentered from '../jias-react-components/tools/itemscycleCentered.jsx';
 import TextFader from '../jias-react-components/tools/TextFader.jsx';
 import LazyYouTube from '../LazyYouTube.jsx';
+import QuestTag from '../experience/QuestIcons.jsx';
 
 export default function GuardianAngel() {
   const _images = [
@@ -39,8 +40,8 @@ export default function GuardianAngel() {
         alignContent: "flex-start",
         textAlign: "center"
       }}>
-        <p style={{textAlign: "left", marginTop: "20px", marginLeft: "20px", fontWeight: "bold"}}>Featured Hackathon Project</p>
-        <div style={{ display: "flex", gap: "0px", marginTop: "-20px", flexWrap: "wrap", }}>
+        <QuestTag type="story" />
+        <div style={{ display: "flex", gap: "0px", flexWrap: "wrap", }}>
           <div style={{ flex: "1 1 400px", padding: "20px", alignContent: "flex-start", textAlign: "left" }}>
               <img style={{ borderRadius: "0px", marginTop: "25px" }} src="/ross/htn_banner.webp" alt="HTN Banner" />
             <p style={{ fontWeight: "bold", textAlign: "center" }}>Hack The North 2025 Finalist Project</p>
@@ -65,11 +66,14 @@ export default function GuardianAngel() {
             <span style={{ fontSize: "14px", fontWeight: "bold", marginTop: "15px", display: "inline-block", textAlign: "center"}}>
               @University of Waterloo | Sponsored by Y Combinator, Shopify, Amazon
             </span>
-            <a href="https://devpost.com/software/ross-42pnvi" rel="noopener noreferrer" target="_blank">
-              <span className="rounded-button" style={{ textAlign: "center", marginTop: "15px", marginBottom: "15px" }}>
-                Find on Devpost
-              </span>
-            </a>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "center", margin: "15px 0" }}>
+              <a href="https://devpost.com/software/ross-42pnvi" rel="noopener noreferrer" target="_blank">
+                <span className="rounded-button" style={{ textAlign: "center" }}>Devpost</span>
+              </a>
+              <a href="https://museum.hackthenorth.com/ross-42pnvi" rel="noopener noreferrer" target="_blank">
+                <span className="rounded-button" style={{ textAlign: "center" }}>Featured on hackthenorth.com</span>
+              </a>
+            </div>
             </div>
             <HorizontalCycleBarCentered
                             intervalMs={2500}

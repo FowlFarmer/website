@@ -20,7 +20,7 @@
 
 body {
   margin: 0;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: 'Inter Variable', sans-serif;
   background-color: var(--background-colour);
   line-height: 1.6;
 }
@@ -245,7 +245,7 @@ body {
   box-shadow: 0 10px 35px rgba(18, 10, 13, 0.28);
   backdrop-filter: blur(16px) saturate(1.2);
   -webkit-backdrop-filter: blur(16px) saturate(1.2);
-  font: 650 12px/1 'Helvetica Neue', sans-serif;
+  font: 650 12px/1 'Inter Variable', sans-serif;
   letter-spacing: 0.04em;
   cursor: pointer;
   transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
@@ -280,7 +280,7 @@ body {
   box-shadow: 0 24px 80px rgba(10, 7, 8, 0.46);
   backdrop-filter: blur(22px) saturate(1.2);
   -webkit-backdrop-filter: blur(22px) saturate(1.2);
-  font-family: 'Helvetica Neue', sans-serif;
+  font-family: 'Inter Variable', sans-serif;
 }
 
 .scene-editor-panel header {
@@ -970,7 +970,7 @@ box-shadow: 0 3px 4px 3px rgba(150,150,150,0.05); /* subtle shadow */
 cursor: pointer;
 transition: all 0.2s ease-in-out, opacity 0.5s ease-in-out;
 color: white;
-font-family: Helvetica;
+font-family: 'Inter Variable', sans-serif;
 font-weight: 100;
 text-align: left;
 text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
@@ -989,7 +989,7 @@ border-radius: 12px;
 cursor: pointer;
 transition: all 0.2s ease-in-out, opacity 0.5s ease-in-out;
 color: white;
-font-family: Helvetica;
+font-family: 'Inter Variable', sans-serif;
 font-weight: 100;
 text-align: left;
 /* text-shadow: 2px 2px 5px rgba(0,0,0,0); default shadow */
@@ -1523,7 +1523,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   border-radius: 5px;
   background: rgba(24, 31, 45, 0.28);
   color: rgba(255, 255, 255, 0.8);
-  font: 400 10px/1.2 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font: 400 10px/1.2 'Inter Variable', sans-serif;
   white-space: nowrap;
   cursor: pointer;
   appearance: none;
@@ -1552,7 +1552,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
     0 3px 4px 3px rgba(0, 0, 0, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   color: #1c1c1c;
-  font: 300 12px/1.35 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font: 300 12px/1.35 'Inter Variable', sans-serif;
   text-align: right;
   backdrop-filter: blur(16px) saturate(1.2);
   -webkit-backdrop-filter: blur(16px) saturate(1.2);
@@ -1591,6 +1591,140 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
 
 /* Reserve Avalon’s dark full viewport while its route bundle loads. */
 .main-content.main-content--archive { display: block; width: 100%; max-width: none; padding: 0; min-height: 100svh; background: #060f21; }
+
+/* The quests page: Archon Quests fill the first screen (the card sits over the kitsune, drawn in
+   the scene behind the page); World Quests follow. */
+.quests {
+  width: 100%;
+  text-align: left;
+  opacity: 0;
+  transition: opacity 450ms ease;
+}
+
+/* The page fades in with the kitsune (Quests.jsx). */
+.quests[data-revealed="true"] {
+  opacity: 1;
+}
+
+.archon-quests {
+  position: relative;
+  /* The whole screen: up under the page's top padding and out past its centred column, so the
+     card sits where the kitsune's framing leaves room for it. */
+  width: 100vw;
+  height: 100vh;
+  margin: -2rem 0 0 calc(50% - 50vw);
+}
+
+.world-quests {
+  /* The whole screen's width, like Archon Quests, with the cards down its left side at the
+     Archon card's inset, leaving the right half to the (half-size) kitsune in its corner. */
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  padding: 0 0 80px clamp(20px, 4vw, 64px);
+}
+
+.world-quests .gallery-page {
+  align-items: flex-start !important;
+}
+
+.world-quests .gallery-page > * {
+  width: 70vw !important;
+}
+
+/* A card's quest type (QuestIcons.jsx) in its top-left corner, the same on every quest card. */
+.quest-tag {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 400;
+  line-height: 22px;
+  letter-spacing: 0.02em;
+  text-align: left;
+}
+
+.quest-tag svg {
+  flex: none;
+  width: 22px;
+  height: 22px;
+}
+
+.quest-tag-spacer {
+  height: 28px;
+}
+
+/* The Lawson scene's inspiration popup's corner title (InspoPopup.jsx), placed like the quest tags,
+   its second line lighter. */
+.inspo-title {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  color: #fff;
+  font-size: 0.82rem;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  text-align: left;
+}
+
+.inspo-title p {
+  margin: 0;
+  font-weight: 400;
+}
+
+.inspo-title p + p,
+.inspo-title .inspo-title-light {
+  font-weight: 200;
+}
+
+
+/* A click or drag that starts on the background (or a card's empty space) selects nothing; one that
+   starts on text still selects it. */
+.app-container {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.app-container :is(h1, h2, h3, h4, h5, h6, p, li, dt, dd, blockquote, pre, code, a, span, small, strong, em, b, i, label, td, th, figcaption),
+.app-container :is(input, textarea, [contenteditable]) {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Elements that are drawn, not read, stay unselectable throughout. */
+.app-container :is(.calligraphy-name, .archive-emblem) * {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* A <button>: no default button border, unless it's framed (media-frame has its own). */
+.lazy-youtube:not(.media-frame) {
+  border: 0;
+}
+
+/* A PDF's opening page, shown until its viewer loads near the screen (LazyPdf.jsx). */
+.lazy-pdf {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+.lazy-pdf img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 0;
+}
 
 /* The small projects card's progress bars (one per project) with skip arrows either side
    (ProjectFader.jsx), at the top of the card so the arrows don't move as the height changes. */
@@ -1698,3 +1832,315 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   .ship-slide { grid-template-columns: 1fr; gap: 14px; }
   .ship-slide-info figure img { max-height: 90px; }
 }
+
+/* A popup in the middle of the screen (Popup.jsx), over an invisible layer that closes it when
+   clicked outside; or closed with the × in its corner. It fades up in. Used for the kitsune's
+   lore and the Lawson scene's inspiration. */
+/* Above all the site's chrome (the nav at 50, the name's petals at 60, the 3D toggle at 150); below
+   the loading screen (2000) and the cursor's petal trail (2100). */
+.popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 1001;
+  width: min(900px, 90vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 64px 20px 20px;
+  /* Its own glass, like the site's glass cards, but not their class: their hover rule drops the
+     transform that centres it, so hovering made it jump back and forth. */
+  border: 3px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  background: rgba(5, 5, 5, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 3px 4px 3px rgba(150, 150, 150, 0.05);
+  color: #fff;
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+  transform: translate(-50%, -50%);
+  animation: popup-in 220ms ease-out;
+}
+
+@keyframes popup-in {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 8px)); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+.popup-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+/* Only the × itself lights up on hover, no circle behind it. */
+.popup-close:hover {
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+}
+
+/* A smaller ? beside the ×. */
+.popup-question {
+  right: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  text-decoration: none;
+}
+
+/* A row of photos, each one's width in proportion to its shape (flex-grow set per photo), so the
+   row's photos share a height, uncropped. */
+.popup-images {
+  display: flex;
+  gap: 12px;
+}
+
+.popup-images + .popup-images {
+  margin-top: 12px;
+}
+
+.popup-images img {
+  display: block;
+  flex-basis: 0;
+  min-width: 0;
+  height: auto;
+  border-radius: 10px;
+}
+
+/* The kitsune's lore (KitsuneLore.jsx): its title is one line ("Inspo"), so less room above the
+   callout than the popup's usual two-line title needs. */
+.kitsune-lore {
+  padding-top: 42px;
+  /* Waits until the page behind has faded about 85% (of its 500ms), then fades in. */
+  animation: popup-in 300ms ease-out 425ms both;
+}
+
+/* The lore line above the photos, beside the tutorial mark. */
+.kitsune-lore-callout {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 12px;
+  /* A little larger than the "Inspo" title above it (0.82rem). */
+  font-size: 0.95rem;
+}
+
+.kitsune-lore-callout img {
+  flex: none;
+  /* As tall as the text beside it. */
+  width: auto;
+  height: 1em;
+  /* The tutorial mark in white, like the quest marks. */
+  filter: brightness(0) invert(1);
+}
+
+.kitsune-lore-callout p {
+  margin: 0;
+  color: #fff;
+  font-size: inherit;
+  font-weight: 400;
+  line-height: 1.3;
+  text-align: left;
+}
+
+/* While the kitsune's lore is open, the rest of the page fades away over 500ms: the nav, the role
+   card and the World Quests cards (the popup itself sits outside them, at the top of the page). */
+.navbar,
+.kitsune-role-slot,
+.world-quests {
+  transition: opacity 500ms ease;
+}
+
+body[data-lore="open"] :is(.navbar, .kitsune-role-slot, .world-quests) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The Fujikawaguchiko photos (InspoPopup.jsx): hovering them fades them out and a note in, in the
+   middle of where they were. The row keeps its size, so it doesn't flicker under the pointer. */
+.inspo-photos {
+  position: relative;
+}
+
+.inspo-photos img {
+  transition: opacity 0.25s ease;
+}
+
+.inspo-note {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0 12%;
+  color: #fff;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.inspo-photos:hover img {
+  opacity: 0;
+}
+
+.inspo-photos:hover .inspo-note {
+  opacity: 1;
+}
+
+/* A photo in a popup row with a caption (KitsuneLore.jsx): its width follows its shape (flex-grow
+   set per photo), and its caption shows over its bottom on a dark fade while hovered. */
+.popup-photo {
+  position: relative;
+  flex-basis: 0;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.popup-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0;
+}
+
+.popup-photo figcaption {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 36px 14px 12px;
+  background: linear-gradient(to top, rgba(8, 6, 20, 0.85), rgba(8, 6, 20, 0));
+  color: #fff;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  text-align: left;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.popup-photo:hover figcaption {
+  opacity: 1;
+  /* Clickable while showing, for the credit link. */
+  pointer-events: auto;
+}
+
+.popup-photo-credit {
+  display: block;
+  margin-top: 6px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.78rem;
+  text-decoration: underline;
+}
+
+.popup-photo-credit:hover {
+  color: #fff;
+}
+
+/* Waterloo Roulette's stats under its play button (cards/waterlooRoulette.jsx): a small 2×2 grid,
+   each a bold number over a light label. */
+.roulette-stats {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 8px 22px;
+  margin: 0;
+  text-align: center;
+}
+
+.roulette-stats dt {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.roulette-stats dd {
+  margin: 0;
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+/* An other-hackathon-project thumbnail (Gallery.jsx): its tagline shows over its bottom on a dark
+   fade while hovered. */
+.hack-thumb {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+}
+
+.hack-thumb img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0;
+}
+
+.hack-thumb figcaption {
+  /* Over the whole thumbnail, darkest behind the text at the bottom, so every line sits on dark. */
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: 8px 8px 6px;
+  background: linear-gradient(to top, rgba(8, 6, 20, 0.94) 0%, rgba(8, 6, 20, 0.85) 60%, rgba(8, 6, 20, 0.45) 100%);
+  color: #fff;
+  font-size: 0.65rem;
+  line-height: 1.3;
+  text-align: left;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.hack-thumb:hover figcaption {
+  opacity: 1;
+}
+
+/* The quests page's scroll hint (Quests.jsx), bottom centre in the style of the 3D toggle: it's
+   there until you've scrolled a sixteenth of the screen. */
+.scroll-hint {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  z-index: 50;
+  margin: 0;
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 5px;
+  background: rgba(24, 31, 45, 0.28);
+  color: rgba(255, 255, 255, 0.8);
+  font: 400 10px/1.2 'Inter Variable', sans-serif;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* The lore popup hides it. */
+body[data-lore="open"] .scroll-hint {
+  visibility: hidden;
+}
+

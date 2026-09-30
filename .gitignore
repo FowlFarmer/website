@@ -89,3 +89,8 @@ junit.xml
 # Ignore public build artifacts
 public/*.map
 .vercel
+
+# Blender autosave backups, scratch output, agent worktrees
+*.blend1
+/output/
+.claude/worktrees/

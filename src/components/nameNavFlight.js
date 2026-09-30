@@ -1,13 +1,10 @@
-import {
-  LARGE_PETAL, PIECE_DIRECTIONS, glyphInterior, glyphMask, petalRadius, shapeMask, tessellate, tracePiece,
-} from './petalPieces.js';
+import { PIECE_DIRECTIONS, petalRadius, shapeMask, tessellate, tracePiece } from './petalPieces.js';
+import { prepareNavPieces } from './calligraphyPetals.js';
 import { setNavFormation } from './navFormation.js';
 
 // Scrolling past the intro, the name bursts into petals that fly up and tile the menu bar.
 // The same large petals as the hover burst; each reshapes into its slice of the bar as it lands.
 export const NAV_SCROLL_THRESHOLD = 80;
-const PIECE_DENSITY = 6;
-const PIECE_OVERLAP = 0.22;
 const BAR_DENSITY = 2;
 const BAR_OVERLAP = 0.45;
 const FLIGHT_SECONDS = 1.0;
@@ -52,6 +49,11 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
   let clearTimer = 0;
   let pendingForm = false;
   let startedAt = 0;
+  // Set while the name forms the bar on request (not from scrolling), until it's formed.
+  let forced = false;
+  let onFormed = null;
+  // Set once the page is gone: the flight still lands, then cleans up.
+  let released = false;
   const radii = new Float32Array(PIECE_DIRECTIONS.length);
 
   const resize = () => {
@@ -66,31 +68,9 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
 
   const clear = () => context.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
+  // Normally baked (calligraphyPetals.js); prepared live only if the bake is missing or stale.
   const preparePieces = () => {
-    if (pieces) return;
-    pieces = [];
-    glyphs.forEach((glyph, glyphIndex) => {
-      const seeds = glyphInterior(glyph, LARGE_PETAL.spacing).map((point) => ({ homeX: point.x, homeY: point.y }));
-      tessellate(glyphMask(glyph, PIECE_DENSITY), seeds, { bucketSize: 8, overlap: PIECE_OVERLAP, maxRadius: 20 });
-      const centerX = glyph.box.x + glyph.box.width / 2;
-      const centerY = glyph.box.y + glyph.box.height / 2;
-      for (const seed of seeds) {
-        const outward = Math.atan2(seed.homeY - centerY, seed.homeX - centerX);
-        pieces.push({
-          glyphIndex,
-          homeX: seed.homeX,
-          homeY: seed.homeY,
-          cell: seed.cell,
-          size: LARGE_PETAL.size + Math.random() * LARGE_PETAL.sizeRange,
-          outwardX: Math.cos(outward),
-          outwardY: Math.sin(outward),
-          x: 0,
-          y: 0,
-          rotation: Math.random() * Math.PI * 2,
-          radii: new Float32Array(PIECE_DIRECTIONS.length),
-        });
-      }
-    });
+    if (!pieces) pieces = prepareNavPieces(glyphs);
   };
 
   // Tile the live menu bar with exactly one cell per piece.
@@ -242,6 +222,11 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
         if (phase !== 'bar') return;
         clear();
         setNavFormation({ items: true });
+        const done = onFormed;
+        forced = false;
+        onFormed = null;
+        done?.();
+        if (released) destroy();
       }));
     } else {
       phase = 'banner';
@@ -271,6 +256,7 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
   };
 
   const update = () => {
+    if (forced) return;
     const wanted = window.scrollY >= NAV_SCROLL_THRESHOLD;
     if (wanted) {
       if (phase === 'banner' && !pendingForm) {
@@ -309,18 +295,58 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
   if (phase === 'bar') glyphs.forEach((_, index) => setGlyphMode(index, 'nav'));
   setNavFormation({ managed: true, bar: phase === 'bar', items: phase === 'bar' });
 
+  function destroy() {
+    forced = false;
+    onFormed = null;
+    window.cancelAnimationFrame(animationFrame);
+    window.clearTimeout(clearTimer);
+    pendingForm = false;
+    window.removeEventListener('resize', resize);
+    window.removeEventListener('scroll', update);
+    setNavFormation({ managed: false, bar: false, items: false });
+    canvas.width = 0;
+    canvas.height = 0;
+    canvas.remove();
+  }
+
   return {
     busy: () => phase !== 'banner' || pendingForm,
-    prepare: preparePieces,
-    destroy() {
-      window.cancelAnimationFrame(animationFrame);
-      window.clearTimeout(clearTimer);
-      pendingForm = false;
-      window.removeEventListener('resize', resize);
-      window.removeEventListener('scroll', update);
-      setNavFormation({ managed: false, bar: false, items: false });
-      canvas.width = 0;
-      canvas.height = 0;
+    // Form the bar now, whatever the scroll, then call `done` once its items show.
+    formNow(done) {
+      if (phase === 'bar') { done(); return; }
+      forced = true;
+      onFormed = done;
+      if (phase === 'banner') {
+        if (!pendingForm) {
+          quietHover();
+          pendingForm = true;
+          waitForHover();
+        }
+      } else if (phase === 'dissolving') {
+        launch('up');
+      } else if (phase === 'clearing') {
+        window.clearTimeout(clearTimer);
+        phase = 'bar';
+        setNavFormation({ items: true });
+        forced = false;
+        onFormed = null;
+        done();
+      }
     },
+    prepare: preparePieces,
+    usePieces(baked) {
+      if (!pieces) pieces = baked;
+    },
+    // The page is going. A flight up to the bar keeps going to its landing, then cleans up;
+    // anything else stops now.
+    release() {
+      if (phase === 'forming' && forced) {
+        released = true;
+        window.removeEventListener('resize', resize);
+        window.removeEventListener('scroll', update);
+      } else destroy();
+    },
+    destroy,
   };
 }
+

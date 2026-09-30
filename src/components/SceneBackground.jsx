@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 
 const Scene = lazy(() => import('./CherryBlossomScene.jsx'));
 const CursorTrail = lazy(() => import('./SakuraCursorTrail.jsx'));
+import InspoPopup from './InspoPopup.jsx';
 const STORAGE_KEY = 'scene-low-performance';
 
 function storedPerformanceChoice() {
@@ -53,7 +54,7 @@ function PerformanceToggle({ staticMode, onToggle, notice, noticeVisible, placem
 
 export default function SceneBackground() {
   const { pathname } = useLocation();
-  const navPinned = pathname === '/contact' || pathname === '/gallery' || pathname.startsWith('/avalon');
+  const navPinned = pathname === '/contact' || pathname === '/quests' || pathname.startsWith('/avalon');
   const [scrolledPastNav, setScrolledPastNav] = useState(() => window.scrollY >= 80);
   const initialChoice = storedPerformanceChoice();
   const [staticMode, setStaticMode] = useState(() => {
@@ -102,6 +103,7 @@ export default function SceneBackground() {
       <Scene onLowPerformance={switchAutomatically} />
       <CursorTrail />
     </Suspense>}
+    <InspoPopup />
     <PerformanceToggle
       placement="corner"
       visible={!underNav}

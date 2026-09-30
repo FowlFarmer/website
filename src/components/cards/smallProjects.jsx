@@ -1,8 +1,10 @@
 // SmallProjectsCard.jsx
 import React from 'react';
-import AnyFader from '../ProjectSwitcher.jsx';
+import AnyFader from '../ProjectFader.jsx';
 import HorizontalCycleBarCentered from '../jias-react-components/tools/itemscycleCentered.jsx';
-import InlinePdf from '../jias-react-components/tools/pdf.jsx';
+import InlinePdf from '../LazyPdf.jsx';
+import QuestTag from '../experience/QuestIcons.jsx';
+import MikuUnsubscriberProjects from './mikuUnsubscriber.jsx';
 
 export default function SmallProjectsCard() {
   const _bedmaker_images = [
@@ -58,15 +60,16 @@ export default function SmallProjectsCard() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexWrap: "wrap", padding: '20px', marginTop: "-20px", gap: "10px", justifyContent: "center", alignItems: "center" }}>
-          <div className="big-zoom" style={{ display: 'flex', alignItems: 'stretch' }}>
+      {/* Three across; when only two fit, the third wraps and spans the width of both. */}
+      <div style={{ display: 'flex', flexWrap: "wrap", padding: '20px', marginTop: "-20px", gap: "10px" }}>
+          <div className="big-zoom" style={{ flex: '1 1 200px', minWidth: 0 }}>
             <InlinePdf src="/breathmentor/breathmentor_doc.pdf" height={200} />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', padding: '0px 10px' }}>
-            <img src="/breathmentor/breathmentor_3.png" alt="BreathMentor_3" style={{ width: 'auto', height: '200px' }} />
+          <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+            <img src="/breathmentor/breathmentor_3.png" alt="BreathMentor_3" style={{ display: 'block', width: '100%', height: '200px', objectFit: 'cover', borderRadius: '8px' }} />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', padding: '0px 10px' }}>
-            <img src="/breathmentor/breathmentor_4.png" alt="BreathMentor_4" style={{ width: 'auto', height: '200px' }} />
+          <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+            <img src="/breathmentor/breathmentor_4.png" alt="BreathMentor_4" style={{ display: 'block', width: '100%', height: '200px', objectFit: 'cover', borderRadius: '8px' }} />
           </div>
       </div>
     </div>,
@@ -141,6 +144,31 @@ export default function SmallProjectsCard() {
         </div>
       </div>
     </div>,
+
+    // ---- Item 4: AutoSpriteTransform
+    <div>
+      <div style={{ display: 'flex', flexDirection: 'column', padding: '20px' }}>
+        <h2 style={{ marginTop: '0px', marginLeft: '10px' }}>AutoSpriteTransform</h2>
+
+        <div style={{ display: 'flex', flexWrap: "wrap", gap: '20px', alignItems: 'stretch', justifyContent: "center" }}>
+          <div style={{ flex: "1 1 450px", display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '10px', marginTop: "-10px" }}>
+            <p><strong>AutoSpriteTransform</strong> is a machine learning model I developed to solve a "super niche" problem: the automatic rotation and scaling of generated weapon sprites such that they'd be ready for Minecraft resource pack injection. The core challenge was training a model to correctly predict the orientation of symmetrical objects, which can confuse standard loss functions.</p>
+            <p>To overcome the issue of "midpoint averaging" where the model would predict a neutral angle instead of the correct bimodal targets (e.g., 0 or 180 degrees), I experimented with <strong>custom periodic loss functions</strong> as well as gaussian bumps, different model architectures and training methods. These custom functions were crucial in forcing the model to make definitive predictions, evolving performance from <strong>stagnant to incredibly promising</strong>. The model's architecture was optimized by increasing convolutional layers to enhance feature extraction. The final model was evaluated using a <strong>mAP@N</strong> (mean average precision within N degrees) metric.</p>
+            <p>The project also involved a robust data generation pipeline, which utilized a large language model to create a diverse list of sci-fi weapons. These were then used to generate and label a high-quality dataset of images with a Diffusion model.</p>
+          </div>
+
+          <div style={{ flex: "0.5 0.5 200px", display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
+            <img src="/autosprite/autosprite.webp" alt="AutoSpriteTransform" style={{ width: '100%', height: 'auto', borderRadius: '10px', display: 'block' }} />
+            <a href="https://github.com/FowlFarmer/AutoSpriteTransform" target="_blank" rel="noopener noreferrer">
+              <span className="rounded-button">Analyze Results on GitHub</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>,
+
+    // ---- Item 5: Miku Explains and YouTube Subscription Sweeper, side by side
+    <MikuUnsubscriberProjects />,
   ];
 
   return (
@@ -153,10 +181,10 @@ export default function SmallProjectsCard() {
         overflow: "hidden",
       }}
     >
+      <QuestTag type="world" />
       <AnyFader
-        interval={[8000, 8000, 5000]}
+        interval={[8000, 8000, 5000, 8000, 8000]}
         items={_items}
-        labels={["BreathMentor", "Bedmaker", "Ethereum paper"]}
       />
     </div>
   );

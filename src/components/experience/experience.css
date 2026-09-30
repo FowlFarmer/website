@@ -154,7 +154,7 @@
 
 .branch-year {
   fill: #fff;
-  font: 500 22px 'Helvetica Neue', sans-serif;
+  font: 500 22px 'Inter Variable', sans-serif;
 }
 
 .branch-copy {
@@ -513,12 +513,226 @@
 
 /* Standalone kitsune scene: the dusk Fuji photo behind a transparent three.js canvas. */
 .kitsune-scene {
-  position: fixed;
+  position: absolute;
   inset: 0;
-  z-index: 40;
   background: #3c3a6e url('/images/scene/fuji_hd.jpg') center bottom / cover no-repeat;
 }
 
 .kitsune-scene canvas {
   display: block;
+}
+
+/* Temporary placement controls over the kitsune scene. */
+.kitsune-tuner {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 41;
+  display: grid;
+  gap: 8px;
+  width: min(340px, calc(100vw - 32px));
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(16, 14, 34, 0.78);
+  color: #fff;
+  font-size: 0.8rem;
+  backdrop-filter: blur(8px);
+}
+
+.kitsune-tuner label {
+  display: grid;
+  grid-template-columns: 56px 1fr 64px 14px;
+  align-items: center;
+  gap: 8px;
+}
+
+.kitsune-tuner input[type="number"] {
+  width: 100%;
+  padding: 2px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  font: inherit;
+}
+
+.kitsune-tuner p {
+  margin: 0;
+  opacity: 0.8;
+}
+
+.kitsune-tuner-readout {
+  font-family: ui-monospace, monospace;
+  font-size: 0.72rem;
+}
+
+.kitsune-tuner-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.kitsune-tuner button {
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+
+/* The kitsune test page, full screen over everything. */
+.kitsune-lab {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+/* The kitsune scene with its role card: the scene fills its box; the card sits over the sky on the
+   left, in the style of a homepage experience row. */
+.kitsune-page {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  color: #fff;
+  font-family: 'Inter Variable', sans-serif;
+  font-weight: 300;
+}
+
+/* Holds the card in place; the card fades and drifts in and out. */
+.kitsune-role-slot {
+  position: absolute;
+  top: 50%;
+  left: clamp(20px, 4vw, 64px);
+  z-index: 41;
+  width: min(660px, 44vw);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.kitsune-role {
+  position: relative;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 52px 20px 28px; /* sides match the quest tag's inset */
+  border: 3px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  background: rgba(14, 12, 34, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 3px 4px 3px rgba(150, 150, 150, 0.05), 0 24px 60px rgba(8, 6, 30, 0.25);
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.kitsune-role-text {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* The company's logo beside its name. */
+.kitsune-role-company {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 8px;
+}
+
+.kitsune-role-company h2 {
+  margin: 0 !important;
+}
+
+.kitsune-role-text h2 {
+  margin: 0 0 8px;
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.kitsune-role-date,
+.kitsune-role-location {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.kitsune-role-location {
+  margin: 0;
+}
+
+.kitsune-role-headline {
+  margin: 0 0 8px;
+  font-size: 1.12rem;
+  line-height: 1.4;
+  opacity: 0.86;
+}
+
+.kitsune-role-points {
+  margin: 0 0 8px;
+  padding-left: 1.1em;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  opacity: 0.8;
+}
+
+.kitsune-role-media {
+  flex: 0 0 260px;
+  min-width: 0;
+}
+
+
+/* The lab's card: plain text on the role card's glass. */
+.kitsune-notes {
+  display: block;
+  padding: 26px 28px;
+  pointer-events: auto;
+}
+
+.kitsune-notes section + section {
+  margin-top: 16px;
+}
+
+.kitsune-notes h3 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.kitsune-notes p {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+/* The lab's way back to the homepage, in the tuner's style. */
+.kitsune-back {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 42;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(16, 14, 34, 0.78);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.8rem;
+  text-decoration: none;
+  backdrop-filter: blur(8px);
+  transition: color 0.2s ease;
+}
+
+.kitsune-back:hover {
+  color: #fff;
+}
+
+/* In the lab, the card centres in the space below the back button. */
+.kitsune-lab .kitsune-role-slot {
+  top: 60px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  transform: none;
 }
