@@ -966,12 +966,12 @@ yeet
 }
 
 /* The site's glass, the same for every card: the glass cards and the quests page's role card
-   (experience.css .kitsune-role). Its blur scales by --glass-blur-scale (the preview's render
-   settings, frameStats.js). */
+   (experience.css .kitsune-role). A light 3.2px blur (tuned by eye, 0.4 of the old 8px), scaled by
+   --glass-blur-scale (the preview's render settings, frameStats.js). */
 .glass-effect,
 .kitsune-role {
-  -webkit-backdrop-filter: blur(calc(8px * var(--glass-blur-scale, 1)));
-  backdrop-filter: blur(calc(8px * var(--glass-blur-scale, 1)));
+  -webkit-backdrop-filter: blur(calc(3.2px * var(--glass-blur-scale, 1)));
+  backdrop-filter: blur(calc(3.2px * var(--glass-blur-scale, 1)));
   background: rgba(5, 5, 5, 0.15);
   border: 3px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
@@ -1467,7 +1467,7 @@ body[data-lore="open"] .page-scroller { --nav-fade: 0; }
   font-family: inherit;
   font-weight: 300;
   cursor: default;
-  -webkit-backdrop-filter: blur(calc(8px * var(--glass-blur-scale, 1)));
+  -webkit-backdrop-filter: blur(calc(3.2px * var(--glass-blur-scale, 1)));
   transition: opacity 0.5s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 .blossom-home > .glass-effect:not(.mainBlob) {

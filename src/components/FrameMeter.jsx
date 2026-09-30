@@ -76,7 +76,7 @@ function RenderSettings() {
           <option value="0">none</option>
         </select>
       </label>
-      {slider('glassBlur', 'glass blur (share of normal)', 0, 2, 0.05, 1)}
+      {slider('glassBlur', 'glass blur (x 3.2px)', 0, 3, 0.05, 1)}
       <label className="frame-setting">
         <span>while scrolling</span>
         <select value={values.scrolling} onChange={(event) => setTuning({ scrolling: event.target.value })}>
