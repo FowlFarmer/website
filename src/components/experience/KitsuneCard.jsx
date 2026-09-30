@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CyclingImage, LogoBadge } from '../cards/workExperience.jsx';
 import QuestTag from './QuestIcons.jsx';
@@ -11,9 +11,43 @@ import './experience.css';
 const CYCLE_MS = 7000;
 const FIRST = kitsuneTails.findIndex((role) => role.id === 'tesla');
 
+// Phones: the photos two at a time side by side (a lone photo fills both halves), in order, each
+// pair taking over from the last as CyclingImage's single photos do.
+function PairedImages({ images, alt }) {
+  const [first, setFirst] = useState(0);
+  const count = images.length;
+  useEffect(() => {
+    if (count <= 2) return undefined;
+    const id = setInterval(() => setFirst((index) => (index + 2) % count), 2800);
+    return () => clearInterval(id);
+  }, [count]);
+  const shown = count === 1 ? [0] : [first, (first + 1) % count];
+  // A photo fading out stays on the side it was shown on.
+  const sides = useRef([]);
+  shown.forEach((index, slot) => { sides.current[index] = count === 1 ? 'both' : slot ? 'right' : 'left'; });
+  return (
+    <div className="kitsune-role-pair">
+      {images.map((src, index) => {
+        const slot = shown.indexOf(index);
+        return (
+          <img
+            key={src}
+            src={src}
+            alt={`${alt} ${index + 1}`}
+            loading="lazy"
+            decoding="async"
+            data-slot={sides.current[index] ?? 'left'}
+            style={{ opacity: slot >= 0 ? 1 : 0 }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 // One role's card content. As a `sizer` (an invisible stand-in, for sizing) its photos are an
-// empty box of the same shape, so nothing loads.
-function RoleContent({ role, sizer = false }) {
+// empty box of the same shape, so nothing loads. `paired` (phones): its photos two at a time.
+function RoleContent({ role, sizer = false, paired = false }) {
   return (
     <>
       <QuestTag type="archon" icon={REGION_ICONS[role.region]} name={role.quest} spacer={false} />
@@ -36,8 +70,10 @@ function RoleContent({ role, sizer = false }) {
       {role.images?.length > 0 && (
         <div className="kitsune-role-media">
           {sizer
-            ? <div style={{ width: '100%', aspectRatio: '4 / 3' }} />
-            : <CyclingImage images={role.images} alt={role.company ?? ''} />}
+            ? <div style={{ width: '100%', aspectRatio: paired ? '8 / 3' : '4 / 3' }} />
+            : paired
+              ? <PairedImages images={role.images} alt={role.company ?? ''} />
+              : <CyclingImage images={role.images} alt={role.company ?? ''} />}
         </div>
       )}
     </>
@@ -83,12 +119,12 @@ export default function KitsuneCard({ hovered = -1, running = true, sizeToTalles
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
-          <RoleContent role={role} />
+          <RoleContent role={role} paired={sizeToTallest} />
         </motion.article>
       </AnimatePresence>
       {sizeToTallest && kitsuneTails.map((each) => (
         <article key={each.id} className="kitsune-role kitsune-role-sizer" aria-hidden="true">
-          <RoleContent role={each} sizer />
+          <RoleContent role={each} sizer paired />
         </article>
       ))}
     </div>

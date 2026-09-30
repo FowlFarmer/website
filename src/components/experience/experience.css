@@ -832,6 +832,24 @@
     padding: 44px 16px 18px;
   }
   .kitsune-role-media { flex: none; width: 100%; }
+  /* The photos in pairs (KitsuneCard.jsx PairedImages): two 4:3 halves, or a lone one across both. */
+  .kitsune-role-pair {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 8 / 3;
+  }
+  .kitsune-role-pair img {
+    position: absolute;
+    top: 0;
+    width: calc(50% - 4px);
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+    transition: opacity 700ms ease;
+  }
+  .kitsune-role-pair img[data-slot="left"] { left: 0; }
+  .kitsune-role-pair img[data-slot="right"] { right: 0; }
+  .kitsune-role-pair img[data-slot="both"] { left: 0; width: 100%; }
   .world-quests {
     width: 100%;
     margin: 0;
