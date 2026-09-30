@@ -683,6 +683,24 @@
   min-width: 0;
 }
 
+/* Outside phones: once the card is too narrow for the text beside a 260px photo (its window
+   under ~1140px), the photo goes under the text instead, no wider than 300px. */
+@media (min-width: 768px) and (not (pointer: coarse)), (min-width: 1025px) {
+  .kitsune-role-slot { container-type: inline-size; }
+  @container (max-width: 500px) {
+    .kitsune-role {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 18px;
+    }
+    .kitsune-role-media {
+      flex: none;
+      width: min(100%, 300px);
+      align-self: center;
+    }
+  }
+}
+
 
 /* The lab's card: plain text on the role card's glass. */
 .kitsune-notes {
