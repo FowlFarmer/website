@@ -2209,3 +2209,21 @@ body[data-lore="open"] .scroll-hint {
   visibility: hidden;
 }
 
+
+/* The frame meter (FrameMeter.jsx; not on the production site): top left, under the menu bar. It
+   turns red when the slowest frames run over the budget. */
+.frame-meter {
+  position: fixed;
+  top: 52px;
+  left: 10px;
+  z-index: 3000;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: rgba(10, 12, 20, 0.62);
+  color: #b8f5c8;
+  font: 500 10px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.frame-meter:empty { display: none; }
+.frame-meter[data-over="true"] { color: #ffb3b3; }

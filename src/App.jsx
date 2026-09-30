@@ -19,6 +19,8 @@ const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard.js
 import SceneBackground from './components/SceneBackground.jsx';
 import { MOBILE_SCENE_QUERY, experienceStage } from './components/experience/experienceStage.js';
 import { MirrorHost } from './components/sceneMirror.jsx';
+import FrameMeter from './components/FrameMeter.jsx';
+import { SHOW_FRAME_METER } from './components/frameStats.js';
 import { pageScrollTo } from './components/pageScroll.js';
 
 // Dev only: bake the 3D-off kitsune stills (components/experience/bakeKitsuneStills.js).
@@ -139,6 +141,7 @@ export default function App() {
       <div className="app-container" id="popup-root">
         <SiteChrome />
         <FadeRoutes />
+        {SHOW_FRAME_METER && <FrameMeter />}
       </div>
         <Analytics />
     </Router>

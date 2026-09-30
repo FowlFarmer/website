@@ -17,6 +17,7 @@ import {
 import { closeInspo, openInspo } from './lawsonStage.js';
 import { drawSceneMirrors } from './sceneMirror.jsx';
 import { onPageScroll, pageScrollY } from './pageScroll.js';
+import { markFrame, setTargetFps } from './frameStats.js';
 import { createChimes } from './experience/kitsuneChimes.js';
 
 const EMPTY_POSE = {
@@ -1668,6 +1669,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
 
     let lastRenderedAt = 0;
     const frameInterval = lowPower ? 1000 / 30 : 0;
+    setTargetFps(lowPower ? 30 : null);
     const animate = (now = performance.now()) => {
       animationFrame = window.requestAnimationFrame(animate);
       if (!visible || now - lastRenderedAt < frameInterval) return;
@@ -1815,6 +1817,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       }
       // The frame into the page's copies of the backdrop, for its glass to blur (sceneMirror.jsx).
       drawSceneMirrors(renderer.domElement, mount.dataset.sceneLoaded === 'true');
+      markFrame(now);
       if (captureMode && captureRequested.current) {
         captureRequested.current = false;
         renderer.domElement.toBlob(async blob => {
@@ -1837,6 +1840,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       kitsuneGlow?.dispose();
       kitsune?.dispose();
       chimes?.dispose();
+      setTargetFps(null);
       document.body.style.cursor = '';
       renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
       window.clearTimeout(readyTimer);
