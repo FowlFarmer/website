@@ -16,7 +16,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
-import { PHONE_CAMERA_DISTANCE, createKitsune, framePhone, loadKitsuneAssets } from './kitsuneRig.js';
+import { PHONE_VIEW, createKitsune, loadKitsuneAssets } from './kitsuneRig.js';
 import { createGlowLayer } from './kitsuneHologram.js';
 
 // Framed as the live view is at full screen height, wide enough for the widest screen (2.4:1);
@@ -214,16 +214,10 @@ export async function bakeKitsuneStills() {
   mapContext.putImageData(mapImage, 0, 0);
   await post('hover-map.png', await toBlob(map, 'image/png'));
 
-  // Where the phone camera (framePhone) looks, in the same units: the phone layout shows these
-  // stills centred on it and brought in to match (StaticKitsune.jsx).
-  const phoneCamera = { target: kitsune.target.clone(), base: kitsune.base.clone() };
-  framePhone(kitsune);
-  const phoneTarget = kitsune.target.clone().project(kitsune.camera);
-  kitsune.target.copy(phoneCamera.target);
-  kitsune.base.copy(phoneCamera.base);
   // Where the crop sits, in units of the view's height, from the view's centre (x) and top (y).
   const layout = {
-    phone: { x: (phoneTarget.x * ASPECT) / 2, y: (1 - phoneTarget.y) / 2, zoom: 1 / PHONE_CAMERA_DISTANCE },
+    // The phone layout's crop of the view (StaticKitsune.jsx), as the live phone view's.
+    phone: PHONE_VIEW,
     x: (left - WIDTH / 2) / HEIGHT,
     y: top / HEIGHT,
     width: cropWidth / HEIGHT,

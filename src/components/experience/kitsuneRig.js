@@ -74,19 +74,13 @@ function tailPoseMatrix(frame, pose) {
     .multiply(new THREE.Matrix4().makeTranslation(-frame.anchor.x, -frame.anchor.y, -frame.anchor.z));
 }
 
-// The phone layout's camera (CherryBlossomScene.jsx): desktop's, moved across to centre him and
-// PHONE_CAMERA_DROP of the way down to his fan's middle (keeping its angle, looking down onto the
-// ledge), then brought in to PHONE_CAMERA_DISTANCE of desktop's distance, so his fan fills the
-// band. crop-kitsune-view.mjs's phone views and the 3D-off stills' phone placement follow it.
-export const PHONE_CAMERA_DROP = 0.45;
-export const PHONE_CAMERA_DISTANCE = 0.8;
-export function framePhone(kitsune) {
-  const move = kitsune.focus().sub(kitsune.target);
-  move.y *= PHONE_CAMERA_DROP;
-  kitsune.base.add(move);
-  kitsune.target.add(move);
-  kitsune.base.sub(kitsune.target).multiplyScalar(PHONE_CAMERA_DISTANCE).add(kitsune.target);
-}
+// The phone layout's view (CherryBlossomScene.jsx): a crop of desktop's view at rest, `zoom` times
+// closer, centred at (x, y) (across from the centre and down from the top, in units of desktop's
+// view height). Only ever a crop, so it shows nothing desktop can't: the models are cut down to
+// what desktop sees. The 3D-off stills' phone placement (layout.json) is the same crop.
+export const PHONE_VIEW = { x: 0.4287, y: 0.6, zoom: 1.25 };
+// The widest desktop view it stays within (crop-kitsune-view.mjs's widest).
+const PHONE_VIEW_BOUNDS = 2.4;
 
 // Every tail material in use, so the light tuner (TailLightTuner.jsx) can change them live.
 const liveTailMaterials = new Set();
@@ -121,10 +115,8 @@ const SWAY_YAW_RIGHT = THREE.MathUtils.degToRad(17.5);
 const SWAY_PITCH = THREE.MathUtils.degToRad(1.2);
 const SWAY_EASE = 3;
 
-// `phone`: the figure and rock cropped for the phone layout's camera instead (crop-kitsune-view.mjs).
-export function loadKitsuneAssets(loader, { phone = false } = {}) {
-  const phoneVersion = (url) => (phone ? url.replace(/\.glb$/, '-phone.glb') : url);
-  return Promise.all([phoneVersion(MODEL_URL), TAIL_URL, phoneVersion(CLIFF_URL), ...BLOSSOM_URLS].map((url) => loader.loadAsync(url)));
+export function loadKitsuneAssets(loader) {
+  return Promise.all([MODEL_URL, TAIL_URL, CLIFF_URL, ...BLOSSOM_URLS].map((url) => loader.loadAsync(url)));
 }
 
 // A seeded random source, so the blossoms land in the same places every visit.
@@ -404,6 +396,18 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
     camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(15)) * Math.max(1, 0.78 / aspect)));
     camera.updateProjectionMatrix();
   };
+  // The phone layout's view (PHONE_VIEW), for a view of `aspect`.
+  const setPhoneView = (aspect) => {
+    setAspect(PHONE_VIEW_BOUNDS);
+    const fullHeight = 1000;
+    const fullWidth = fullHeight * PHONE_VIEW_BOUNDS;
+    let height = fullHeight / PHONE_VIEW.zoom;
+    let width = height * aspect;
+    if (width > fullWidth) { width = fullWidth; height = width / aspect; }
+    const x = THREE.MathUtils.clamp(fullWidth / 2 + PHONE_VIEW.x * fullHeight - width / 2, 0, fullWidth - width);
+    const y = THREE.MathUtils.clamp(PHONE_VIEW.y * fullHeight - height / 2, 0, fullHeight - height);
+    camera.setViewOffset(fullWidth, fullHeight, x, y, width, height);
+  };
 
   // Mouse wind: the pointer's path, projected onto a plane through the tails facing the camera,
   // leaves gusts moving at the pointer's world speed. Hover (unless `hover` is off): the nearest
@@ -542,7 +546,7 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
   };
 
   return {
-    root, camera, base, target, setPlacement, setAspect, pointer, hits, setSway, update, lookAtHim, dispose,
+    root, camera, base, target, setPlacement, setAspect, setPhoneView, pointer, hits, setSway, update, lookAtHim, dispose,
     // The tails' invisible hover shells, in tail order (for baking the stills' hover map).
     hoverShells,
     clearHover: () => setHovered(-1),

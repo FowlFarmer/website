@@ -1327,7 +1327,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     const loadKitsune = () => {
       kitsuneLoading = true;
       Promise.all([import('./experience/kitsuneRig.js'), import('./experience/kitsuneHologram.js')])
-        .then(([rig, hologram]) => rig.loadKitsuneAssets(loader, { phone: mobileLayout }).then((assets) => {
+        .then(([rig, hologram]) => rig.loadKitsuneAssets(loader).then((assets) => {
           if (disposed) return undefined;
           kitsune = rig.createKitsune(assets, {
             layer: KITSUNE_LAYER,
@@ -1339,8 +1339,8 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           scene.add(kitsune.root);
           if (import.meta.env.DEV && window.__cherryScene) window.__cherryScene.kitsune = kitsune;
           const frame = kitsuneFrame();
-          kitsune.setAspect(frame.width / frame.height);
-          if (mobileLayout) rig.framePhone(kitsune);
+          if (mobileLayout) kitsune.setPhoneView(frame.width / frame.height);
+          else kitsune.setAspect(frame.width / frame.height);
           kitsuneGlow = hologram.createGlowLayer(renderer, scene, kitsune.camera);
           kitsuneGlow.setSize(frame.width, frame.height);
           return renderer.compileAsync(kitsune.root, kitsune.camera, scene);
@@ -1384,12 +1384,12 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           const half = Math.round(width / 2);
           return { x: half, y: inset, width: width - half, height: safeViewportHeight };
         }
-        // The band (no wider than PHONE_KITSUNE_ASPECT), shrunk to PHONE_KITSUNE_SCALE in the
-        // bottom-right corner.
+        // The band (no wider than PHONE_KITSUNE_ASPECT), shrunk to PHONE_KITSUNE_SCALE, centred
+        // along the bottom.
         const bandHeight = safeViewportHeight * PHONE_KITSUNE_SHARE;
         const bandWidth = Math.min(width, bandHeight * PHONE_KITSUNE_ASPECT);
         const shownWidth = Math.round(bandWidth * PHONE_KITSUNE_SCALE);
-        return { x: width - shownWidth, y: inset, width: shownWidth, height: Math.round(bandHeight * PHONE_KITSUNE_SCALE) };
+        return { x: Math.round((width - shownWidth) / 2), y: inset, width: shownWidth, height: Math.round(bandHeight * PHONE_KITSUNE_SCALE) };
       }
       const { scale } = experienceStage;
       return { x: (1 - scale) * width, y: 0, width: width * scale, height: height * scale };
@@ -1638,7 +1638,8 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       renderer.setPixelRatio(captureMode ? (mobileLayout ? 2 : 1) : Math.min(window.devicePixelRatio, lowPower ? 1.1 : DESKTOP_PIXEL_RATIO_CAP));
       renderer.setSize(width, height);
       const frame = kitsuneFrame();
-      kitsune?.setAspect(frame.width / frame.height);
+      if (mobileLayout) kitsune?.setPhoneView(frame.width / frame.height);
+      else kitsune?.setAspect(frame.width / frame.height);
       kitsuneGlow?.setSize(frame.width, frame.height);
       if (mobileLayout) frameMobileBackdrop();
       updateBackdropCover();

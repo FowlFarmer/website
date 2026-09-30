@@ -27,17 +27,7 @@ const DEFAULT_CAMERA = { position: [0.79, 1.479, 7.519], target: [-4.598, 3.677,
 const YAWS = [-2.5, 0, 2.5, 5, 7.5, 10, 12.5, 15, 17.5];
 const PITCHES = [-1.2, 0, 1.2];
 const ASPECTS = [0.78, 1, 1.33, 1.6, 1.78, 2, 2.4];
-// Phones (CherryBlossomScene.jsx): the kitsune in a band across the bottom of the screen, the camera
-// moved across and down toward him (at desktop's angle) and closer, without mouse sway. Sampled over a range
-// of pull-backs and band shapes (a narrow portrait phone to one held sideways).
-// `node scripts/assets/crop-kitsune-view.mjs phone` writes the phone models (keria-phone.glb,
-// cliff-phone.glb), cropped for these views alone, which only the phone layout loads.
-const PHONE = process.argv[2] === 'phone';
-// Desktop's target moved across to him and PHONE_CAMERA_DROP (0.45) of the way down to his fan.
-const PHONE_TARGET = [-0.159, 2.2113, -11.7054];
-const PHONE_PULLBACKS = [0.75, 0.8, 0.9];
-const PHONE_ASPECTS = [0.6, 0.78, 0.92, 1.2, 1.6];
-const PHONE_YAWS = [5, 7.5, 10];
+// Phones show a crop of these views (kitsuneRig.js's PHONE_VIEW), so the same models serve them.
 
 // World placements of each mesh in the running scene, keyed by node name: read with the original
 // (uncompressed) models loaded, since compressing them folds an offset and scale into their nodes.
@@ -53,12 +43,10 @@ const PLACEMENTS = {
 };
 
 // Every camera the scene can show: kitsuneRig.js's framing, its field of view per aspect, and its
-// mouse sway (turning about the target); or, for the phone models, the phone framing.
+// mouse sway (turning about the target).
 function cameras() {
   const offset = new THREE.Vector3().fromArray(DEFAULT_CAMERA.position).sub(new THREE.Vector3().fromArray(DEFAULT_CAMERA.target));
-  const framings = PHONE
-    ? [{ target: PHONE_TARGET, pullbacks: PHONE_PULLBACKS, aspects: PHONE_ASPECTS, yaws: PHONE_YAWS, pitches: [0] }]
-    : [{ target: DEFAULT_CAMERA.target, pullbacks: [1], aspects: ASPECTS, yaws: YAWS, pitches: PITCHES }];
+  const framings = [{ target: DEFAULT_CAMERA.target, pullbacks: [1], aspects: ASPECTS, yaws: YAWS, pitches: PITCHES }];
   const list = [];
   for (const framing of framings) {
     const target = new THREE.Vector3().fromArray(framing.target);
@@ -271,7 +259,7 @@ for (const [name, checkFacing, blankTextures] of [['keria', true, false], ['clif
     // The cliff as optimize-kitsune-cliff.mjs compresses it.
     await document.transform(prune(), meshopt({ encoder: MeshoptEncoder, level: 'high' }));
   }
-  const output = `public/models/kitsune/${name}${PHONE ? "-phone" : ""}.glb`;
+  const output = `public/models/kitsune/${name}.glb`;
   await io.write(output, document);
   const [was, now] = [(await stat(`assets/kitsune/originals/${name}.glb`)).size, (await stat(output)).size];
   console.log(`${output}: ${(was / 1024 / 1024).toFixed(2)} MB → ${(now / 1024 / 1024).toFixed(2)} MB`);
