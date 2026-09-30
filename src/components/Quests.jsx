@@ -52,6 +52,8 @@ export default function Quests() {
     if (revealed) return undefined;
     const fallback = window.setTimeout(() => setRevealed(true), REVEAL_FALLBACK_MS);
     const stop = onKitsuneShown((shown) => { if (shown) setRevealed(true); });
+    // He may have come in between this page's first render and listening for him.
+    if (experienceStage.shown) setRevealed(true);
     return () => { window.clearTimeout(fallback); stop(); };
   }, [revealed]);
 
