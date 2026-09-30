@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import KitsuneScene from './experience/KitsuneScene.jsx';
 import KitsuneNotes from './experience/KitsuneNotes.jsx';
 import KitsuneLore from './experience/KitsuneLore.jsx';
@@ -6,6 +7,7 @@ import KitsuneLore from './experience/KitsuneLore.jsx';
 export default function KitsuneLab() {
   return (
     <div className="kitsune-lab">
+      <Link className="kitsune-back" to="/self">← back</Link>
       <div className="kitsune-page">
         <KitsuneScene />
         <KitsuneNotes />

@@ -707,3 +707,32 @@
   font-weight: 300;
   line-height: 1.5;
 }
+
+/* The lab's way back to the homepage, in the tuner's style. */
+.kitsune-back {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 42;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(16, 14, 34, 0.78);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.8rem;
+  text-decoration: none;
+  backdrop-filter: blur(8px);
+  transition: color 0.2s ease;
+}
+
+.kitsune-back:hover {
+  color: #fff;
+}
+
+/* In the lab, the card centres in the space below the back button. */
+.kitsune-lab .kitsune-role-slot {
+  top: 60px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  transform: none;
+}
