@@ -1,13 +1,40 @@
 import { useEffect, useState } from 'react';
 import Popup from './Popup.jsx';
 import { closeInspo, onInspo } from './lawsonStage.js';
+import { onSoundChange, soundOn } from './soundSetting.js';
+
+// The FamilyMart door chime, played from the start each time the popup opens with sound on
+// (soundSetting.js), and stopped when it closes or sound goes off. Only desktop opens the popup
+// (a click on the store; phones never do, CherryBlossomScene.jsx).
+const CHIME_URL = '/sounds/fami-mart.mp3';
+let chime = null;
+
+function playChime() {
+  if (!soundOn()) return;
+  chime ??= new Audio(CHIME_URL);
+  chime.currentTime = 0;
+  chime.play().catch(() => {});
+}
+
+function stopChime() {
+  chime?.pause();
+}
 
 // The Lawson scene's inspiration, the Fujikawaguchiko Lawson under Mt Fuji, the bike photo and the
 // lavender field, in a popup in the middle of the screen: opened by a click on the store or the
-// rider, closed with its × or a click outside it.
+// rider, closed with its × or a click outside it, with the FamilyMart chime above.
 export default function InspoPopup() {
   const [open, setOpen] = useState(false);
   useEffect(() => onInspo(setOpen), []);
+  useEffect(() => {
+    if (!open) return undefined;
+    playChime();
+    const stopListening = onSoundChange((on) => { if (!on) stopChime(); });
+    return () => {
+      stopListening();
+      stopChime();
+    };
+  }, [open]);
   if (!open) return null;
   return (
     <Popup onClose={closeInspo} className="inspo-popup" label="Fujikawaguchiko inspo">
