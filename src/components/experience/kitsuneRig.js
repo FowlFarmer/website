@@ -57,7 +57,7 @@ export const COLOR_TUNING = {
 // Where the tails sit relative to him, all moved as one piece: metres across (x), up (y) and back
 // (z) in his own frame, and a turn in degrees about his tailbone (yaw about his up, pitch about
 // his side, roll about his back). Tuned live in the scene editor (TailPoseTuner.jsx).
-export const TAIL_POSE = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0 };
+export const TAIL_POSE = { x: -0.28, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0 };
 const liveKitsunes = new Set();
 export function setTailPose(patch) {
   Object.assign(TAIL_POSE, patch);
