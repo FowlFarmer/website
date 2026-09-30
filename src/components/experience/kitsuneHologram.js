@@ -3,7 +3,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { FullScreenQuad } from 'three/examples/jsm/postprocessing/Pass.js';
+import { FullScreenQuad, Pass } from 'three/examples/jsm/postprocessing/Pass.js';
 
 // Holographic tails: mostly light added over the scene, so it shows through them. The sculpt's fur is many
 // overlapping locks, so a pixel can cross several surfaces of one tail; each surface therefore
@@ -62,8 +62,6 @@ const FRAGMENT = /* glsl */ `
   varying vec3 vNormal;
   varying vec3 vWorld;
 
-  float hash(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
-
   void main() {
     vec3 view = normalize(cameraPosition - vWorld);
     // Guard every input: a single NaN pixel gets smeared across the whole screen by the bloom.
@@ -73,7 +71,6 @@ const FRAGMENT = /* glsl */ `
     float rim = pow(1.0 - facing, 2.4);
     float core = pow(facing, 7.0);
     float bands = 0.85 + 0.15 * sin(vAlong * 34.0 - time * 1.6 + phase);
-    float sparkle = step(0.985, hash(floor(vWorld * 40.0) + floor(time * 3.0))) * 0.6;
     // The six stalks overlap at the tailbone; fade them in gently so their light doesn't pile up.
     float body = smoothstep(0.05, 0.5, vAlong) * (0.35 + 0.65 * smoothstep(0.25, 0.55, vAlong));
     float tip = smoothstep(0.82, 1.0, vAlong);
@@ -95,7 +92,6 @@ const FRAGMENT = /* glsl */ `
     float darkness = 1.0 - smoothstep(0.04, 0.3, luminance);
     vec3 glow = color * (rim * 2.4 + 0.06) * bands;
     glow += mix(color, vec3(1.0), 0.5) * core * 0.7 * (1.0 - darkness);
-    glow += color * sparkle * rim * (1.0 - darkness);
     glow += vec3(1.0) * rim * tip * 0.35 * (1.0 - darkness);
     glow += vec3(0.8, 0.85, 1.0) * rim * 0.22 * darkness;
     float cover = darkness * (0.28 + rim * 0.45);
@@ -158,12 +154,18 @@ export function hologramMaterial({ palette, markings, tuning = {}, phase = 0, in
     blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
   });
   const keys = entries.map((entry) => entry.color.toLowerCase());
-  [keys[0], keys[1] || keys[0], keys[2] || keys[1] || keys[0]].forEach((key, slot) => {
+  material.userData.colorSlots = [keys[0], keys[1] || keys[0], keys[2] || keys[1] || keys[0]];
+  applyColorTuning(material, tuning);
+  return material;
+}
+
+// Set a tail material's per-colour glow and hover from `tuning` (also used live by the tuner).
+export function applyColorTuning(material, tuning) {
+  material.userData.colorSlots.forEach((key, slot) => {
     const { strength = 1, hover = 3 } = tuning[key] || {};
     material.uniforms[`gain${slot}`].value = strength;
     material.uniforms[`hover${slot}`].value = hover;
   });
-  return material;
 }
 
 // Render through bloom so the tails radiate. Anything below `threshold` brightness (the backdrop,
@@ -184,45 +186,97 @@ export function createGlowComposer(renderer, scene, camera) {
   };
 }
 
-// The same glow as a layer over a scene that's already drawn: `camera`'s view of `scene` (which
-// should hold nothing else on that camera's layers) goes through the bloom into its own
-// transparent buffer, then onto the screen in premultiplied form, over whatever is there, inside
-// the given viewport, at the given opacity. The bloom's halo lands like a screen blend. `warm`
-// runs the bloom once off screen, so its shaders are compiled before it's first seen.
+// The kitsune as a layer over a scene that's already drawn, rendered the way the lab renders it
+// (createGlowComposer): the screen behind the kitsune's view is copied into its own linear buffer,
+// `camera`'s view of `scene` (which should hold nothing else on that camera's layers) is drawn over
+// it there, the bloom runs over the whole picture, and it goes back onto the screen, inside the
+// given viewport, converted to screen colours without tone mapping (as the lab's output does). At
+// `opacity` below 1 it mixes back towards what was there. `warm` runs it once off screen, so its
+// shaders are compiled before it's first seen. `glowTexture` renders the kitsune alone over black
+// and returns it (linear, premultiplied), for baking stills of him.
+const LINEAR = 'vec3 toLinear(vec3 c) { return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(0.04045, c)); }';
+const QUAD_VERTEX = 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }';
 export function createGlowLayer(renderer, scene, camera) {
+  const screen = new THREE.Vector2();
+  // The part of the screen the view covers, as a fraction of it: x, y, width, height.
+  const view = new THREE.Vector4(0, 0, 1, 1);
+  let behind = null;
+  let withBackdrop = true;
+  const backdrop = new FullScreenQuad(new THREE.ShaderMaterial({
+    uniforms: { tBehind: { value: null }, view: { value: view } },
+    vertexShader: QUAD_VERTEX,
+    fragmentShader: `uniform sampler2D tBehind;
+      uniform vec4 view;
+      varying vec2 vUv;
+      ${LINEAR}
+      void main() { gl_FragColor = vec4(toLinear(texture2D(tBehind, view.xy + vUv * view.zw).rgb), 1.0); }`,
+    depthTest: false,
+    depthWrite: false,
+    blending: THREE.NoBlending,
+  }));
+  // The backdrop, then the kitsune over it, into the composer's buffer.
+  const scenePass = new Pass();
+  scenePass.needsSwap = false;
+  scenePass.render = (_renderer, _writeBuffer, readBuffer) => {
+    const background = scene.background;
+    scene.background = null;
+    renderer.setRenderTarget(readBuffer);
+    renderer.setClearColor(0x000000, 0);
+    renderer.clear(true, true, true);
+    if (withBackdrop) backdrop.render(renderer);
+    const autoClear = renderer.autoClear;
+    renderer.autoClear = false;
+    renderer.render(scene, camera);
+    renderer.autoClear = autoClear;
+    scene.background = background;
+  };
   const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType }));
   composer.renderToScreen = false;
-  composer.addPass(new RenderPass(scene, camera, null, new THREE.Color(0x000000), 0));
+  composer.addPass(scenePass);
   composer.addPass(new UnrealBloomPass(new THREE.Vector2(1, 1), 0.55, 0.5, 0.9));
-  const quad = new FullScreenQuad(new THREE.ShaderMaterial({
-    uniforms: { tDiffuse: { value: null }, opacity: { value: 1 } },
-    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+  const output = new FullScreenQuad(new THREE.ShaderMaterial({
+    uniforms: { tDiffuse: { value: null }, tBehind: { value: null }, view: { value: view }, opacity: { value: 1 } },
+    vertexShader: QUAD_VERTEX,
     fragmentShader: `uniform sampler2D tDiffuse;
+      uniform sampler2D tBehind;
+      uniform vec4 view;
       uniform float opacity;
       varying vec2 vUv;
+      ${LINEAR}
       void main() {
-        gl_FragColor = texture2D(tDiffuse, vUv);
+        vec3 there = toLinear(texture2D(tBehind, view.xy + vUv * view.zw).rgb);
+        gl_FragColor = vec4(mix(there, max(texture2D(tDiffuse, vUv).rgb, 0.0), opacity), 1.0);
         #include <colorspace_fragment>
-        gl_FragColor *= opacity;
       }`,
     depthTest: false,
     depthWrite: false,
     toneMapped: false,
-    transparent: true,
-    blending: THREE.CustomBlending,
-    blendEquation: THREE.AddEquation,
-    blendSrc: THREE.OneFactor,
-    blendDst: THREE.OneMinusSrcAlphaFactor,
-    blendSrcAlpha: THREE.OneFactor,
-    blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
+    blending: THREE.NoBlending,
   }));
+  const clearColor = new THREE.Color();
   const render = (x, y, width, height, opacity = 1) => {
+    const clearAlpha = renderer.getClearAlpha();
+    renderer.getClearColor(clearColor);
+    // What's on screen now, to draw him over.
+    renderer.setRenderTarget(null);
+    renderer.getDrawingBufferSize(screen);
+    if (!behind || behind.image.width !== screen.x || behind.image.height !== screen.y) {
+      behind?.dispose();
+      behind = new THREE.FramebufferTexture(screen.x, screen.y);
+      backdrop.material.uniforms.tBehind.value = behind;
+      output.material.uniforms.tBehind.value = behind;
+    }
+    renderer.copyFramebufferToTexture(behind);
+    const ratio = renderer.getPixelRatio();
+    view.set((x * ratio) / screen.x, (y * ratio) / screen.y, (width * ratio) / screen.x, (height * ratio) / screen.y);
+    withBackdrop = true;
     composer.render();
-    quad.material.uniforms.tDiffuse.value = composer.readBuffer.texture;
-    quad.material.uniforms.opacity.value = opacity;
+    output.material.uniforms.tDiffuse.value = composer.readBuffer.texture;
+    output.material.uniforms.opacity.value = opacity;
     renderer.setRenderTarget(null);
     renderer.setViewport(x, y, width, height);
-    quad.render(renderer);
+    output.render(renderer);
+    renderer.setClearColor(clearColor, clearAlpha);
   };
   return {
     render,
@@ -232,10 +286,18 @@ export function createGlowLayer(renderer, scene, camera) {
     },
     // Fully transparent, so nothing shows; the caller restores its viewport afterwards.
     warm: () => render(0, 0, 1, 1, 0),
+    glowTexture: () => {
+      withBackdrop = false;
+      composer.render();
+      return composer.readBuffer.texture;
+    },
     dispose: () => {
       composer.dispose();
-      quad.material.dispose();
-      quad.dispose();
+      behind?.dispose();
+      for (const quad of [backdrop, output]) {
+        quad.material.dispose();
+        quad.dispose();
+      }
     },
   };
 }

@@ -19,3 +19,10 @@ npx --yes @gltf-transform/cli@4.5.0 optimize /tmp/bicycle-rider-original.glb pub
 The website now uses Meshopt for both models, avoiding the previous additional
 Draco decoder download. Visual review is at website scale, not a guarantee of
 equivalent detail for close-up renders. No physical-device FPS claim is made.
+
+Phones and other low-power devices load `bicycle-rider-low.glb`: the same geometry with its three
+2048px textures scaled to 1024px (about 64 MB of GPU memory down to 16 MB):
+
+```sh
+node scripts/assets/downscale-glb-textures.mjs public/models/cherry-blossom/bicycle-rider-mobile.glb public/models/cherry-blossom/bicycle-rider-low.glb 1024
+```

@@ -8,7 +8,7 @@ export default function LabCard() {
 //   const dbh_blob_opacity = useScrollThresholdFade(80, 800, 300);
     const _lab_pics1 = [
       <div className="labpic">
-        <img className="labpic_inline" 
+        <img loading="lazy" decoding="async" className="labpic_inline" 
         style={{
           width: "100%",
           aspectRatio: "4/3",
@@ -21,7 +21,7 @@ export default function LabCard() {
         <p>Our Lab Team</p>
       </div>,
       <div className="labpic">
-        <img className="labpic_inline" 
+        <img loading="lazy" decoding="async" className="labpic_inline" 
         style={{
           width: "100%",
           aspectRatio: "4/3",
@@ -34,7 +34,7 @@ export default function LabCard() {
         <p>Mammalian cell culture in a biocabinet</p>
       </div>,
       <div className="labpic">
-        <img className="labpic_inline" 
+        <img loading="lazy" decoding="async" className="labpic_inline" 
         style={{
           width: "100%",
           aspectRatio: "4/3",
@@ -47,7 +47,7 @@ export default function LabCard() {
         <p>Observing cell health in a microscope</p>
       </div>,
       <div className="labpic">
-        <img className="labpic_inline" 
+        <img loading="lazy" decoding="async" className="labpic_inline" 
         style={{
           width: "100%",
           aspectRatio: "4/3",
@@ -64,7 +64,7 @@ export default function LabCard() {
     
     const _lab_pics2 = [
       <div className="labpic" >
-        <img className="labpic_inline" 
+        <img loading="lazy" decoding="async" className="labpic_inline" 
         style={{
           width: "100%",
           aspectRatio: "3/4",
@@ -77,7 +77,7 @@ export default function LabCard() {
         <p>Flow Cytometry data (My plasmid cloning was successful!)</p>
       </div>,
       <div className="labpic" >
-        <img className="labpic_inline_portrait" 
+        <img loading="lazy" decoding="async" className="labpic_inline_portrait" 
         style={{
           width: "100%",
           aspectRatio: "3/4",
@@ -90,7 +90,7 @@ export default function LabCard() {
         <p>Electrophoresis on an agarose gel with Ethidium Bromide</p>
       </div>,
       <div className="labpic" >
-        <img className="labpic_inline_portrait" 
+        <img loading="lazy" decoding="async" className="labpic_inline_portrait" 
         style={{
           width: "100%",
           aspectRatio: "3/4",
@@ -103,7 +103,7 @@ export default function LabCard() {
         <p>Quantitative PCR data. Tight curves demonstrate high data and experimental quality.</p>
       </div>,
       <div className="labpic" >
-        <img className="labpic_inline_portrait" 
+        <img loading="lazy" decoding="async" className="labpic_inline_portrait" 
         style={{
           width: "100%",
           aspectRatio: "3/4",
@@ -116,7 +116,7 @@ export default function LabCard() {
         <p>Escherichia Coli cultures for plasmid cloning after innoculating the previous day.</p>
       </div>,
       <div className="labpic" >
-        <img className="labpic_inline_portrait" 
+        <img loading="lazy" decoding="async" className="labpic_inline_portrait" 
         style={{
           width: "100%",
           aspectRatio: "3/4",
@@ -129,7 +129,7 @@ export default function LabCard() {
         <p>Cell cultures of the 38B9 Pro B Cell line</p>
       </div>,
       <div className="labpic" >
-        <img className="labpic_inline_portrait" 
+        <img loading="lazy" decoding="async" className="labpic_inline_portrait" 
         style={{
           width: "100%",
           aspectRatio: "3/4",

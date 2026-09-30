@@ -19,16 +19,16 @@ import QuestTag from './experience/QuestIcons.jsx';
 export default function Gallery() {
       // The other hackathon projects, each thumbnail showing its tagline while hovered.
       const hackathons = [
-        { href: "https://devpost.com/software/scriptshield", src: "/hackathons/hack_logo_prescriptify.png", alt: "prescriptify", tagline: "Easy-to-understand visualization of dangerous drug interactions" },
-        { href: "https://devpost.com/software/time-capsule-qfsd9j", src: "/hackathons/hack_logo_freezeframe.png", alt: "freezeframe", tagline: "Disposable camera / anti-instant-gratification social media" },
+        { href: "https://devpost.com/software/scriptshield", src: "/hackathons/hack_logo_prescriptify.webp", alt: "prescriptify", tagline: "Easy-to-understand visualization of dangerous drug interactions" },
+        { href: "https://devpost.com/software/time-capsule-qfsd9j", src: "/hackathons/hack_logo_freezeframe.webp", alt: "freezeframe", tagline: "Disposable camera / anti-instant-gratification social media" },
         { href: "https://dorahacks.io/buidl/21694", src: "/hackathons/hack_logo_bugshot.webp", alt: "bugshot", tagline: "Autonomous bug-shooting watergun" },
-        { href: "https://devpost.com/software/expierly", src: "/hackathons/hack_logo_preservia.png", alt: "preservia", tagline: "Grocery tracker and receipt classifier to prevent food waste" },
+        { href: "https://devpost.com/software/expierly", src: "/hackathons/hack_logo_preservia.webp", alt: "preservia", tagline: "Grocery tracker and receipt classifier to prevent food waste" },
         { href: "https://devpost.com/software/discovervoice", src: "/hackathons/hack_logo_shoebill.jpg", alt: "shoebill", tagline: "Track health metrics through wearables to boost gaming performance" },
       ];
       const items = hackathons.map(({ href, src, alt, tagline }) => (
         <a href={href} rel="noopener noreferrer" target="_blank">
           <figure className="media-frame hack-thumb">
-            <img src={src} alt={alt} />
+            <img loading="lazy" decoding="async" src={src} alt={alt} />
             <figcaption>{tagline}</figcaption>
           </figure>
         </a>

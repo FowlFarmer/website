@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TransformControls } from 'three/examples/jsm/controls/TransformControls.js';
@@ -103,6 +104,7 @@ const FADE_MS = 450;
 // How long after the scene is up (and the page is idle) the kitsune loads in the background, so the
 // quests page has nothing left to load.
 const KITSUNE_PRELOAD_MS = 2500;
+const LAYOUT_SETTLE_MS = 400;
 
 // A pass drawn into its own buffer, then onto the screen inside a viewport at an opacity, tone
 // mapped like the rest of the scene. For fading the store and rider in and out.
@@ -157,6 +159,9 @@ function createFadeLayer(renderer) {
 }
 const SCENE_EDITOR_ENABLED =
   import.meta.env.DEV || import.meta.env.VITE_VERCEL_ENV === 'preview';
+// On the quests page the editor tunes the kitsune instead: where its tails sit, and their light.
+const TailPoseTuner = lazy(() => import('./experience/TailPoseTuner.jsx'));
+const TailLightTuner = lazy(() => import('./experience/TailLightTuner.jsx'));
 
 function SceneVectorInput({ label, values, step, onChange }) {
   const numericStep = Number(step);
@@ -520,15 +525,26 @@ export default function CherryBlossomScene({ onLowPerformance }) {
   const lowPerformanceRef = useRef(onLowPerformance);
   lowPerformanceRef.current = onLowPerformance;
   const [mobileLayout, setMobileLayout] = useState(() => window.matchMedia(MOBILE_SCENE_QUERY).matches);
+  // Switching layout rebuilds the whole scene (a couple of seconds' work), so wait until the window
+  // has settled on one side of the breakpoint rather than rebuilding on every crossing of a drag.
   useEffect(() => {
     const query = window.matchMedia(MOBILE_SCENE_QUERY);
-    const update = () => setMobileLayout(query.matches);
+    let settle = 0;
+    const update = () => {
+      window.clearTimeout(settle);
+      settle = window.setTimeout(() => setMobileLayout(query.matches), LAYOUT_SETTLE_MS);
+    };
     query.addEventListener('change', update);
-    return () => query.removeEventListener('change', update);
+    return () => {
+      window.clearTimeout(settle);
+      query.removeEventListener('change', update);
+    };
   }, []);
   const mountRef = useRef(null);
   const editorApiRef = useRef(null);
   const [editing, setEditing] = useState(false);
+  const onQuests = useLocation().pathname === '/quests';
+  const [kitsuneEditing, setKitsuneEditing] = useState(false);
   const [selection, setSelection] = useState('camera');
   const [transformMode, setTransformMode] = useState('translate');
   const [poseReadout, setPoseReadout] = useState(EMPTY_POSE);
@@ -1039,41 +1055,155 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       if (!disposed) lowPerformanceRef.current?.('unavailable');
     };
     renderer.domElement.addEventListener('webglcontextlost', handleContextLost);
-    const pmrem = new THREE.PMREMGenerator(renderer);
+    // The store's lighting environment: it only lights the store and the rider. Resolves once
+    // it's applied (or failed), since it changes which shaders they compile to.
     let environmentTarget;
-    new HDRLoader().load('/models/lawson/dawn-environment.hdr', (hdr) => {
-      if (disposed) { hdr.dispose(); return; }
-      environmentTarget = pmrem.fromEquirectangular(hdr);
-      scene.environment = environmentTarget.texture;
-      scene.environmentIntensity = 0.18;
-      hdr.dispose();
-      pmrem.dispose();
-    }, undefined, () => pmrem.dispose());
+    const loadEnvironment = () => new Promise((resolve) => {
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      new HDRLoader().load('/models/lawson/dawn-environment.hdr', (hdr) => {
+        if (!disposed) {
+          environmentTarget = pmrem.fromEquirectangular(hdr);
+          scene.environment = environmentTarget.texture;
+          scene.environmentIntensity = 0.18;
+        }
+        hdr.dispose();
+        pmrem.dispose();
+        resolve();
+      }, undefined, () => { pmrem.dispose(); resolve(); });
+    });
+    const disposeAsset = (asset) => asset.scene.traverse((object) => {
+      object.geometry?.dispose();
+      const materials = object.material
+        ? (Array.isArray(object.material) ? object.material : [object.material])
+        : [];
+      materials.forEach((material) => {
+        Object.values(material).forEach((value) => { if (value?.isTexture) value.dispose(); });
+        material.dispose();
+      });
+    });
+    // Phones and other low-power devices get the rider with quarter-size textures: it's drawn
+    // small there, and its 2048px textures took ~64 MB of GPU memory.
+    const loadModelAssets = () => Promise.all([
+      loader.loadAsync('/models/lawson/lawson-mobile.glb'),
+      loader.loadAsync(`/models/cherry-blossom/bicycle-rider-${lowPower || mobileLayout ? 'low' : 'mobile'}.glb`),
+    ]);
+    const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+    // The scene's saved framing: the default, then any pose saved from the editor.
+    const applySavedPose = () => {
+      initialPose = DEFAULT_SCENE_POSE;
+      applyFullPose(initialPose);
+      const savedPose = window.localStorage.getItem(POSE_STORAGE_KEY);
+      if (savedPose && !captureMode) {
+        try {
+          applyFullPose(JSON.parse(savedPose));
+        } catch {
+          window.localStorage.removeItem(POSE_STORAGE_KEY);
+        }
+      }
+    };
+    // Arriving straight on the quests page, the store and rider are hidden behind the kitsune: the
+    // backdrop comes up alone so the kitsune can load first, and the store, rider and their
+    // lighting follow once it's showing (or at once, heading home). Anywhere else, all together.
+    const modelsFirst = !(window.location.pathname === '/quests' && !mobileLayout);
+    // Drawn only once their shaders are compiled, in the background (compiling them on their
+    // first frame froze the page for a couple of seconds on a first visit).
+    let modelsReady = false;
+    let modelsRequested = modelsFirst;
+    const environmentLoaded = modelsFirst ? loadEnvironment() : null;
+    const compileModels = () => {
+      const compileCamera = camera.clone();
+      compileCamera.layers.set(1);
+      return renderer.compileAsync(modelGroup, compileCamera, scene).catch(() => {});
+    };
+    // The store and the rider, with the store's lights.
+    const setupModels = ([storeAsset, riderAsset]) => {
+      // Normalize to the previous asset's local width so existing saved poses
+      // keep their scale and framing. The detailed model includes its own sign.
+      const building = storeAsset.scene;
+      const bounds = new THREE.Box3().setFromObject(building);
+      const size = bounds.getSize(new THREE.Vector3());
+      const center = bounds.getCenter(new THREE.Vector3());
+      const scale = 0.98618 / size.x;
+      building.scale.setScalar(scale);
+      building.position.set(-center.x * scale, -bounds.min.y * scale, -center.z * scale);
+      const store = new THREE.Group();
+      store.add(building);
+      prepareMaterials(store, lowPower ? 2 : Math.min(maxAnisotropy, 4));
+      store.traverse((object) => {
+        if (!object.isMesh) return;
+        const material = object.material;
+        // Printed surfaces should pick up scene lighting rather than glow.
+        if (/Printed Japanese|Small product labels|Photo reference|Interior ivory|Refrigerator/.test(material.name)) {
+          material.emissiveIntensity = 0.3;
+        }
+        if (material.name === 'Lightbox opal white') {
+          material.emissive.setRGB(0.58, 0.48, 0.52);
+        }
+        if (material.name === 'Fluorescent diffusers') {
+          material.emissive.setRGB(1, 0.88, 0.84);
+        }
+        // Physical transmission re-renders the whole store into a texture
+        // every frame and halved the frame rate. Alpha-blended glass with
+        // the same environment reflections reads the same at this scale.
+        if (material.transmission > 0) {
+          const frosted = material.name === 'Frosted lower panels';
+          material.transmission = 0;
+          material.roughness = frosted ? 0.52 : 0.045;
+          material.envMapIntensity = 0.7;
+          material.transparent = true;
+          material.opacity = frosted ? 0.78 : 0.24;
+        }
+        if (material.transparent) {
+          material.depthWrite = false;
+          object.renderOrder = 1;
+        }
+      });
+      modelGroup.add(store);
+      editableObjects.store = store;
+      // Lights follow the building's editable pose. Convert their positions
+      // from source metres into the normalized store's local coordinates.
+      const lightScale = scale * DEFAULT_SCENE_POSE.store.scale[0];
+      for (const x of [-4.5, 4.5]) {
+        for (const z of [2, -2.8]) {
+          const light = new THREE.PointLight(0xffe6df, 16 * lightScale ** 2, 12 * lightScale, 2);
+          light.position.set((x - center.x) * scale, (3.1 - bounds.min.y) * scale, (z - center.z) * scale);
+          store.add(light);
+        }
+      }
+
+      const rider = riderAsset.scene;
+      scaleAndGround(rider, 3.25);
+      rider.position.set(2.85, -0.015, 1.45);
+      rider.rotation.y = -Math.PI / 2 + 0.12;
+      prepareMaterials(rider, maxAnisotropy);
+      modelGroup.add(rider);
+      editableObjects.rider = rider;
+      modelGroup.traverse((object) => object.layers.set(1));
+    };
+    // The deferred store and rider (arriving on the quests page): they fade in once loaded.
+    const loadModels = () => {
+      modelsRequested = true;
+      Promise.all([loadModelAssets(), loadEnvironment()]).then(async ([models]) => {
+        if (disposed) { models.forEach(disposeAsset); return; }
+        setupModels(models);
+        applySavedPose();
+        measureStoreWidth();
+        await compileModels();
+        if (!disposed) modelsReady = true;
+      }).catch((error) => console.error('Unable to load the convenience store scene.', error));
+    };
     const textureLoader = new THREE.TextureLoader();
     Promise.all([
       textureLoader.loadAsync(mobileLayout ? '/images/scene/fuji-mobile.jpg' : '/images/scene/fuji_hd.jpg'),
-      loader.loadAsync('/models/lawson/lawson-mobile.glb'),
-      loader.loadAsync('/models/cherry-blossom/bicycle-rider-mobile.glb'),
+      modelsFirst ? loadModelAssets() : null,
+      environmentLoaded,
     ])
-      .then(([backdropTexture, storeAsset, riderAsset]) => {
+      .then(async ([backdropTexture, models]) => {
         if (disposed) {
           backdropTexture.dispose();
-          for (const asset of [storeAsset, riderAsset]) {
-            asset.scene.traverse((object) => {
-              object.geometry?.dispose();
-              const materials = object.material
-                ? (Array.isArray(object.material) ? object.material : [object.material])
-                : [];
-              materials.forEach((material) => {
-                Object.values(material).forEach((value) => { if (value?.isTexture) value.dispose(); });
-                material.dispose();
-              });
-            });
-          }
+          models?.forEach(disposeAsset);
           return;
         }
-
-        const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
         backdropTexture.colorSpace = THREE.SRGBColorSpace;
         backdropTexture.anisotropy = Math.min(maxAnisotropy, 8);
         if (mobileLayout) backdropTexture.repeat.y = MOBILE_PHOTO_HEIGHT;
@@ -1124,82 +1254,17 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         scene.add(backdrop);
         editableObjects.backdrop = backdrop;
 
-        // Normalize to the previous asset's local width so existing saved poses
-        // keep their scale and framing. The detailed model includes its own sign.
-        const building = storeAsset.scene;
-        const bounds = new THREE.Box3().setFromObject(building);
-        const size = bounds.getSize(new THREE.Vector3());
-        const center = bounds.getCenter(new THREE.Vector3());
-        const scale = 0.98618 / size.x;
-        building.scale.setScalar(scale);
-        building.position.set(-center.x * scale, -bounds.min.y * scale, -center.z * scale);
-        const store = new THREE.Group();
-        store.add(building);
-        prepareMaterials(store, lowPower ? 2 : Math.min(maxAnisotropy, 4));
-        store.traverse((object) => {
-          if (!object.isMesh) return;
-          const material = object.material;
-          // Printed surfaces should pick up scene lighting rather than glow.
-          if (/Printed Japanese|Small product labels|Photo reference|Interior ivory|Refrigerator/.test(material.name)) {
-            material.emissiveIntensity = 0.3;
-          }
-          if (material.name === 'Lightbox opal white') {
-            material.emissive.setRGB(0.58, 0.48, 0.52);
-          }
-          if (material.name === 'Fluorescent diffusers') {
-            material.emissive.setRGB(1, 0.88, 0.84);
-          }
-          // Physical transmission re-renders the whole store into a texture
-          // every frame and halved the frame rate. Alpha-blended glass with
-          // the same environment reflections reads the same at this scale.
-          if (material.transmission > 0) {
-            const frosted = material.name === 'Frosted lower panels';
-            material.transmission = 0;
-            material.roughness = frosted ? 0.52 : 0.045;
-            material.envMapIntensity = 0.7;
-            material.transparent = true;
-            material.opacity = frosted ? 0.78 : 0.24;
-          }
-          if (material.transparent) {
-            material.depthWrite = false;
-            object.renderOrder = 1;
-          }
-        });
-        modelGroup.add(store);
-        editableObjects.store = store;
-        // Lights follow the building's editable pose. Convert their positions
-        // from source metres into the normalized store's local coordinates.
-        const lightScale = scale * DEFAULT_SCENE_POSE.store.scale[0];
-        for (const x of [-4.5, 4.5]) {
-          for (const z of [2, -2.8]) {
-            const light = new THREE.PointLight(0xffe6df, 16 * lightScale ** 2, 12 * lightScale, 2);
-            light.position.set((x - center.x) * scale, (3.1 - bounds.min.y) * scale, (z - center.z) * scale);
-            store.add(light);
-          }
-        }
+        if (models) setupModels(models);
 
-        const rider = riderAsset.scene;
-        scaleAndGround(rider, 3.25);
-        rider.position.set(2.85, -0.015, 1.45);
-        rider.rotation.y = -Math.PI / 2 + 0.12;
-        prepareMaterials(rider, maxAnisotropy);
-        modelGroup.add(rider);
-        editableObjects.rider = rider;
-        modelGroup.traverse((object) => object.layers.set(1));
-
-        initialPose = DEFAULT_SCENE_POSE;
-        applyFullPose(initialPose);
-        const savedPose = window.localStorage.getItem(POSE_STORAGE_KEY);
-        if (savedPose && !captureMode) {
-          try {
-            applyFullPose(JSON.parse(savedPose));
-          } catch {
-            window.localStorage.removeItem(POSE_STORAGE_KEY);
-          }
-        }
+        applySavedPose();
         attachSelection(activeSelection);
         measureStoreWidth();
         if (mobileLayout) frameMobileBackdrop();
+        if (models) {
+          await compileModels();
+          if (disposed) return;
+          modelsReady = true;
+        }
 
         mount.dataset.sceneLoaded = 'true';
         // Load the kitsune in the background once the page has settled, so the quests page doesn't.
@@ -1249,6 +1314,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     let kitsuneReady = false;
     let kitsuneWanted = false;
     let preloadTimer;
+    let modelsTimer = 0;
     const loadKitsune = () => {
       kitsuneLoading = true;
       Promise.all([import('./experience/kitsuneRig.js'), import('./experience/kitsuneHologram.js')])
@@ -1289,7 +1355,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         modelsAlpha = wantKitsune ? 0 : 1;
       }
       const step = (seconds * 1000) / FADE_MS;
-      modelsAlpha = approach(modelsAlpha, wantKitsune || kitsuneAlpha > 0 ? 0 : 1, step);
+      modelsAlpha = approach(modelsAlpha, wantKitsune || kitsuneAlpha > 0 || !modelsReady ? 0 : 1, step);
       kitsuneAlpha = approach(kitsuneAlpha, wantKitsune && kitsuneReady && modelsAlpha === 0 ? 1 : 0, step);
       setKitsuneShown(kitsuneAlpha > 0);
     };
@@ -1320,7 +1386,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     // the inspo. Clicks through the page's cards count; ones on anything that handles its own
     // click (links, buttons, fields, videos, photos that open) don't.
     const handleKitsuneClick = (event) => {
-      if (event.target.closest('a, button, input, textarea, select, label, video, iframe, dialog, [role="button"], [role="dialog"], [contenteditable], .media-frame, .navbar, .scene-editor-panel, .scene-performance-control, .popup-backdrop')) return;
+      if (event.target.closest('a, button, input, textarea, select, label, video, iframe, dialog, [role="button"], [role="dialog"], [contenteditable], .media-frame, .navbar, .scene-editor-panel, .kitsune-tuner, .scene-performance-control, .popup-backdrop')) return;
       const at = kitsuneAt(event);
       if (at && kitsune.hits(at.x, at.y)) openLore(event.clientX, event.clientY);
       else if (lawsonHit(event)) openInspo();
@@ -1350,7 +1416,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     const handleTapStart = (event) => {
       backgroundTap = null;
       if (!mobileLayout || reduceMotion || editingActive || !event.isPrimary || event.pointerType !== 'touch') return;
-      if (event.target.closest('a, button, input, textarea, select, video, iframe, dialog, [role="button"], [contenteditable], .media-frame, .glass-effect, .glass-effect-2, .scene-editor-panel, .navbar')) return;
+      if (event.target.closest('a, button, input, textarea, select, video, iframe, dialog, [role="button"], [contenteditable], .media-frame, .glass-effect, .glass-effect-2, .scene-editor-panel, .kitsune-tuner, .navbar')) return;
       backgroundTap = { id: event.pointerId, x: event.clientX, y: event.clientY, at: performance.now(), scroll: window.scrollY };
     };
     const cancelTap = () => { backgroundTap = null; };
@@ -1568,6 +1634,18 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       if (captureMode) pointer.set(0, 0);
       const windDt = (now - lastWindFrameAt) / 1000;
       if (!kitsune && !kitsuneLoading && (kitsuneWanted || experienceStage.show === 'kitsune') && !mobileLayout && mount.dataset.sceneLoaded === 'true') loadKitsune();
+      // Deferred store and rider: at once when heading home, else once the kitsune has been up a
+      // while and the page is idle.
+      if (!modelsRequested && mount.dataset.sceneLoaded === 'true') {
+        if (experienceStage.show !== 'kitsune') loadModels();
+        else if (kitsuneShown() && !modelsTimer) {
+          modelsTimer = window.setTimeout(() => {
+            (window.requestIdleCallback ?? ((callback) => callback()))(() => {
+              if (!modelsRequested && !disposed) loadModels();
+            }, { timeout: 3000 });
+          }, KITSUNE_PRELOAD_MS);
+        }
+      }
       if (mount.dataset.sceneLoaded === 'true') updateFades(Math.min(windDt, 0.05));
       lastWindFrameAt = now;
       if (!reduceMotion) {
@@ -1655,8 +1733,10 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         modelCamera.layers.set(1);
         modelCamera.updateProjectionMatrix();
         // The store and rider, faded out while the kitsune shows. Clickable while mostly there.
-        modelsDrawn = modelsAlpha > 0.5 ? view : null;
-        if (modelsAlpha >= 1) {
+        modelsDrawn = modelsReady && modelsAlpha > 0.5 ? view : null;
+        if (!modelsReady) {
+          // Still compiling (or not loaded): nothing to draw yet.
+        } else if (modelsAlpha >= 1) {
           renderer.setViewport(view.x, view.y, view.width, view.height);
           renderer.render(scene, modelCamera);
         } else if (modelsAlpha > 0) {
@@ -1700,6 +1780,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     return () => {
       disposed = true;
       window.clearTimeout(preloadTimer);
+      window.clearTimeout(modelsTimer);
       experienceStage.supported = false;
       modelFade?.dispose();
       kitsuneGlow?.dispose();
@@ -1743,7 +1824,6 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         }
       });
       environmentTarget?.dispose();
-      pmrem.dispose();
       renderer.dispose();
       renderer.forceContextLoss();
       renderer.domElement.remove();
@@ -1814,7 +1894,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       {captureMode && sceneReady && <button style={{ position: 'fixed', bottom: 16, right: 16, zIndex: 3000 }} onClick={() => { captureRequested.current = true; setCaptureStatus('Saving snapshot…'); }}>{captureStatus}</button>}
       <div ref={mountRef} className="cherry-blossom-scene" aria-hidden="true" />
       {showLoadingScreen && <SceneLoadingScreen ready={sceneReady} />}
-      {SCENE_EDITOR_ENABLED && sceneReady && <button
+      {SCENE_EDITOR_ENABLED && sceneReady && !onQuests && <button
         type="button"
         className="scene-editor-toggle"
         aria-pressed={editing}
@@ -1822,8 +1902,21 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       >
         {editing ? 'Exit scene edit' : 'Edit 3D scene'}
       </button>}
+      {SCENE_EDITOR_ENABLED && sceneReady && onQuests && <button
+        type="button"
+        className="scene-editor-toggle"
+        aria-pressed={kitsuneEditing}
+        onClick={() => setKitsuneEditing(!kitsuneEditing)}
+      >
+        {kitsuneEditing ? 'Exit scene edit' : 'Edit 3D scene'}
+      </button>}
+      {SCENE_EDITOR_ENABLED && onQuests && kitsuneEditing && (
+        <div className="kitsune-tuner kitsune-tuner--editor">
+          <Suspense fallback={null}><TailPoseTuner /><TailLightTuner /></Suspense>
+        </div>
+      )}
 
-      {SCENE_EDITOR_ENABLED && sceneReady && editing && (
+      {SCENE_EDITOR_ENABLED && sceneReady && editing && !onQuests && (
         <aside className="scene-editor-panel" aria-label="3D scene editor">
           <header>
             <div>

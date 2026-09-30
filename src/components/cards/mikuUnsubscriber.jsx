@@ -38,7 +38,7 @@ export default function MikuUnsubscriberProjects() {
           pauseOnHover={true}
           visibleCount={1}
           items={project.images.map((image) => (
-            <img
+            <img loading="lazy" decoding="async"
               key={image}
               src={image}
               alt={project.alt}
@@ -56,7 +56,7 @@ export default function MikuUnsubscriberProjects() {
     }
 
     return (
-      <img
+      <img loading="lazy" decoding="async"
         src={project.image}
         alt={project.alt}
         style={{
