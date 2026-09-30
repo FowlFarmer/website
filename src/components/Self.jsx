@@ -9,6 +9,7 @@ import CalligraphyName from './CalligraphyName.jsx';
 
 import CosplayCard from './cards/cosplay.jsx';
 import ShipsGalleryCard from './cards/shipsGallery.jsx';
+import ShowerThoughtsCard from './cards/showerThoughts.jsx';
 import Spotify from './jias-react-components/tools/Spotify.jsx';
 import Macbook from './jias-react-components/tools/Macbook.jsx';
 
@@ -67,6 +68,7 @@ export default function Self() {
             {/* <GitHubProfileCard /> */}
             <div id="Cosplay"/>
             <CosplayCard />
+            <ShowerThoughtsCard />
             <ShipsGalleryCard />
             <div id="Shipbuilding"/>
             {/* <Shipbuilding /> */}

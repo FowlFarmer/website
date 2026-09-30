@@ -2287,3 +2287,22 @@ body[data-lore="open"] .scroll-hint {
   inset: 0;
   background: var(--glass-tint, transparent);
 }
+
+/* The Shower Thoughts card (cards/showerThoughts.jsx): its note, and each entry's title, date and
+   paragraphs. */
+.shower-thoughts-note {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+.shower-thought {
+  padding: 0 20px 20px;
+  text-align: left;
+}
+.shower-thought h3 { margin: 0; }
+.shower-thought-date {
+  margin: 2px 0 12px;
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+.shower-thought p:not(.shower-thought-date) { line-height: 1.6; }
