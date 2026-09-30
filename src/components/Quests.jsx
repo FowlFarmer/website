@@ -55,6 +55,7 @@ export default function Quests() {
   // Phones: a tap on him moves the role card on, or, scrolled down the page, goes back up to it.
   // The "tap →" hint beside the scroll hint shows until the first.
   const [skips, setSkips] = useState(0);
+  const [full, setFull] = useState(false);
   const [tapped, setTapped] = useState(false);
   useEffect(() => onKitsuneTap(() => {
     setTapped(true);
@@ -83,6 +84,9 @@ export default function Quests() {
       experienceStage.hover = inArchon;
       experienceStage.scale = phone ? 1 : 1 - 0.5 * Math.min(Math.max(y / height, 0), 1);
       setArchon(inArchon);
+      // Phones: past the waterloo.careers card, the page takes the whole screen, over him.
+      const past = phone && pageRef.current.querySelector('#Ross');
+      if (past) setFull(past.getBoundingClientRect().top <= pageRef.current.getBoundingClientRect().top);
     };
     update();
     const scroller = pageRef.current;
@@ -102,7 +106,7 @@ export default function Quests() {
   const hint = !scrolled && <p className="scroll-hint" aria-hidden="true">↓ scroll</p>;
   return (
     <>
-      <div ref={pageRef} className="quests" data-revealed={revealed}>
+      <div ref={pageRef} className="quests" data-revealed={revealed} data-full={full || undefined}>
         <MirrorHost active={phone} />
         <section className="archon-quests" aria-label="Archon Quests">
           <KitsuneCard hovered={hovered} running={archon && revealed} sizeToTallest={phone} skips={skips} />
@@ -115,7 +119,7 @@ export default function Quests() {
       </div>
       {phone && lore}
       {phone && hint}
-      {phone && revealed && !tapped && <p className="scroll-hint tap-hint" aria-hidden="true">tap →</p>}
+      {phone && revealed && !tapped && !full && <p className="scroll-hint tap-hint" aria-hidden="true">tap →</p>}
       {phone && revealed && (
         <button type="button" className="lore-button" aria-label="Inspo" onClick={() => openLore(0, 0)}>?</button>
       )}

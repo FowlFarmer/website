@@ -801,9 +801,12 @@
     left: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
+    transition: bottom 300ms ease;
     -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 28px), transparent);
     mask-image: linear-gradient(to bottom, transparent, #000 10px, #000 calc(100% - 28px), transparent);
   }
+  /* Past the waterloo.careers card (Quests.jsx), the whole screen, over him. */
+  .quests[data-full] { bottom: 0; }
   .archon-quests {
     width: 100%;
     height: auto;
