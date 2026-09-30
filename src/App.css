@@ -1211,6 +1211,11 @@ text-align: left;
 .scene-mirror-canvas[data-loaded] { opacity: 1; }
 :root[data-nav-fade] .page-scroller { --nav-fade: 1; }
 body[data-lore="open"] .page-scroller { --nav-fade: 0; }
+/* Phones have no sounds yet (the chimes ring off the mouse's wind), so no sound switch. */
+@media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
+  .scene-performance-control button.scene-sound-toggle { display: none; }
+}
+
 /* Phones: faded as the quests page's own area is (experience.css), over 24px from the bar's foot.
    The quests page has that area, with its own fade, instead. */
 @media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
