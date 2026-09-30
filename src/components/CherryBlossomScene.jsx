@@ -17,7 +17,7 @@ import {
 import { closeInspo, openInspo } from './lawsonStage.js';
 import { drawSceneMirrors } from './sceneMirror.jsx';
 import { onPageScroll, pageScrollY } from './pageScroll.js';
-import { markFrame, setTargetFps } from './frameStats.js';
+import { auditOff, createFrameProfiler, markFrame, markLoad, setTargetFps } from './frameStats.js';
 import { createChimes } from './experience/kitsuneChimes.js';
 
 const EMPTY_POSE = {
@@ -617,6 +617,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         alpha: false,
         powerPreference: 'high-performance',
       });
+      markLoad('3D: renderer made');
     } catch {
       mount.dataset.webglFallback = 'true';
       setSceneReady(true);
@@ -1189,8 +1190,10 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     // The deferred store and rider (arriving on the quests page): they fade in once loaded.
     const loadModels = () => {
       modelsRequested = true;
+      markLoad('store & rider: requested');
       Promise.all([loadModelAssets(), loadEnvironment()]).then(async ([models]) => {
         if (disposed) { models.forEach(disposeAsset); return; }
+        markLoad('store & rider: downloaded');
         setupModels(models);
         applySavedPose();
         measureStoreWidth();
@@ -1201,6 +1204,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           frameMobileBackdrop();
         }
         await compileModels();
+        markLoad('store & rider: compiled');
         if (!disposed) modelsReady = true;
       }).catch((error) => console.error('Unable to load the convenience store scene.', error));
     };
@@ -1273,12 +1277,15 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         measureStoreWidth();
         if (mobileLayout) frameMobileBackdrop();
         if (models) {
+          markLoad('store & rider: downloaded');
           await compileModels();
           if (disposed) return;
+          markLoad('store & rider: compiled');
           modelsReady = true;
         }
 
         mount.dataset.sceneLoaded = 'true';
+        markLoad('3D: scene up');
         // Load the kitsune in the background once the page has settled, so the quests page doesn't
         // wait for it. Not on phones: there it waits for the quests page, sparing their data.
         if (!mobileLayout) preloadTimer = window.setTimeout(() => {
@@ -1331,9 +1338,11 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     let modelsTimer = 0;
     const loadKitsune = () => {
       kitsuneLoading = true;
+      markLoad('kitsune: requested');
       Promise.all([import('./experience/kitsuneRig.js'), import('./experience/kitsuneHologram.js')])
         .then(([rig, hologram]) => rig.loadKitsuneAssets(loader).then((assets) => {
           if (disposed) return undefined;
+          markLoad('kitsune: downloaded');
           kitsune = rig.createKitsune(assets, {
             layer: KITSUNE_LAYER,
             highlightBoost: mobileLayout ? PHONE_HIGHLIGHT_BOOST : 1,
@@ -1351,6 +1360,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           else kitsune.setAspect(frame.width / frame.height);
           kitsuneGlow = hologram.createGlowLayer(renderer, scene, kitsune.camera);
           kitsuneGlow.setSize(frame.width, frame.height);
+          markLoad('kitsune: built');
           return renderer.compileAsync(kitsune.root, kitsune.camera, scene);
         }))
         .then(() => {
@@ -1358,6 +1368,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           kitsune.update(0, performance.now());
           kitsuneGlow.warm();
           renderer.setViewport(0, 0, viewportWidth, viewportHeight);
+          markLoad('kitsune: compiled');
           kitsuneReady = true;
         })
         .catch((error) => console.error('Unable to load the kitsune.', error));
@@ -1670,10 +1681,13 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     let lastRenderedAt = 0;
     const frameInterval = lowPower ? 1000 / 30 : 0;
     setTargetFps(lowPower ? 30 : null);
+    const profiler = createFrameProfiler(renderer.getContext());
     const animate = (now = performance.now()) => {
       animationFrame = window.requestAnimationFrame(animate);
       if (!visible || now - lastRenderedAt < frameInterval) return;
       lastRenderedAt = now - ((now - lastRenderedAt) % (frameInterval || 1));
+      const frameStart = performance.now();
+      profiler.begin('update');
 
       if (mount.dataset.sceneLoaded === 'true' && !editingActive && !captureMode) {
         if (performanceMonitor.sample(now)) lowPerformanceRef.current?.();
@@ -1751,6 +1765,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         THREE.MathUtils.degToRad(camera.fov / 2),
       );
       updateBackdropCover();
+      profiler.end('update');
       renderer.setViewport(0, 0, viewportWidth, viewportHeight);
       renderer.autoClear = true;
       if (editingActive) {
@@ -1762,7 +1777,9 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         // is pinned to the screen's bottom-right corner, so the editor's
         // framing and crop are reproduced exactly and only scale down.
         camera.layers.set(0);
+        profiler.begin('sky & petals');
         renderer.render(scene, camera);
+        profiler.end('sky & petals');
         const background = scene.background;
         scene.background = null;
         renderer.autoClear = false;
@@ -1784,7 +1801,8 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         modelCamera.updateProjectionMatrix();
         // The store and rider, faded out while the kitsune shows. Clickable while mostly there.
         modelsDrawn = modelsReady && modelsAlpha > 0.5 ? view : null;
-        if (!modelsReady) {
+        profiler.begin('store & rider');
+        if (!modelsReady || auditOff('store')) {
           // Still compiling (or not loaded): nothing to draw yet.
         } else if (modelsAlpha >= 1) {
           renderer.setViewport(view.x, view.y, view.width, view.height);
@@ -1793,19 +1811,26 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           modelFade ??= createFadeLayer(renderer);
           modelFade.render(scene, modelCamera, view, modelsAlpha);
         }
-        if (kitsuneShown()) {
+        profiler.end('store & rider');
+        if (kitsuneShown() && !auditOff('kitsune')) {
           if (!experienceStage.hover) kitsune.clearHover();
           // The role card's cycling tail lights up and fades out over its turn.
           kitsune.setHighlight(experienceStage.cycleTail, cycleGlow(now));
+          profiler.begin('kitsune: tails physics');
           kitsune.update(Math.min(windDt, 0.05), now);
           chimes?.update(kitsune, kitsuneAlpha, Math.min(windDt, 0.05));
+          profiler.end('kitsune: tails physics');
           const shown = kitsuneView(viewportWidth, viewportHeight);
+          profiler.begin('kitsune: draw & glow');
           kitsuneGlow.render(shown.x, shown.y, shown.width, shown.height, kitsuneAlpha);
+          profiler.end('kitsune: draw & glow');
         }
         renderer.setViewport(0, 0, viewportWidth, viewportHeight);
         renderer.clearDepth();
         camera.layers.set(2);
-        renderer.render(scene, camera);
+        profiler.begin('foreground petals');
+        if (!auditOff('petals')) renderer.render(scene, camera);
+        profiler.end('foreground petals');
         scene.background = background;
         if (import.meta.env.DEV) {
           const signature = `${view.x}|${view.y}|${view.width}|${view.height}`;
@@ -1816,7 +1841,10 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         }
       }
       // The frame into the page's copies of the backdrop, for its glass to blur (sceneMirror.jsx).
+      profiler.begin('glass copy');
       drawSceneMirrors(renderer.domElement, mount.dataset.sceneLoaded === 'true');
+      profiler.end('glass copy');
+      profiler.endFrame(frameStart);
       markFrame(now);
       if (captureMode && captureRequested.current) {
         captureRequested.current = false;

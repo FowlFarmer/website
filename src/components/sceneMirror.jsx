@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { auditOff } from './frameStats.js';
 
 // A copy of the backdrop (the scene, its stills, the tint over it) inside each scrolling area with a
 // mask: desktop's page (the fade under the menu bar, App.css) and the phone quests page (its fades,
@@ -50,7 +51,7 @@ export function MirrorCanvas() {
 // The scene's frame (`source`, just drawn) into every copy, placed where the scene's canvas is;
 // `loaded`: the scene has loaded, so its canvas has faded in (App.css), and the copies do too.
 export function drawSceneMirrors(source, loaded) {
-  if (!canvases.size) return;
+  if (!canvases.size || auditOff('glass')) return;
   const rect = source.getBoundingClientRect();
   canvases.forEach((canvas) => {
     if (canvas.width !== source.width || canvas.height !== source.height) {

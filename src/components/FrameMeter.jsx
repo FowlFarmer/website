@@ -1,14 +1,92 @@
-import { useEffect, useRef } from 'react';
-import { measure, sceneFrames, targetFps } from './frameStats.js';
+import { useEffect, useRef, useState } from 'react';
+import { freezes, loads, measure, profile, sceneFrames, targetFps } from './frameStats.js';
 
 // Frames per second, the 95th percentile frame time and the frame budget for the target rate, in
 // the corner (not on Vercel's production site: App.jsx). It times the 3D scene's frames while it's
 // drawing (it holds itself to 30 a second on low-power devices), otherwise the display's; the
-// target is the scene's rate, or the display's refresh rate.
+// target is the scene's rate, or the display's refresh rate. Tapped, it opens the audit: where each
+// scene frame goes (main thread and GPU, per part), the freezes (long frames, with the scripts that
+// took the time), the load milestones and the slowest downloads. window.__perfReport() returns the
+// same as data.
 const COMMON_RATES = [30, 60, 75, 90, 120, 144, 165, 240];
+const seconds = (ms) => `${(ms / 1000).toFixed(2)}s`;
+const ms = (value) => (value == null ? '–' : value.toFixed(value < 10 ? 2 : 1));
+
+function report() {
+  const resources = performance.getEntriesByType('resource')
+    .map((entry) => ({
+      name: entry.name.replace(location.origin, '').split('?')[0],
+      start: entry.startTime,
+      ms: entry.duration,
+      kb: entry.transferSize ? entry.transferSize / 1024 : entry.encodedBodySize / 1024,
+    }))
+    .sort((a, b) => b.ms - a.ms);
+  const navigation = performance.getEntriesByType('navigation')[0];
+  return {
+    gpuTimers: profile.gpu,
+    frame: Object.entries(profile.sections).map(([name, { cpu, gpu }]) => ({ name, cpu, gpu })),
+    freezes: [...freezes],
+    loads: [
+      ...(navigation ? [
+        { name: 'page: HTML parsed', at: navigation.domInteractive },
+        { name: 'page: loaded', at: navigation.loadEventEnd || navigation.domComplete },
+      ] : []),
+      ...loads,
+    ].sort((a, b) => a.at - b.at),
+    resources,
+  };
+}
+if (typeof window !== 'undefined') window.__perfReport = report;
+
+function Audit() {
+  const [data, setData] = useState(report);
+  useEffect(() => {
+    const id = window.setInterval(() => setData(report()), 500);
+    return () => window.clearInterval(id);
+  }, []);
+  return (
+    <div className="frame-audit" onClick={(event) => event.stopPropagation()}>
+      <table>
+        <thead><tr><th>scene frame</th><th>main ms</th><th>GPU ms{data.gpuTimers ? '' : ' (n/a)'}</th></tr></thead>
+        <tbody>
+          {data.frame.map(({ name, cpu, gpu }) => (
+            <tr key={name}><td>{name}</td><td>{ms(cpu)}</td><td>{ms(gpu)}</td></tr>
+          ))}
+        </tbody>
+      </table>
+      <table>
+        <thead><tr><th>freeze at</th><th>ms</th><th>what ran longest</th></tr></thead>
+        <tbody>
+          {data.freezes.slice(-8).reverse().map((freeze) => (
+            <tr key={freeze.at}>
+              <td>{seconds(freeze.at)}</td>
+              <td>{Math.round(freeze.ms)}</td>
+              <td>{freeze.scripts.length ? freeze.scripts.map((script) => `${script.what} ${Math.round(script.ms)}ms`).join(', ') : freeze.layout > 30 ? `style/layout/paint ${Math.round(freeze.layout)}ms` : 'browser (no script)'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <table>
+        <thead><tr><th>loaded</th><th>at</th></tr></thead>
+        <tbody>
+          {data.loads.map((load) => <tr key={`${load.name}${load.at}`}><td>{load.name}</td><td>{seconds(load.at)}</td></tr>)}
+        </tbody>
+      </table>
+      <table>
+        <thead><tr><th>slowest downloads</th><th>ms</th><th>KB</th></tr></thead>
+        <tbody>
+          {data.resources.slice(0, 10).map((resource) => (
+            <tr key={`${resource.name}${resource.start}`}><td>{resource.name.split('/').slice(-2).join('/')}</td><td>{Math.round(resource.ms)}</td><td>{Math.round(resource.kb)}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 export default function FrameMeter() {
   const ref = useRef(null);
+  const [open, setOpen] = useState(false);
   useEffect(() => {
     const display = [];
     let frame = 0;
@@ -34,5 +112,10 @@ export default function FrameMeter() {
     frame = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frame);
   }, []);
-  return <div ref={ref} className="frame-meter" aria-hidden="true" />;
+  return (
+    <div className="frame-meter-wrap">
+      <button type="button" ref={ref} className="frame-meter" aria-label="Frame rate (tap for the audit)" onClick={() => setOpen((value) => !value)} />
+      {open && <Audit />}
+    </div>
+  );
 }

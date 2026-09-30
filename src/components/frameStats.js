@@ -3,6 +3,15 @@
 // for (setTargetFps: 30 on low-power devices; otherwise null, every display frame).
 export const SHOW_FRAME_METER = import.meta.env.VITE_VERCEL_ENV !== 'production';
 
+// Parts of the page switched off to see what they cost, from the address (not on the production
+// site): ?off=glass,mask,store,petals,kitsune (the glass's scene copy, the scrolling areas' fades,
+// the Lawson store and rider, the foreground petals, the kitsune).
+const OFF = new Set(SHOW_FRAME_METER && typeof location !== 'undefined'
+  ? (new URLSearchParams(location.search).get('off') ?? '').split(',').filter(Boolean)
+  : []);
+export const auditOff = (part) => OFF.has(part);
+if (OFF.has('mask') && typeof document !== 'undefined') document.documentElement.dataset.auditNoMask = '';
+
 const WINDOW_MS = 2000;
 const marks = [];
 let target = null;
@@ -32,3 +41,89 @@ export function measure(times, now) {
 // The scene's frames, if it's drawing, and the rate it aims for.
 export const sceneFrames = () => marks;
 export const targetFps = () => target;
+
+// Where each frame of the 3D scene goes (FrameMeter.jsx's breakdown): the scene brackets each part
+// of its frame (begin/end with a name) and closes the frame (endFrame). Main-thread time is timed
+// directly; GPU time with the browser's GPU timer queries where it has them (Chrome desktop), read
+// back a few frames later. Both are averaged over about a second.
+export function createFrameProfiler(gl) {
+  if (!SHOW_FRAME_METER) return { begin() {}, end() {}, endFrame() {} };
+  const timer = gl.getExtension('EXT_disjoint_timer_query_webgl2');
+  const pending = [];
+  let open = null;
+  let started = 0;
+  const add = (name, key, value) => {
+    const entry = profile.sections[name] ?? (profile.sections[name] = { cpu: null, gpu: null });
+    entry[key] = entry[key] == null ? value : entry[key] * 0.95 + value * 0.05;
+  };
+  profile.gpu = Boolean(timer);
+  return {
+    begin(name) {
+      started = performance.now();
+      if (timer && !open) {
+        const query = gl.createQuery();
+        gl.beginQuery(timer.TIME_ELAPSED_EXT, query);
+        open = { name, query };
+      }
+    },
+    end(name) {
+      add(name, 'cpu', performance.now() - started);
+      if (open?.name === name) {
+        gl.endQuery(timer.TIME_ELAPSED_EXT);
+        pending.push(open);
+        open = null;
+      }
+    },
+    endFrame(frameStart) {
+      add('scene (all)', 'cpu', performance.now() - frameStart);
+      if (!timer) return;
+      const disjoint = gl.getParameter(timer.GPU_DISJOINT_EXT);
+      while (pending.length && gl.getQueryParameter(pending[0].query, gl.QUERY_RESULT_AVAILABLE)) {
+        const { name, query } = pending.shift();
+        if (!disjoint) add(name, 'gpu', gl.getQueryParameter(query, gl.QUERY_RESULT) / 1e6);
+        gl.deleteQuery(query);
+      }
+      if (pending.length > 60) pending.splice(0, pending.length - 60).forEach(({ query }) => gl.deleteQuery(query));
+    },
+  };
+}
+export const profile = { sections: {}, gpu: false };
+
+// Freezes: every animation frame that ran long (Chrome's Long Animation Frames; elsewhere long
+// tasks), with the scripts that took the time, and the page's load milestones (markLoad).
+export const freezes = [];
+export const loads = [];
+export function markLoad(name) {
+  if (!SHOW_FRAME_METER) return;
+  loads.push({ name, at: performance.now() });
+}
+if (SHOW_FRAME_METER && typeof PerformanceObserver !== 'undefined') {
+  const keep = (entry) => {
+    freezes.push(entry);
+    if (freezes.length > 40) freezes.shift();
+  };
+  const types = PerformanceObserver.supportedEntryTypes ?? [];
+  if (types.includes('long-animation-frame')) {
+    new PerformanceObserver((list) => list.getEntries().forEach((frame) => {
+      if (frame.duration < 50) return;
+      const scripts = (frame.scripts ?? [])
+        .map((script) => ({
+          what: `${script.invoker || script.invokerType || '?'} ${(script.sourceURL || '').replace(location.origin, '').split('?')[0]}${script.sourceFunctionName ? `:${script.sourceFunctionName}` : ''}`.trim(),
+          ms: script.duration,
+        }))
+        .sort((a, b) => b.ms - a.ms)
+        .slice(0, 3);
+      keep({
+        at: frame.startTime,
+        ms: frame.duration,
+        blocking: frame.blockingDuration,
+        layout: frame.renderStart && frame.styleAndLayoutStart ? frame.startTime + frame.duration - frame.styleAndLayoutStart : 0,
+        scripts,
+      });
+    })).observe({ type: 'long-animation-frame', buffered: true });
+  } else if (types.includes('longtask')) {
+    new PerformanceObserver((list) => list.getEntries().forEach((task) => {
+      keep({ at: task.startTime, ms: task.duration, blocking: task.duration - 50, layout: 0, scripts: [] });
+    })).observe({ type: 'longtask', buffered: true });
+  }
+}

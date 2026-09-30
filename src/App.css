@@ -2211,19 +2211,45 @@ body[data-lore="open"] .scroll-hint {
 
 
 /* The frame meter (FrameMeter.jsx; not on the production site): top left, under the menu bar. It
-   turns red when the slowest frames run over the budget. */
-.frame-meter {
+   turns red when the slowest frames run over the budget; tapped, it opens the audit below it. */
+.frame-meter-wrap {
   position: fixed;
   top: 52px;
   left: 10px;
   z-index: 3000;
+  max-width: calc(100vw - 20px);
+  font: 500 10px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.frame-meter {
+  display: block;
+  margin: 0;
   padding: 3px 6px;
+  border: 0;
   border-radius: 4px;
   background: rgba(10, 12, 20, 0.62);
   color: #b8f5c8;
-  font: 500 10px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
-  pointer-events: none;
+  font: inherit;
   white-space: nowrap;
+  cursor: pointer;
 }
 .frame-meter:empty { display: none; }
 .frame-meter[data-over="true"] { color: #ffb3b3; }
+.frame-audit {
+  margin-top: 4px;
+  max-height: 70vh;
+  overflow: auto;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(10, 12, 20, 0.86);
+  color: #e6e9f0;
+}
+.frame-audit table { border-collapse: collapse; margin-bottom: 8px; }
+.frame-audit th { color: #b8f5c8; font-weight: 600; text-align: left; }
+.frame-audit th, .frame-audit td { padding: 1px 8px 1px 0; vertical-align: top; }
+.frame-audit td:not(:first-child) { text-align: right; }
+.frame-audit td:last-child:not(:nth-child(2)) { text-align: left; }
+/* The audit's ?off=mask (frameStats.js): the scrolling areas without their fades. */
+:root[data-audit-no-mask] :is(.page-scroller, .quests) {
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+}
