@@ -1098,7 +1098,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     // small there, and its 2048px textures took ~64 MB of GPU memory.
     const loadModelAssets = () => Promise.all([
       loader.loadAsync('/models/lawson/lawson-mobile.glb'),
-      loader.loadAsync(`/models/cherry-blossom/bicycle-rider-${lowPower || mobileLayout ? 'low' : 'mobile'}.glb`),
+      loader.loadAsync(`/models/cherry-blossom/bicycle-rider-${(SHOW_FRAME_METER && tuning.riderTextures) || (lowPower || mobileLayout ? 'low' : 'mobile')}.glb`),
     ]);
     const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
     // The scene's saved framing: the default, then any pose saved from the editor.

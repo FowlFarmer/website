@@ -30,6 +30,7 @@ export const TUNING_DEFAULTS = {
   fallingPetals: true,
   kitsune: true,
   frameCap: null, // null: the site's own (30 on low-power devices); 0: none
+  riderTextures: null, // null: the site's own; 'mobile' 2048px, 'low' 1024px, '512' 512px (reload)
   preciseGpu: false, // each stage its own GPU batch, so its timer times it alone
 };
 const TUNING_KEY = 'render-tuning';

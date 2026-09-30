@@ -60,6 +60,7 @@ function RenderSettings() {
     </label>
   );
   const aaChanged = values.antialias !== aaAtLoad;
+  const riderChanged = values.riderTextures !== riderAtLoad;
   return (
     <div className="frame-settings">
       <strong>render settings (this device)</strong>
@@ -75,6 +76,15 @@ function RenderSettings() {
           <option value="0">none</option>
         </select>
       </label>
+      <label className="frame-setting">
+        <span>{riderChanged ? 'rider textures (reload to apply)' : 'rider textures'}</span>
+        <select value={values.riderTextures ?? 'site'} onChange={(event) => setTuning({ riderTextures: event.target.value === 'site' ? null : event.target.value })}>
+          <option value="site">site default</option>
+          <option value="mobile">2048 px</option>
+          <option value="low">1024 px</option>
+          <option value="512">512 px</option>
+        </select>
+      </label>
       <div className="frame-setting-row">
         {toggle('antialias', aaChanged ? 'antialiasing (reload to apply)' : 'antialiasing')}
         {toggle('glass', 'glass copy')}
@@ -84,13 +94,14 @@ function RenderSettings() {
         {toggle('preciseGpu', 'precise GPU timing')}
       </div>
       <div className="frame-setting-row">
-        {aaChanged && <button type="button" onClick={() => location.reload()}>reload</button>}
+        {(aaChanged || riderChanged) && <button type="button" onClick={() => location.reload()}>reload</button>}
         <button type="button" onClick={() => setTuning({ ...TUNING_DEFAULTS })}>site defaults</button>
       </div>
     </div>
   );
 }
 const aaAtLoad = tuning.antialias;
+const riderAtLoad = tuning.riderTextures;
 
 function Audit() {
   const [data, setData] = useState(report);
