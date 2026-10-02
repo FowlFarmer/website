@@ -126,18 +126,18 @@ function FadeRoutes() {
       <Routes location={shown}>
         <Route path="/" element={<Navigate to="/self" replace />} />
         <Route path="/self" element={<Self />} />
-        <Route path="/quests" element={<Suspense fallback={null}><Quests /></Suspense>} />
+        <Route path="/quests" element={<Suspense fallback={<PageLoading />}><Quests /></Suspense>} />
         {/* The gallery's projects are the World Quests now. */}
         <Route path="/gallery" element={<Navigate to="/quests" replace />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/analytics" element={<Suspense fallback={null}><AnalyticsDashboard /></Suspense>} />
-        <Route path="/lab/experience" element={<Suspense fallback={null}><ExperienceLab /></Suspense>} />
-        <Route path="/lab/shaders" element={<Suspense fallback={null}><RiderShaderLab /></Suspense>} />
-        <Route path="/lab/kitsune" element={<Suspense fallback={null}><KitsuneLab /></Suspense>} />
+        <Route path="/analytics" element={<Suspense fallback={<PageLoading />}><AnalyticsDashboard /></Suspense>} />
+        <Route path="/lab/experience" element={<Suspense fallback={<PageLoading />}><ExperienceLab /></Suspense>} />
+        <Route path="/lab/shaders" element={<Suspense fallback={<PageLoading />}><RiderShaderLab /></Suspense>} />
+        <Route path="/lab/kitsune" element={<Suspense fallback={<PageLoading />}><KitsuneLab /></Suspense>} />
         <Route path={`${PERFORMANCE_PATH}/*`} element={<PerformanceView />} />
-        <Route path="/avalon" element={<Suspense fallback={<div style={{ minHeight: '100vh', background: '#060f21' }} />}><Avalon /></Suspense>} />
+        <Route path="/avalon" element={<Suspense fallback={<PageLoading><div style={{ minHeight: '100vh', background: '#060f21' }} /></PageLoading>}><Avalon /></Suspense>} />
 
-        <Route path="*" element={<Suspense fallback={null}><Gallery /></Suspense>} />
+        <Route path="*" element={<Suspense fallback={<PageLoading />}><Gallery /></Suspense>} />
       </Routes>
     </main>
     </div>
@@ -145,6 +145,17 @@ function FadeRoutes() {
     <NavFadeCover active={!(phone && shown.pathname === '/quests')} />
     </>
   );
+}
+
+// A page whose code is still coming holds the loading screen (bootLoader.js), so arriving on it
+// shows the loading screen, then the page, never an empty frame between. Once the loading
+// screen is gone (moving between pages), it holds nothing.
+function PageLoading({ children = null }) {
+  useEffect(() => {
+    holdLoader('page code');
+    return () => releaseLoader('page code');
+  }, []);
+  return children;
 }
 
 function SiteChrome() {
