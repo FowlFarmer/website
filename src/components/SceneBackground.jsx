@@ -9,7 +9,7 @@ import StaticKitsune from './experience/StaticKitsune.jsx';
 import { onPageScroll, pageScrollY } from './pageScroll.js';
 import { MirrorCanvas, useMirrorHosts } from './sceneMirror.jsx';
 import { onSoundChange, setSoundOn, soundOn } from './soundSetting.js';
-import { holdLoader, releaseLoader, showLoader } from '../bootLoader.js';
+import { SCENE_PROGRESS_WEIGHT, holdLoader, releaseLoader, showLoader } from '../bootLoader.js';
 const STORAGE_KEY = 'scene-low-performance';
 // On a first load, how long (ms from the page starting to load) the 3D scene gets to be ready before
 // the site settles for 3D off rather than keep the loading screen up. Switching 3D on by hand
@@ -101,7 +101,7 @@ export default function SceneBackground() {
   });
   // The loading screen waits for the backdrop: the 3D scene lets go once it's built and drawn
   // (CherryBlossomScene.jsx); with 3D off, the still photo once it's in.
-  useState(() => holdLoader('scene'));
+  useState(() => holdLoader('scene', staticMode ? 0.2 : SCENE_PROGRESS_WEIGHT));
   const snapshotRef = useRef(null);
   useEffect(() => {
     if (!staticMode) return undefined;
@@ -179,7 +179,7 @@ export default function SceneBackground() {
     // Switching 3D on builds the scene again: behind the loading screen, up before it renders.
     if (!next) {
       showLoader();
-      holdLoader('scene');
+      holdLoader('scene', SCENE_PROGRESS_WEIGHT);
     }
     setStaticMode(next);
     setNotice(null);

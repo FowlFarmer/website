@@ -16,7 +16,7 @@ import {
 } from './experience/experienceStage.js';
 import { closeInspo, openInspo } from './lawsonStage.js';
 import { drawSceneMirrors } from './sceneMirror.jsx';
-import { releaseLoader, reportProgress } from '../bootLoader.js';
+import { SCENE_PROGRESS_WEIGHT, releaseLoader, reportProgress } from '../bootLoader.js';
 import { onPageScroll, pageScrollY } from './pageScroll.js';
 import {
   SHOW_FRAME_METER, auditOff, createFrameProfiler, markFrame, markLoad, onTuningChange, setTargetFps, tuning,
@@ -532,7 +532,8 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
     if (mobileLayout) mount.style.height = `${mount.clientHeight}px`;
     // The loading screen (bootLoader.js) waits until everything is built, compiled, on the GPU and
     // drawn once (ready, below): what's left to do then would freeze the page later instead. Its
-    // percentage: the downloads by size, then the setup.
+    // percentage: each part weighted by about how long it takes on a fresh load (the downloads by
+    // size, ~1 MB a unit; the setup steps by their measured time on the same scale).
     const ready = () => {
       readyRef.current?.();
       releaseLoader('scene');
@@ -541,9 +542,16 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
     const DOWNLOADS = {
       backdrop: mobileLayout ? 0.09 : 0.28, store: 1.24, rider: 0.52, lighting: 0.37, kitsune: 4.0,
     };
-    const SETUP = { 'store setup': 0.6, 'kitsune setup': 1.2, 'warm-up': 0.5 };
-    Object.entries({ ...DOWNLOADS, ...SETUP }).forEach(([part, weight]) => reportProgress(part, 0, weight));
-    const progress = (part, fraction) => reportProgress(part, fraction, DOWNLOADS[part] ?? SETUP[part]);
+    const SETUP = { 'store setup': 0.4, 'kitsune setup': 2.4, 'warm-up': 0.6 };
+    // Reported to the loading screen as one part, its share reserved from the start (SceneBackground.jsx).
+    const weights = { ...DOWNLOADS, ...SETUP };
+    const fractions = Object.fromEntries(Object.keys(weights).map((part) => [part, 0]));
+    const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
+    const progress = (part, fraction) => {
+      fractions[part] = Math.max(fractions[part], fraction);
+      const done = Object.entries(fractions).reduce((sum, [name, value]) => sum + value * weights[name], 0);
+      reportProgress('scene', done / totalWeight, SCENE_PROGRESS_WEIGHT);
+    };
     const downloading = (part) => (event) => {
       if (event?.lengthComputable) progress(part, event.loaded / event.total);
     };
@@ -1321,6 +1329,7 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
           kitsuneGlow = hologram.createGlowLayer(renderer, scene, kitsune.camera);
           kitsuneGlow.setSize(frame.width, frame.height, tuning.glowScale);
           markLoad('kitsune: built');
+          progress('kitsune setup', 0.4);
           // After the lighting: it changes which shaders his materials compile to.
           return Promise.resolve(environmentLoaded).then(() => Promise.all([
             renderer.compileAsync(kitsune.root, kitsune.camera, scene), kitsuneGlow.compile(kitsune.camera), kitsune.ready,

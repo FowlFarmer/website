@@ -10,6 +10,9 @@
 // the system, so it can't lag however busy the page is, and its petals orbit the percentage on
 // CSS animations, which run off the page's thread.
 const SAFETY_MS = 45000; // never stuck: let go whatever's left after this
+// The 3D scene's share of the percentage, against the first render's 0.5 and the quests code's 0.3:
+// most of a load is the scene.
+export const SCENE_PROGRESS_WEIGHT = 10;
 const FADE_MS = 460; // index.html #boot-loader's transition
 
 const loader = typeof document !== 'undefined' ? document.getElementById('boot-loader') : null;
@@ -29,7 +32,7 @@ function render() {
   });
   // Never backwards (a part joining late adds to the total).
   shown = Math.max(shown, total ? Math.floor((done / total) * 100) : 0);
-  label.textContent = `${Math.min(shown, holds.size ? 99 : 100)}%`;
+  label.textContent = `${shown}%`;
 }
 
 export function reportProgress(part, fraction, weight = 1) {
