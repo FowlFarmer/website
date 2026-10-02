@@ -12,6 +12,11 @@ const FLIGHT_SECONDS = 1.0;
 const FLIGHT_SECONDS_RANGE = 0.35;
 const FLIGHT_STAGGER = 0.15;
 const ITEMS_FADE_OUT_MS = 200;
+// The bar's items fading in (App.css .navbar-styles[data-formed] > *).
+const ITEMS_FADE_IN_MS = 420;
+// The flight that owns the bar's formation now: one cleaning up late (landing after its page left)
+// mustn't undo a newer one's.
+let latestFlight = 0;
 // How far a bar tile's claim can vary, as a fraction of the tile size.
 const TILE_IRREGULARITY = 0.45;
 // Flight time (not eased distance) at which a piece becomes a petal, and starts to take its landing shape.
@@ -39,6 +44,7 @@ function pairInColumns(items, rows, x, y) {
 }
 
 export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMode, hoverIdle, quietHover, onBanner }) {
+  const flightId = ++latestFlight;
   const context = canvas.getContext('2d');
   // phase: 'banner' (the name shows), 'forming', 'bar' (the menu bar shows), 'clearing'
   // (bar items fading out before it breaks up), 'dissolving' (petals flying home).
@@ -255,7 +261,9 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
         forced = false;
         onFormed = null;
         done?.();
-        if (released) destroy();
+        // Its page gone, it hands the bar back once the items have faded in (handing it back
+        // now would show them at once: the plain bar doesn't fade).
+        if (released) clearTimer = window.setTimeout(destroy, ITEMS_FADE_IN_MS);
       }));
     } else {
       phase = 'banner';
@@ -333,7 +341,7 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
     pendingForm = false;
     window.removeEventListener('resize', resize);
     stopFollowingScroll();
-    setNavFormation({ managed: false, bar: false, items: false });
+    if (flightId === latestFlight) setNavFormation({ managed: false, bar: false, items: false });
     canvas.width = 0;
     canvas.height = 0;
     canvas.remove();
