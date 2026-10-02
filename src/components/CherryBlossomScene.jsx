@@ -1389,7 +1389,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           kitsuneGlow = hologram.createGlowLayer(renderer, scene, kitsune.camera);
           kitsuneGlow.setSize(frame.width, frame.height, tuning.glowScale);
           markLoad('kitsune: built');
-          return Promise.all([renderer.compileAsync(kitsune.root, kitsune.camera, scene), kitsuneGlow.compile(kitsune.camera)]);
+          return Promise.all([renderer.compileAsync(kitsune.root, kitsune.camera, scene), kitsuneGlow.compile(kitsune.camera), kitsune.ready]);
         }))
         .then(() => uploadGradually(kitsune?.root))
         .then(() => {

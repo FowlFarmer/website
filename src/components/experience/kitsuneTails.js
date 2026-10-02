@@ -422,5 +422,7 @@ export function createTailSkin(source, { nodes, length, stalk, girth, reference,
     });
   };
 
-  return { geometry, radii, rings, shell, markings, update };
+  // `params`: what made it (bar the source and the reference), to make the same one elsewhere
+  // (kitsuneCompute.worker.js).
+  return { geometry, radii, rings, shell, markings, update, params: { nodes, length, stalk, girth, markingSeed } };
 }

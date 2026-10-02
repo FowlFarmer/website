@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { kitsuneTails } from '../../data/experience.js';
 import { applyColorTuning, hologramMaterial } from './kitsuneHologram.js';
 import { REFERENCE_LENGTH, createTailPhysics } from './kitsunePhysics.js';
+import { createTailCompute } from './kitsuneCompute.js';
 import { buildCliff } from './kitsuneCliff.js';
 import {
   OUTLINE_RINGS, OUTLINE_SIDES, createTailSkin, measureBody, prepareTailSource, tailHomeSpine,
@@ -324,7 +325,9 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
     return { skin, home, phase: index * 1.37 };
   });
   const scale = TAIL_LENGTH / REFERENCE_LENGTH;
-  const physics = createTailPhysics({ tails: rigs, frame, scale });
+  const skins = rigs.map((rig) => rig.skin);
+  // The physics, and the posing of the tail meshes, run off the page's thread (kitsuneCompute.js).
+  const physics = createTailCompute({ source, tails: rigs, skins, frame, scale });
   // The tail pose moves the tails as one piece (meshes and hover shells) relative to him; their
   // physics runs as before inside it.
   const tailPoseHandle = {
@@ -335,10 +338,9 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
   };
   tailPoseHandle.applyTailPose();
   liveKitsunes.add(tailPoseHandle);
-  const skins = rigs.map((rig) => rig.skin);
   const hoverShells = physics.chains.map(buildHoverShell);
   hoverShells.forEach((shell) => tailGroup.add(shell));
-  skins.forEach((skin, index) => skin.update(physics.chains[index].points));
+  physics.ready.then(() => hoverShells.forEach((shell, index) => shell.userData.update(physics.chains[index])));
 
   const cliff = buildCliff(cliffScene, frame);
   cliff.traverse((child) => {
@@ -465,7 +467,8 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
     mesh.geometry.computeBoundingBox();
     box.union(mesh.geometry.boundingBox.clone().applyMatrix4(toKitsune.clone().multiply(mesh.matrixWorld)));
   });
-  physics.chains.forEach(({ corners }) => corners.forEach((ring) => ring.forEach((corner) => box.expandByPoint(corner))));
+  // The tails at rest, once the physics has settled them (off the page's thread, kitsuneCompute.js).
+  physics.ready.then(() => physics.chains.forEach(({ corners }) => corners.forEach((ring) => ring.forEach((corner) => box.expandByPoint(corner)))));
   const localRay = new THREE.Ray();
   const hits = (x, y) => {
     ndc.set(x, y);
@@ -496,7 +499,6 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
 
     if (!still) {
       physics.update(seconds);
-      skins.forEach((skin, index) => skin.update(physics.chains[index].points));
       hoverShells.forEach((shell, index) => shell.userData.update(physics.chains[index]));
     }
     tailMaterials.forEach((material, index) => {
@@ -535,6 +537,7 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
   };
 
   const dispose = () => {
+    physics.dispose();
     liveKitsunes.delete(tailPoseHandle);
     root.traverse((object) => {
       object.geometry?.dispose();
@@ -554,8 +557,10 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
     clearHover: () => setHovered(-1),
     setHighlight,
     focus: () => kitsune.localToWorld(focus.clone()),
-    // The tails' physics and their length, for the chimes (kitsuneChimes.js).
+    // The tails' physics and their length, for the chimes (kitsuneChimes.js); `ready` once the
+    // tails are settled.
     physics,
+    ready: physics.ready,
     tailLength: TAIL_LENGTH,
   };
 }
