@@ -18,7 +18,7 @@ const Avalon = lazy(() => import('./components/Avalon.jsx'));
 const AnalyticsDashboard = lazy(() => import('./components/AnalyticsDashboard.jsx'));
 import SceneBackground from './components/SceneBackground.jsx';
 import { MOBILE_SCENE_QUERY, experienceStage } from './components/experience/experienceStage.js';
-import { MirrorHost } from './components/sceneMirror.jsx';
+import { NavFadeCover } from './components/sceneMirror.jsx';
 import FrameMeter from './components/FrameMeter.jsx';
 import { PERFORMANCE_PATH, SHOW_FRAME_METER } from './components/frameStats.js';
 import { pageScrollTo } from './components/pageScroll.js';
@@ -108,8 +108,8 @@ function FadeRoutes() {
   }, [location]);
 
   return (
+    <>
     <div className="page-scroller" ref={scrollerRef} tabIndex={-1}>
-      <MirrorHost active={!(phone && shown.pathname === '/quests')} />
     <main
       ref={mainRef}
       className={`main-content${shown.pathname === '/avalon' ? ' main-content--archive' : ''}`}
@@ -133,6 +133,9 @@ function FadeRoutes() {
       </Routes>
     </main>
     </div>
+    {/* The fade under the menu bar, over the page (sceneMirror.jsx); the phone quests page fades its own area. */}
+    <NavFadeCover active={!(phone && shown.pathname === '/quests')} />
+    </>
   );
 }
 

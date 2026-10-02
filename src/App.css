@@ -1217,8 +1217,25 @@ text-align: left;
   transition: opacity 900ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .scene-mirror-canvas[data-loaded] { opacity: 1; }
-:root[data-nav-fade] .page-scroller { --nav-fade: 1; }
-body[data-lore="open"] .page-scroller { --nav-fade: 0; }
+/* With the backdrop there (sceneMirror.jsx), the fade is a cover over the page's top instead: the
+   backdrop again, as opaque as the mask leaves the page clear (so the same picture), and the page
+   unmasked, its glass blurring the backdrop itself. */
+.nav-fade-cover {
+  bottom: auto;
+  height: 62px;
+  z-index: 2;
+  --nav-fade: 0;
+  transition: --nav-fade 350ms ease;
+  -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / var(--nav-fade)) 46px, transparent 62px);
+  mask-image: linear-gradient(to bottom, rgb(0 0 0 / var(--nav-fade)) 46px, transparent 62px);
+}
+:root:not([data-scene-backdrop]) .nav-fade-cover { display: none; }
+:root[data-scene-backdrop] .page-scroller {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+:root[data-nav-fade] :is(.page-scroller, .nav-fade-cover) { --nav-fade: 1; }
+body[data-lore="open"] :is(.page-scroller, .nav-fade-cover) { --nav-fade: 0; }
 /* Phones have no sounds yet (the chimes ring off the mouse's wind), so no sound switch. */
 @media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
   .scene-performance-control button.scene-sound-toggle { display: none; }
@@ -1234,6 +1251,11 @@ body[data-lore="open"] .page-scroller { --nav-fade: 0; }
   .page-scroller:has(.quests) {
     -webkit-mask-image: none;
     mask-image: none;
+  }
+  .nav-fade-cover {
+    height: 70px;
+    -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / var(--nav-fade)) 46px, transparent 70px);
+    mask-image: linear-gradient(to bottom, rgb(0 0 0 / var(--nav-fade)) 46px, transparent 70px);
   }
 }
 
@@ -2279,6 +2301,7 @@ body[data-lore="open"] .scroll-hint {
   -webkit-mask-image: none !important;
   mask-image: none !important;
 }
+:root[data-audit-no-mask] .nav-fade-cover { display: none; }
 
 /* The Shower Thoughts card (cards/showerThoughts.jsx): its note, and each entry's title, date and
    paragraphs. */
