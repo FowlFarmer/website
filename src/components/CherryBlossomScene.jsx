@@ -16,7 +16,7 @@ import {
 } from './experience/experienceStage.js';
 import { closeInspo, openInspo } from './lawsonStage.js';
 import { drawSceneMirrors } from './sceneMirror.jsx';
-import { SCENE_PROGRESS_WEIGHT, releaseLoader, reportProgress } from '../bootLoader.js';
+import { SCENE_PROGRESS_WEIGHT, releaseLoader, reportProgress, setStage } from '../bootLoader.js';
 import { onPageScroll, pageScrollY } from './pageScroll.js';
 import {
   SHOW_FRAME_METER, auditOff, createFrameProfiler, markFrame, markLoad, onTuningChange, setTargetFps, tuning,
@@ -552,7 +552,10 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
       const done = Object.entries(fractions).reduce((sum, [name, value]) => sum + value * weights[name], 0);
       reportProgress('scene', done / totalWeight, SCENE_PROGRESS_WEIGHT);
     };
+    // The stage under the percentage: the latest thing to happen (downloads name their file).
+    const FILE_STAGES = { backdrop: 'backdrop photo', store: 'store model', rider: 'rider', lighting: 'lighting' };
     const downloading = (part) => (event) => {
+      setStage(FILE_STAGES[part]);
       if (event?.lengthComputable) progress(part, event.loaded / event.total);
     };
 
@@ -1244,6 +1247,7 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
         if (mobileLayout) frameMobileBackdrop();
         if (models) {
           markLoad('store & rider: downloaded');
+          setStage('store shaders');
           await compileModels();
           if (disposed) return;
           markLoad('store & rider: compiled');
@@ -1308,9 +1312,13 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
     const loadKitsune = () => {
       markLoad('kitsune: requested');
       Promise.all([import('./experience/kitsuneRig.js'), import('./experience/kitsuneHologram.js')])
-        .then(([rig, hologram]) => rig.loadKitsuneAssets(loader, (fraction) => progress('kitsune', fraction)).then((assets) => {
+        .then(([rig, hologram]) => rig.loadKitsuneAssets(loader, (fraction, file) => {
+          setStage(file);
+          progress('kitsune', fraction);
+        }).then((assets) => {
           if (disposed) return undefined;
           markLoad('kitsune: downloaded');
+          setStage('kitsune build');
           kitsune = rig.createKitsune(assets, {
             layer: KITSUNE_LAYER,
             highlightBoost: mobileLayout ? PHONE_HIGHLIGHT_BOOST : 1,
@@ -1330,14 +1338,22 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
           kitsuneGlow.setSize(frame.width, frame.height, tuning.glowScale);
           markLoad('kitsune: built');
           progress('kitsune setup', 0.4);
+          // The tails settle on their thread while his shaders compile.
+          setStage('tail physics');
+          kitsune.ready.then(() => setStage('kitsune shaders'));
           // After the lighting: it changes which shaders his materials compile to.
           return Promise.resolve(environmentLoaded).then(() => Promise.all([
-            renderer.compileAsync(kitsune.root, kitsune.camera, scene), kitsuneGlow.compile(kitsune.camera), kitsune.ready,
+            renderer.compileAsync(kitsune.root, kitsune.camera, scene).then(() => setStage('glow shaders')),
+            kitsuneGlow.compile(kitsune.camera), kitsune.ready,
           ]));
         }))
-        .then(() => uploadGradually(kitsune?.root))
+        .then(() => {
+          setStage('textures');
+          return uploadGradually(kitsune?.root);
+        })
         .then(() => {
           if (disposed || !kitsune) return;
+          setStage('glow');
           kitsune.update(0, performance.now());
           kitsuneGlow.warm();
           renderer.setViewport(0, 0, viewportWidth, viewportHeight);
@@ -1393,6 +1409,7 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
       }
       setKitsuneShown(kitsuneAlpha > 0);
       progress('warm-up', warmFrame / 4);
+      setStage(['first frame', 'fade frame', 'last frame', 'done'][warmFrame - 1]);
       if (warmFrame === 4) {
         markLoad('3D: warmed up');
         ready();

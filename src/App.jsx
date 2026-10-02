@@ -22,7 +22,7 @@ import { NavFadeCover } from './components/sceneMirror.jsx';
 import FrameMeter from './components/FrameMeter.jsx';
 import { PERFORMANCE_PATH, SHOW_FRAME_METER } from './components/frameStats.js';
 import { pageScrollTo } from './components/pageScroll.js';
-import { holdLoader, releaseLoader } from './bootLoader.js';
+import { holdLoader, releaseLoader, setStage } from './bootLoader.js';
 
 // Dev only: bake the 3D-off kitsune stills (components/experience/bakeKitsuneStills.js).
 if (import.meta.env.DEV) {
@@ -153,6 +153,7 @@ function FadeRoutes() {
 function PageLoading({ children = null }) {
   useEffect(() => {
     holdLoader('page code');
+    setStage('page code');
     return () => releaseLoader('page code');
   }, []);
   return children;

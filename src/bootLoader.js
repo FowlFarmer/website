@@ -17,6 +17,7 @@ const FADE_MS = 460; // index.html #boot-loader's transition
 
 const loader = typeof document !== 'undefined' ? document.getElementById('boot-loader') : null;
 const label = loader?.querySelector('.boot-percent');
+const stageLabel = loader?.querySelector('.boot-stage');
 const holds = new Set();
 const parts = new Map(); // part -> { fraction, weight }
 let shown = 0;
@@ -33,6 +34,12 @@ function render() {
   // Never backwards (a part joining late adds to the total).
   shown = Math.max(shown, total ? Math.floor((done / total) * 100) : 0);
   label.textContent = `${shown}%`;
+}
+
+// The stage under the percentage: a word or two for what it's waiting on now. Shown as it comes,
+// however fast it changes.
+export function setStage(text) {
+  if (stageLabel && !hidden && stageLabel.textContent !== text) stageLabel.textContent = text;
 }
 
 export function reportProgress(part, fraction, weight = 1) {
@@ -75,6 +82,7 @@ export function showLoader() {
   loader.classList.remove('is-ready');
   void loader.offsetWidth;
   loader.style.transition = '';
+  setStage('starting');
   render();
   armSafety();
 }

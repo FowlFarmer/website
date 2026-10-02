@@ -9,7 +9,7 @@ import StaticKitsune from './experience/StaticKitsune.jsx';
 import { onPageScroll, pageScrollY } from './pageScroll.js';
 import { MirrorCanvas, useMirrorHosts } from './sceneMirror.jsx';
 import { onSoundChange, setSoundOn, soundOn } from './soundSetting.js';
-import { SCENE_PROGRESS_WEIGHT, holdLoader, releaseLoader, showLoader } from '../bootLoader.js';
+import { SCENE_PROGRESS_WEIGHT, holdLoader, releaseLoader, setStage, showLoader } from '../bootLoader.js';
 const STORAGE_KEY = 'scene-low-performance';
 // On a first load, how long (ms from the page starting to load) the 3D scene gets to be ready before
 // the site settles for 3D off rather than keep the loading screen up. Switching 3D on by hand
@@ -122,11 +122,15 @@ export default function SceneBackground() {
   const [stillIn, setStillIn] = useState(false);
   useEffect(() => {
     const image = snapshotRef.current;
-    const done = () => setStillIn(true);
+    const done = () => {
+      setStillIn(true);
+      if (!staticMode) setStage('3D code');
+    };
     if (!image || image.complete) {
       done();
       return undefined;
     }
+    setStage('backdrop');
     image.addEventListener('load', done);
     image.addEventListener('error', done);
     return () => {
@@ -180,6 +184,7 @@ export default function SceneBackground() {
     if (!next) {
       showLoader();
       holdLoader('scene', SCENE_PROGRESS_WEIGHT);
+      setStage('3D code');
     }
     setStaticMode(next);
     setNotice(null);

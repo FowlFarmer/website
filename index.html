@@ -31,6 +31,13 @@
         font-variant-numeric: tabular-nums;
         animation: boot-pulse 1.4s ease-in-out infinite;
       }
+      #boot-loader .boot-text { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+      #boot-loader .boot-stage {
+        font: 400 9px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+        letter-spacing: 0.08em;
+        opacity: 0.5;
+        white-space: nowrap;
+      }
       #boot-loader .boot-orbit i {
         position: absolute;
         top: 50%;
@@ -57,7 +64,7 @@
   </head>
   <body>
     <div id="boot-loader" role="status" aria-live="polite" aria-label="Loading">
-      <div class="boot-orbit" aria-hidden="true"><i></i><i></i><i></i><i></i><span class="boot-percent">0%</span></div>
+      <div class="boot-orbit" aria-hidden="true"><i></i><i></i><i></i><i></i><span class="boot-text"><span class="boot-percent">0%</span><span class="boot-stage">starting</span></span></div>
     </div>
     <!-- The root element React will hydrate -->
     <div id="root"></div>

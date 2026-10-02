@@ -116,12 +116,14 @@ const SWAY_YAW_RIGHT = THREE.MathUtils.degToRad(17.5);
 const SWAY_PITCH = THREE.MathUtils.degToRad(1.2);
 const SWAY_EASE = 3;
 
-// `onProgress(fraction)`: how much of it has downloaded, 0 to 1, by bytes as far as they're known.
+// `onProgress(fraction, file)`: how much of it has downloaded, 0 to 1, by bytes as far as they're
+// known, and which file just came in a bit more ('kitsune', 'tail', 'cliff', 'blossoms').
 export function loadKitsuneAssets(loader, onProgress = () => {}) {
   const urls = [MODEL_URL, TAIL_URL, CLIFF_URL, ...BLOSSOM_URLS];
   const loaded = new Map();
   const totals = new Map();
-  const report = () => {
+  const fileName = (url) => (url === MODEL_URL ? 'kitsune' : url === TAIL_URL ? 'tail' : url === CLIFF_URL ? 'cliff' : 'blossoms');
+  const report = (url) => {
     let done = 0;
     let total = 0;
     urls.forEach((url) => {
@@ -129,18 +131,18 @@ export function loadKitsuneAssets(loader, onProgress = () => {}) {
       done += loaded.get(url) ?? 0;
     });
     // Files whose size isn't known yet count as not started.
-    onProgress(total ? (done / total) * (totals.size / urls.length) : 0);
+    onProgress(total ? (done / total) * (totals.size / urls.length) : 0, fileName(url));
   };
   return Promise.all(urls.map((url) => loader.loadAsync(url, (event) => {
     if (!event.lengthComputable) return;
     totals.set(url, event.total);
     loaded.set(url, event.loaded);
-    report();
+    report(url);
   }).then((asset) => {
     if (totals.has(url)) loaded.set(url, totals.get(url));
     return asset;
   }))).then((assets) => {
-    onProgress(1);
+    onProgress(1, 'kitsune');
     return assets;
   });
 }
