@@ -116,8 +116,33 @@ const SWAY_YAW_RIGHT = THREE.MathUtils.degToRad(17.5);
 const SWAY_PITCH = THREE.MathUtils.degToRad(1.2);
 const SWAY_EASE = 3;
 
-export function loadKitsuneAssets(loader) {
-  return Promise.all([MODEL_URL, TAIL_URL, CLIFF_URL, ...BLOSSOM_URLS].map((url) => loader.loadAsync(url)));
+// `onProgress(fraction)`: how much of it has downloaded, 0 to 1, by bytes as far as they're known.
+export function loadKitsuneAssets(loader, onProgress = () => {}) {
+  const urls = [MODEL_URL, TAIL_URL, CLIFF_URL, ...BLOSSOM_URLS];
+  const loaded = new Map();
+  const totals = new Map();
+  const report = () => {
+    let done = 0;
+    let total = 0;
+    urls.forEach((url) => {
+      total += totals.get(url) ?? 0;
+      done += loaded.get(url) ?? 0;
+    });
+    // Files whose size isn't known yet count as not started.
+    onProgress(total ? (done / total) * (totals.size / urls.length) : 0);
+  };
+  return Promise.all(urls.map((url) => loader.loadAsync(url, (event) => {
+    if (!event.lengthComputable) return;
+    totals.set(url, event.total);
+    loaded.set(url, event.loaded);
+    report();
+  }).then((asset) => {
+    if (totals.has(url)) loaded.set(url, totals.get(url));
+    return asset;
+  }))).then((assets) => {
+    onProgress(1);
+    return assets;
+  });
 }
 
 // A seeded random source, so the blossoms land in the same places every visit.

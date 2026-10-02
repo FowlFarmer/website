@@ -1,4 +1,5 @@
 import React from 'react';
+import { holdLoader } from './bootLoader.js';
 import ReactDOM from 'react-dom/client';
 import '@fontsource-variable/inter/wght.css';
 import App from './App.jsx';
@@ -17,6 +18,8 @@ import './App.css';
 // Entry point for the React application.  This file mounts the
 // App component into the DOM.  We use React 18's createRoot API
 // for improved concurrency support.
+// The loading screen waits for the first render (App lets go after it).
+holdLoader('app', 0.5);
 const rootElement = document.getElementById('root');
 if (rootElement) {
   const root = ReactDOM.createRoot(rootElement);

@@ -22,6 +22,7 @@ import { NavFadeCover } from './components/sceneMirror.jsx';
 import FrameMeter from './components/FrameMeter.jsx';
 import { PERFORMANCE_PATH, SHOW_FRAME_METER } from './components/frameStats.js';
 import { pageScrollTo } from './components/pageScroll.js';
+import { holdLoader, releaseLoader } from './bootLoader.js';
 
 // Dev only: bake the 3D-off kitsune stills (components/experience/bakeKitsuneStills.js).
 if (import.meta.env.DEV) {
@@ -75,11 +76,13 @@ function FadeRoutes() {
     PAGE_LOADERS[location.pathname]?.();
   }, [location.pathname]);
 
+  // The quests page's code, in behind the loading screen, so going there later doesn't wait on it.
   useEffect(() => {
-    const idle = window.requestIdleCallback ?? ((callback) => window.setTimeout(callback, 2000));
-    const cancel = window.cancelIdleCallback ?? window.clearTimeout;
-    const task = idle(() => loadQuests(), { timeout: 5000 });
-    return () => cancel(task);
+    holdLoader('quests code', 0.3);
+    loadQuests().finally(() => releaseLoader('quests code'));
+    // The first render is up: one frame for it to paint, then the loading screen stops waiting on it.
+    const frame = window.requestAnimationFrame(() => releaseLoader('app'));
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {

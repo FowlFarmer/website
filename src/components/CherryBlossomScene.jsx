@@ -16,6 +16,7 @@ import {
 } from './experience/experienceStage.js';
 import { closeInspo, openInspo } from './lawsonStage.js';
 import { drawSceneMirrors } from './sceneMirror.jsx';
+import { releaseLoader, reportProgress } from '../bootLoader.js';
 import { onPageScroll, pageScrollY } from './pageScroll.js';
 import {
   SHOW_FRAME_METER, auditOff, createFrameProfiler, markFrame, markLoad, onTuningChange, setTargetFps, tuning,
@@ -112,9 +113,6 @@ const SCROLL_SETTLE_MS = 150;
 const KITSUNE_LAYER = 3;
 // How long the store and rider, or the kitsune, take to fade out or in.
 const FADE_MS = 450;
-// How long after the scene is up (and the page is idle) the kitsune loads in the background, so the
-// quests page has nothing left to load.
-const KITSUNE_PRELOAD_MS = 2500;
 // The widest the phone band gets (width to height), as crop-kitsune-view.mjs's phone views allow.
 const PHONE_KITSUNE_ASPECT = 1.6;
 const LAYOUT_SETTLE_MS = 400;
@@ -484,59 +482,19 @@ function scaleAndGround(root, targetHeight) {
   root.updateMatrixWorld(true);
 }
 
-function SceneLoadingScreen({ ready }) {
-  const auraRef = useRef(null);
+// Downloaded files stay in memory (three.js's file cache): rebuilding the scene (switching 3D back on,
+// or crossing the phone/desktop breakpoint) reuses them instead of fetching them again, and a
+// download still going when the first load gave up (SceneBackground.jsx) finishes into it.
+THREE.Cache.enabled = true;
 
-  useEffect(() => {
-    const aura = auraRef.current;
-    if (!aura) return undefined;
-    let targetX = window.innerWidth / 2;
-    let targetY = window.innerHeight / 2;
-    let currentX = targetX;
-    let currentY = targetY;
-    let animationFrame;
-
-    const handlePointerMove = (event) => {
-      targetX = event.clientX;
-      targetY = event.clientY;
-    };
-    const animateAura = () => {
-      currentX += (targetX - currentX) * 0.14;
-      currentY += (targetY - currentY) * 0.14;
-      aura.style.transform = `translate3d(${currentX - 48}px, ${currentY - 48}px, 0)`;
-      animationFrame = window.requestAnimationFrame(animateAura);
-    };
-
-    window.addEventListener('pointermove', handlePointerMove, { passive: true });
-    animateAura();
-    return () => {
-      window.cancelAnimationFrame(animationFrame);
-      window.removeEventListener('pointermove', handlePointerMove);
-    };
-  }, []);
-
-  return (
-    <div
-      className={`scene-loading-screen${ready ? ' is-ready' : ''}`}
-      role="status"
-      aria-live="polite"
-      aria-label={ready ? 'Scene ready' : 'Loading scene'}
-    >
-      <div ref={auraRef} className="scene-loading-aura" aria-hidden="true">
-        <i />
-        <i />
-      </div>
-      <span>loading...</span>
-    </div>
-  );
-}
-
-export default function CherryBlossomScene({ onLowPerformance }) {
+export default function CherryBlossomScene({ onLowPerformance, onReady }) {
   const captureMode = import.meta.env.DEV && new URLSearchParams(window.location.search).has('sceneCapture');
   const captureRequested = useRef(false);
   const [captureStatus, setCaptureStatus] = useState('Save background snapshot');
   const lowPerformanceRef = useRef(onLowPerformance);
   lowPerformanceRef.current = onLowPerformance;
+  const readyRef = useRef(onReady);
+  readyRef.current = onReady;
   const [mobileLayout, setMobileLayout] = useState(() => window.matchMedia(MOBILE_SCENE_QUERY).matches);
   // Switching layout rebuilds the whole scene (a couple of seconds' work), so wait until the window
   // has settled on one side of the breakpoint rather than rebuilding on every crossing of a drag.
@@ -565,13 +523,6 @@ export default function CherryBlossomScene({ onLowPerformance }) {
   const [backdropFogDensity, setBackdropFogDensity] = useState(DEFAULT_BACKDROP_FOG_DENSITY);
   const [editorStatus, setEditorStatus] = useState('Orbit to move the camera');
   const [sceneReady, setSceneReady] = useState(false);
-  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
-
-  useEffect(() => {
-    if (!sceneReady) return undefined;
-    const hideTimer = window.setTimeout(() => setShowLoadingScreen(false), 480);
-    return () => window.clearTimeout(hideTimer);
-  }, [sceneReady]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -579,8 +530,23 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     // Freeze the large viewport in pixels as well, including browsers whose
     // viewport units resize with browser chrome. Re-measure on width changes.
     if (mobileLayout) mount.style.height = `${mount.clientHeight}px`;
-    const loadingStartedAt = performance.now();
-    let readyTimer;
+    // The loading screen (bootLoader.js) waits until everything is built, compiled, on the GPU and
+    // drawn once (ready, below): what's left to do then would freeze the page later instead. Its
+    // percentage: the downloads by size, then the setup.
+    const ready = () => {
+      readyRef.current?.();
+      releaseLoader('scene');
+      setSceneReady(true);
+    };
+    const DOWNLOADS = {
+      backdrop: mobileLayout ? 0.09 : 0.28, store: 1.24, rider: 0.52, lighting: 0.37, kitsune: 4.0,
+    };
+    const SETUP = { 'store setup': 0.6, 'kitsune setup': 1.2, 'warm-up': 0.5 };
+    Object.entries({ ...DOWNLOADS, ...SETUP }).forEach(([part, weight]) => reportProgress(part, 0, weight));
+    const progress = (part, fraction) => reportProgress(part, fraction, DOWNLOADS[part] ?? SETUP[part]);
+    const downloading = (part) => (event) => {
+      if (event?.lengthComputable) progress(part, event.loaded / event.total);
+    };
 
     const random = seededRandom();
     const reduceMotion = captureMode || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -630,7 +596,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       markLoad('3D: renderer made');
     } catch {
       mount.dataset.webglFallback = 'true';
-      setSceneReady(true);
+      ready();
       lowPerformanceRef.current?.('unavailable');
       return undefined;
     }
@@ -1079,6 +1045,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     const loadEnvironment = () => new Promise((resolve) => {
       const pmrem = new THREE.PMREMGenerator(renderer);
       new HDRLoader().load('/models/lawson/dawn-environment.hdr', (hdr) => {
+        progress('lighting', 1);
         if (!disposed) {
           environmentTarget = pmrem.fromEquirectangular(hdr);
           scene.environment = environmentTarget.texture;
@@ -1087,7 +1054,7 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         hdr.dispose();
         pmrem.dispose();
         resolve();
-      }, undefined, () => { pmrem.dispose(); resolve(); });
+      }, downloading('lighting'), () => { pmrem.dispose(); resolve(); });
     });
     const disposeAsset = (asset) => asset.scene.traverse((object) => {
       object.geometry?.dispose();
@@ -1103,8 +1070,9 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     // and the 2048px ones took ~64 MB of GPU memory (the 2048 and 1024px versions stay, to compare
     // in the frame meter's render settings).
     const loadModelAssets = () => Promise.all([
-      loader.loadAsync('/models/lawson/lawson-mobile.glb'),
-      loader.loadAsync(`/models/cherry-blossom/bicycle-rider-${(SHOW_FRAME_METER && tuning.riderTextures) || '512'}.glb`),
+      loader.loadAsync('/models/lawson/lawson-mobile.glb', downloading('store')).then((asset) => { progress('store', 1); return asset; }),
+      loader.loadAsync(`/models/cherry-blossom/bicycle-rider-${(SHOW_FRAME_METER && tuning.riderTextures) || '512'}.glb`, downloading('rider'))
+        .then((asset) => { progress('rider', 1); return asset; }),
     ]);
     const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
     // The scene's saved framing: the default, then any pose saved from the editor.
@@ -1120,15 +1088,11 @@ export default function CherryBlossomScene({ onLowPerformance }) {
         }
       }
     };
-    // Arriving straight on the quests page, the store and rider are hidden behind the kitsune: the
-    // backdrop comes up alone so the kitsune can load first, and the store, rider and their
-    // lighting follow once it's showing (or at once, heading home). Anywhere else, all together.
-    const modelsFirst = window.location.pathname !== '/quests';
-    // Drawn only once their shaders are compiled, in the background (compiling them on their
-    // first frame froze the page for a couple of seconds on a first visit).
+    // Everything loads up front, behind the loading screen: the store, the rider, their lighting
+    // and the kitsune, whichever page this is. Drawn only once their shaders are compiled (in the
+    // background where the browser can).
     let modelsReady = false;
-    let modelsRequested = modelsFirst;
-    const environmentLoaded = modelsFirst ? loadEnvironment() : null;
+    const environmentLoaded = loadEnvironment();
     const compileModels = () => {
       const compileCamera = camera.clone();
       compileCamera.layers.set(1);
@@ -1199,31 +1163,13 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       editableObjects.rider = rider;
       modelGroup.traverse((object) => object.layers.set(1));
     };
-    // The deferred store and rider (arriving on the quests page): they fade in once loaded.
-    const loadModels = () => {
-      modelsRequested = true;
-      markLoad('store & rider: requested');
-      Promise.all([loadModelAssets(), loadEnvironment()]).then(async ([models]) => {
-        if (disposed) { models.forEach(disposeAsset); return; }
-        markLoad('store & rider: downloaded');
-        setupModels(models);
-        applySavedPose();
-        measureStoreWidth();
-        // The saved pose puts the backdrop back where desktop has it; phones frame it themselves
-        // (afresh: the camera it was last framed for hasn't moved, so it would skip).
-        if (mobileLayout) {
-          mobileBackdropReady = false;
-          frameMobileBackdrop();
-        }
-        await compileModels();
-        markLoad('store & rider: compiled');
-        if (!disposed) modelsReady = true;
-      }).catch((error) => console.error('Unable to load the convenience store scene.', error));
-    };
     const textureLoader = new THREE.TextureLoader();
+    // The kitsune downloads alongside (it's set up as it arrives: loadKitsune, below).
+    Promise.resolve().then(() => { if (!disposed) loadKitsune(); });
     Promise.all([
-      textureLoader.loadAsync(mobileLayout ? '/images/scene/fuji-mobile.jpg' : '/images/scene/fuji_hd.jpg'),
-      modelsFirst ? loadModelAssets() : null,
+      textureLoader.loadAsync(mobileLayout ? '/images/scene/fuji-mobile.jpg' : '/images/scene/fuji_hd.jpg')
+        .then((texture) => { progress('backdrop', 1); return texture; }),
+      loadModelAssets(),
       environmentLoaded,
     ])
       .then(async ([backdropTexture, models]) => {
@@ -1293,30 +1239,19 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           await compileModels();
           if (disposed) return;
           markLoad('store & rider: compiled');
+          progress('store setup', 1);
           modelsReady = true;
         }
 
         mount.dataset.sceneLoaded = 'true';
         markLoad('3D: scene up');
-        // Load the kitsune in the background once the page has settled, so the quests page doesn't
-        // wait for it. Not on phones: there it waits for the quests page, sparing their data.
-        if (!mobileLayout) preloadTimer = window.setTimeout(() => {
-          (window.requestIdleCallback ?? ((callback) => callback()))(() => { kitsuneWanted = true; }, { timeout: 3000 });
-        }, KITSUNE_PRELOAD_MS);
-        readyTimer = window.setTimeout(
-          () => setSceneReady(true),
-          Math.max(0, 700 - (performance.now() - loadingStartedAt)),
-        );
       })
       .catch((error) => {
         if (disposed) return;
         console.error('Unable to load the convenience store scene.', error);
         mount.dataset.assetFallback = 'true';
         lowPerformanceRef.current?.('unavailable');
-        readyTimer = window.setTimeout(
-          () => setSceneReady(true),
-          Math.max(0, 700 - (performance.now() - loadingStartedAt)),
-        );
+        ready();
       });
 
     // Clicks on the store or the rider open the inspo: their boxes, and where the models were last
@@ -1343,11 +1278,9 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     let kitsune = null;
     let kitsuneGlow = null;
     let chimes = null;
-    let kitsuneLoading = false;
     let kitsuneReady = false;
-    let kitsuneWanted = false;
-    let preloadTimer;
-    let modelsTimer = 0;
+    // Set if the kitsune couldn't load: the loading screen stops waiting for it.
+    let kitsuneFailed = false;
     // His textures onto the GPU one a frame before he's first drawn, instead of all in that frame
     // (with the page's other work going on, a freeze of a few hundred ms as he loaded).
     const uploadGradually = (root) => new Promise((resolve) => {
@@ -1365,10 +1298,9 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       next();
     });
     const loadKitsune = () => {
-      kitsuneLoading = true;
       markLoad('kitsune: requested');
       Promise.all([import('./experience/kitsuneRig.js'), import('./experience/kitsuneHologram.js')])
-        .then(([rig, hologram]) => rig.loadKitsuneAssets(loader).then((assets) => {
+        .then(([rig, hologram]) => rig.loadKitsuneAssets(loader, (fraction) => progress('kitsune', fraction)).then((assets) => {
           if (disposed) return undefined;
           markLoad('kitsune: downloaded');
           kitsune = rig.createKitsune(assets, {
@@ -1389,7 +1321,10 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           kitsuneGlow = hologram.createGlowLayer(renderer, scene, kitsune.camera);
           kitsuneGlow.setSize(frame.width, frame.height, tuning.glowScale);
           markLoad('kitsune: built');
-          return Promise.all([renderer.compileAsync(kitsune.root, kitsune.camera, scene), kitsuneGlow.compile(kitsune.camera), kitsune.ready]);
+          // After the lighting: it changes which shaders his materials compile to.
+          return Promise.resolve(environmentLoaded).then(() => Promise.all([
+            renderer.compileAsync(kitsune.root, kitsune.camera, scene), kitsuneGlow.compile(kitsune.camera), kitsune.ready,
+          ]));
         }))
         .then(() => uploadGradually(kitsune?.root))
         .then(() => {
@@ -1398,9 +1333,13 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           kitsuneGlow.warm();
           renderer.setViewport(0, 0, viewportWidth, viewportHeight);
           markLoad('kitsune: compiled');
+          progress('kitsune setup', 1);
           kitsuneReady = true;
         })
-        .catch((error) => console.error('Unable to load the kitsune.', error));
+        .catch((error) => {
+          console.error('Unable to load the kitsune.', error);
+          kitsuneFailed = true;
+        });
     };
     // The fades, 0 to 1: the store and rider, and the kitsune. One fades out before the other fades
     // in. They start where the page wants them, once the scene is up.
@@ -1418,6 +1357,37 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       modelsAlpha = approach(modelsAlpha, wantKitsune || kitsuneAlpha > 0 || !modelsReady ? 0 : 1, step);
       kitsuneAlpha = approach(kitsuneAlpha, wantKitsune && kitsuneReady && modelsAlpha === 0 ? 1 : 0, step);
       setKitsuneShown(kitsuneAlpha > 0);
+    };
+    // Once everything is loaded, a few frames drawn behind the loading screen in every state the
+    // page will show: the store and the kitsune each at full strength, then mid-fade (the fade's own
+    // layer), then as the page wants them. Whatever's left (textures to upload, a shader variant
+    // the compile missed, a buffer to allocate) happens here, not on the first switch between
+    // the pages. Then the loading screen goes.
+    let warmFrame = -1;
+    const warmUp = () => {
+      if (warmFrame >= 4) return;
+      if (warmFrame < 0) {
+        if (!modelsReady || !(kitsuneReady || kitsuneFailed) || mount.dataset.sceneLoaded !== 'true') return;
+        warmFrame = 0;
+      }
+      warmFrame += 1;
+      const wantKitsune = experienceStage.show === 'kitsune' && kitsuneReady;
+      if (warmFrame === 1) {
+        modelsAlpha = 1;
+        kitsuneAlpha = kitsuneReady ? 1 : 0;
+      } else if (warmFrame === 2) {
+        modelsAlpha = 0.5;
+        kitsuneAlpha = kitsuneReady ? 0.5 : 0;
+      } else {
+        modelsAlpha = wantKitsune ? 0 : 1;
+        kitsuneAlpha = wantKitsune ? 1 : 0;
+      }
+      setKitsuneShown(kitsuneAlpha > 0);
+      progress('warm-up', warmFrame / 4);
+      if (warmFrame === 4) {
+        markLoad('3D: warmed up');
+        ready();
+      }
     };
     // Where the kitsune's view sits on screen, in CSS pixels from the bottom left: scaled down
     // about the bottom-right corner.
@@ -1748,7 +1718,8 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       const frameStart = performance.now();
       profiler.begin('update');
 
-      if (mount.dataset.sceneLoaded === 'true' && !editingActive && !captureMode) {
+      // Watched only once warmed up: the warm-up's frames (behind the loading screen) are slow on purpose.
+      if (mount.dataset.sceneLoaded === 'true' && warmFrame >= 4 && !editingActive && !captureMode) {
         if (performanceMonitor.sample(now)) lowPerformanceRef.current?.();
       } else performanceMonitor.reset();
       const elapsed = (performance.now() - startTime) / 1000;
@@ -1756,20 +1727,8 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       pointer.lerp(targetPointer, 0.035);
       if (captureMode) pointer.set(0, 0);
       const windDt = (now - lastWindFrameAt) / 1000;
-      if (!kitsune && !kitsuneLoading && (kitsuneWanted || experienceStage.show === 'kitsune') && mount.dataset.sceneLoaded === 'true') loadKitsune();
-      // Deferred store and rider: at once when heading home, else once the kitsune has been up a
-      // while and the page is idle.
-      if (!modelsRequested && mount.dataset.sceneLoaded === 'true') {
-        if (experienceStage.show !== 'kitsune') loadModels();
-        else if (kitsuneShown() && !modelsTimer) {
-          modelsTimer = window.setTimeout(() => {
-            (window.requestIdleCallback ?? ((callback) => callback()))(() => {
-              if (!modelsRequested && !disposed) loadModels();
-            }, { timeout: 3000 });
-          }, KITSUNE_PRELOAD_MS);
-        }
-      }
       if (mount.dataset.sceneLoaded === 'true') updateFades(Math.min(windDt, 0.05));
+      warmUp();
       lastWindFrameAt = now;
       if (!reduceMotion) {
         if (petalWind.step(windDt, motionTime, camera.aspect)) {
@@ -1922,8 +1881,6 @@ export default function CherryBlossomScene({ onLowPerformance }) {
 
     return () => {
       disposed = true;
-      window.clearTimeout(preloadTimer);
-      window.clearTimeout(modelsTimer);
       experienceStage.supported = false;
       modelFade?.dispose();
       kitsuneGlow?.dispose();
@@ -1934,7 +1891,6 @@ export default function CherryBlossomScene({ onLowPerformance }) {
       stopScrollWatch();
       document.body.style.cursor = '';
       renderer.domElement.removeEventListener('webglcontextlost', handleContextLost);
-      window.clearTimeout(readyTimer);
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('click', handleKitsuneClick);
@@ -2040,7 +1996,6 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     <>
       {captureMode && sceneReady && <button style={{ position: 'fixed', bottom: 16, right: 16, zIndex: 3000 }} onClick={() => { captureRequested.current = true; setCaptureStatus('Saving snapshot…'); }}>{captureStatus}</button>}
       <div ref={mountRef} className="cherry-blossom-scene" aria-hidden="true" />
-      {showLoadingScreen && <SceneLoadingScreen ready={sceneReady} />}
       {SCENE_EDITOR_ENABLED && sceneReady && !onQuests && <button
         type="button"
         className="scene-editor-toggle"
