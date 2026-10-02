@@ -354,12 +354,12 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
       if (phase === 'bar') { done(); return; }
       forced = true;
       onFormed = done;
+      // Asked to (the page is leaving for the quests): it flies at once, the name's hover petals
+      // giving way to it, rather than waiting for them to fly home (up to RETURN_MS), by which
+      // time the page has gone and the flight with it.
       if (phase === 'banner') {
-        if (!pendingForm) {
-          quietHover();
-          pendingForm = true;
-          waitForHover();
-        }
+        quietHover();
+        form();
       } else if (phase === 'dissolving') {
         launch('up');
       } else if (phase === 'clearing') {
