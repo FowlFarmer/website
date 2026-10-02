@@ -8,7 +8,7 @@ The rule throughout: **no visible change**. Every change below was checked to be
 
 ## Results
 
-Production builds of both versions, side by side on an Apple M4 (Chrome, 1440×900 window at 2× density), the tests alternating between the two versions so the machine's drift hits both equally. Three rounds each for frame rates, two for freezes.
+Production builds of both versions, side by side on an Apple M4 (Chrome, 1440×900 window at 2× density like a Retina screen; the 3D canvas renders at the site's own 1.5× cap, 2160×1350, as it does in production, and the page at 2×), the tests alternating between the two versions so the machine's drift hits both equally. Three rounds each for frame rates, two for freezes.
 
 ### Frame rate
 
