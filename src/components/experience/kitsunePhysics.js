@@ -272,6 +272,9 @@ export function createTailPhysics({ tails, frame, scale = 1 }) {
   // plus its thicker end's core), kept current as contacts move its nodes (moved). Two segments
   // whose spheres don't meet can't be closer than their cores reach, so they're skipped: the same
   // contacts, found without the exact test for every pair. (The slack covers rounding.)
+  // The rule that keeps it exact: during collideCores, anything that moves a chain point must call
+  // moved(chain, node) after (shift and nudgeNode do). A point moved without it leaves a stale
+  // sphere, and contacts near it go missing with no error.
   const BROAD_SLACK = 1e-6;
   chains.forEach((chain) => {
     chain.segmentCentres = chain.rest.map(() => new THREE.Vector3());
