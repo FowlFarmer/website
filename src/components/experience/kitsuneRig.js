@@ -314,7 +314,7 @@ export function createKitsune([figureScene, tailScene, cliffScene, ...blossomSce
       nodes: NODES, length: spine.getLength(), stalk: STALK, girth: TAIL_GIRTH, reference: frame.side, markingSeed: index + 1,
     });
     const material = hologramMaterial({
-      palette: TAIL_ROLES[index].palette, markings: skin.markings, tuning: COLOR_TUNING, phase: index * 1.9,
+      palette: TAIL_ROLES[index].palette, markings: skin.markings, nodes: NODES, nodeData: skin.nodeData, tuning: COLOR_TUNING, phase: index * 1.9,
     });
     liveTailMaterials.add(material);
     const mesh = new THREE.Mesh(skin.geometry, material);

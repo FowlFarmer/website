@@ -3,19 +3,21 @@ import { createTailPhysics } from './kitsunePhysics.js';
 
 // The tails' physics, run off the page's thread (kitsuneCompute.worker.js), behind the same face
 // as createTailPhysics: `chains` (points, previous and shell corners, as of the worker's last
-// answer), update(seconds), takeImpacts(hear), gust(position, velocity), settle. The worker also
-// poses the tail meshes; their positions and normals land in `skins`' geometries as they arrive.
+// answer), update(seconds), takeImpacts(hear), gust(position, velocity), settle. It also works out
+// the frames the tails' shader poses their meshes by, which land in `skins`' nodeData as they
+// arrive (kitsuneTails.js frameNodes).
 // update() asks for the next step and takes whatever the worker last answered, so the tails drawn
 // are a frame behind their physics. `ready` resolves once the worker has settled them.
 // Where module workers aren't available, the physics runs here as before.
 export function createTailCompute({ source, tails, skins, frame, scale }) {
-  // The physics on this thread, meshes posed here too: without the worker, or if it fails.
+  // The physics on this thread, the tails' frames worked out here too: without the worker, or if
+  // it fails.
   const local = () => {
     const physics = createTailPhysics({ tails, frame, scale });
     const update = physics.update;
     physics.update = (seconds) => {
       update(seconds);
-      skins.forEach((skin, index) => skin.update(physics.chains[index].points));
+      skins.forEach((skin, index) => skin.frameNodes(physics.chains[index].points));
     };
     skins.forEach((skin, index) => skin.update(physics.chains[index].points));
     return Object.assign(physics, { ready: Promise.resolve(), dispose() {} });
@@ -58,22 +60,16 @@ export function createTailCompute({ source, tails, skins, frame, scale }) {
       });
       chain.corners.forEach((ring) => ring.forEach((corner) => { corner.fromArray(data.corners, c); c += 3; }));
     });
-    skins.forEach((skin, index) => {
-      const { position, normal } = skin.geometry.attributes;
-      position.array.set(data.positions[index]);
-      normal.array.set(data.normals[index]);
-      position.needsUpdate = true;
-      normal.needsUpdate = true;
-    });
+    skins.forEach((skin, index) => skin.nodeData.set(data.nodes[index]));
     for (let i = 0; i < data.impacts.length; i += 3) {
       const pair = data.impacts[i] * tails.length + data.impacts[i + 1];
       impacts.set(pair, Math.max(impacts.get(pair) ?? 0, data.impacts[i + 2]));
     }
-    buffers = { points: data.points, previous: data.previous, corners: data.corners, positions: data.positions, normals: data.normals };
+    buffers = { points: data.points, previous: data.previous, corners: data.corners, nodes: data.nodes };
   };
 
   const send = () => {
-    const transfer = buffers ? [buffers.points.buffer, buffers.previous.buffer, buffers.corners.buffer, ...buffers.positions.map((a) => a.buffer), ...buffers.normals.map((a) => a.buffer)] : [];
+    const transfer = buffers ? [buffers.points.buffer, buffers.previous.buffer, buffers.corners.buffer, ...buffers.nodes.map((a) => a.buffer)] : [];
     worker.postMessage({ type: 'step', seconds: owed, gusts: gusts.splice(0), buffers }, transfer);
     buffers = null;
     owed = 0;
@@ -86,6 +82,8 @@ export function createTailCompute({ source, tails, skins, frame, scale }) {
     waiting = false;
     if (data.type === 'ready') {
       apply(data);
+      // The meshes' own geometry posed once, as they rest (the shader poses them from here on).
+      skins.forEach((skin, index) => skin.update(chains[index].points));
       latest = null;
       resolveReady();
     }

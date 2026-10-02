@@ -4,6 +4,7 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { FullScreenQuad, Pass } from 'three/examples/jsm/postprocessing/Pass.js';
+import { BEND_REACH } from './kitsuneTails.js';
 
 // Holographic tails: mostly light added over the scene, so it shows through them. The sculpt's fur is many
 // overlapping locks, so a pixel can cross several surfaces of one tail; each surface therefore
@@ -22,19 +23,65 @@ const LAYER_GAIN = 0.2;
 // premultiplied: light colours add light (additive glow), dark ones (black, navy) become tinted
 // dark glass that dims the scene behind, with a faint sheen on their edges. Hovering brightens the
 // glow and deepens the dark glass, so black fur gets blacker.
+// The tails, posed here from their chain's frames (kitsuneTails.js frameNodes: 4 vec4s a node,
+// (point, curvature), (tangent, bend x), (side, bend y), (up, bend z)), the same way the CPU poses
+// them (createTailSkin's update): Catmull-Rom between chain points, the frame between them, and
+// offsets eased in toward a bend's centre so they can't cross it.
 const MARKED_VERTEX = /* glsl */ `
   attribute float along;
   attribute float marking;
+  attribute vec2 restOffset;
+  attribute vec3 restNormal;
+  uniform vec4 tailNodes[TAIL_NODES * 4];
   varying float vAlong;
   varying float vMarking;
   varying vec3 vNormal;
   varying vec3 vWorld;
+  vec3 nodePoint(int node) { return tailNodes[node * 4].xyz; }
   void main() {
     vAlong = along;
     vMarking = marking;
-    vec4 world = modelMatrix * vec4(position, 1.0);
+    const int SEGMENTS = TAIL_NODES - 1;
+    float f = min(along * float(SEGMENTS), float(SEGMENTS) - 1e-4);
+    int node = int(floor(f));
+    float t = f - float(node);
+    vec3 p0 = nodePoint(max(node - 1, 0));
+    vec3 p1 = nodePoint(node);
+    vec3 p2 = nodePoint(node + 1);
+    vec3 p3 = nodePoint(min(node + 2, SEGMENTS));
+    float t2 = t * t;
+    float t3 = t2 * t;
+    float a = -0.5 * t3 + t2 - 0.5 * t;
+    float b = 1.5 * t3 - 2.5 * t2 + 1.0;
+    float c = -1.5 * t3 + 2.0 * t2 + 0.5 * t;
+    float d = 0.5 * t3 - 0.5 * t2;
+    vec4 n0a = tailNodes[node * 4]; vec4 n0b = tailNodes[node * 4 + 1]; vec4 n0c = tailNodes[node * 4 + 2]; vec4 n0d = tailNodes[node * 4 + 3];
+    vec4 n1a = tailNodes[node * 4 + 4]; vec4 n1b = tailNodes[node * 4 + 5]; vec4 n1c = tailNodes[node * 4 + 6]; vec4 n1d = tailNodes[node * 4 + 7];
+    vec3 side = mix(n0c.xyz, n1c.xyz, t);
+    float sideLength = length(side);
+    side /= sideLength > 0.0 ? sideLength : 1.0;
+    vec3 up = mix(n0d.xyz, n1d.xyz, t);
+    float upLength = length(up);
+    up /= upLength > 0.0 ? upLength : 1.0;
+    vec3 offset = side * restOffset.x + up * restOffset.y;
+    float curvature = mix(n0a.w, n1a.w, t);
+    if (curvature > 1e-6) {
+      vec3 bend = mix(vec3(n0b.w, n0c.w, n0d.w), vec3(n1b.w, n1c.w, n1d.w), t);
+      float inward = dot(offset, bend);
+      if (inward > 0.0) {
+        float limit = ${BEND_REACH.toFixed(6)} / curvature;
+        // tanh, without the overflow some GPUs' tanh has for large inputs.
+        float x = clamp(inward / limit, 0.0, 10.0);
+        float e = exp(2.0 * x);
+        float eased = limit * (e - 1.0) / (e + 1.0);
+        offset += bend * (eased - inward);
+      }
+    }
+    vec3 posed = a * p0 + b * p1 + c * p2 + d * p3 + offset;
+    vec3 posedNormal = mix(n0b.xyz, n1b.xyz, t) * restNormal.x + side * restNormal.y + up * restNormal.z;
+    vec4 world = modelMatrix * vec4(posed, 1.0);
     vWorld = world.xyz;
-    vNormal = normalize(mat3(modelMatrix) * normal);
+    vNormal = normalize(mat3(modelMatrix) * posedNormal);
     gl_Position = projectionMatrix * viewMatrix * world;
   }
 `;
@@ -116,7 +163,8 @@ const normalisePalette = (palette) => palette.map((entry) => (typeof entry === '
 
 // `tuning` maps a colour to { strength, hover }: strength scales its glow (for black, its opacity);
 // hover is how many times brighter (darker, for black) it gets when its tail is hovered.
-export function hologramMaterial({ palette, markings, tuning = {}, phase = 0, intensity = 1 }) {
+// `nodes` and `nodeData`: the tail's chain frames (kitsuneTails.js), which the shader poses it by.
+export function hologramMaterial({ palette, markings, nodes, nodeData, tuning = {}, phase = 0, intensity = 1 }) {
   const entries = normalisePalette(palette).slice(0, 3);
   const total = entries.reduce((sum, entry) => sum + entry.share, 0);
   const sorted = Float32Array.from(markings).sort();
@@ -144,7 +192,9 @@ export function hologramMaterial({ palette, markings, tuning = {}, phase = 0, in
       hover0: { value: 1 },
       hover1: { value: 1 },
       hover2: { value: 1 },
+      tailNodes: { value: nodeData },
     },
+    defines: { TAIL_NODES: nodes },
     vertexShader: MARKED_VERTEX,
     fragmentShader: FRAGMENT,
     transparent: true,

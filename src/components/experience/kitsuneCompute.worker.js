@@ -2,13 +2,13 @@ import * as THREE from 'three';
 import { createTailPhysics } from './kitsunePhysics.js';
 import { createTailSkin } from './kitsuneTails.js';
 
-// The tails' physics and the posing of their meshes, off the page's thread (kitsuneCompute.js
-// talks to it): the same code as on the page, so the same motion. Given the tails at 'init', it
-// settles them and answers 'ready'; then each 'step' (seconds, and the gusts since the last) runs
-// the physics that far, poses the meshes, and answers with where everything is: the chains'
-// points (now and a step ago), their collision shells' corners, the meshes' positions and normals
-// (into buffers the page hands back each time, so nothing is made per frame), and the knocks
-// between tails since the last answer.
+// The tails' physics, off the page's thread (kitsuneCompute.js talks to it): the same code as on
+// the page, so the same motion. Given the tails at 'init', it settles them and answers 'ready';
+// then each 'step' (seconds, and the gusts since the last) runs the physics that far and answers
+// with where everything is: the chains' points (now and a step ago), their collision shells'
+// corners, the frames the tails' shader poses their meshes by (kitsuneTails.js frameNodes), all
+// into buffers the page hands back each time so nothing is made per frame, and the knocks between
+// tails since the last answer.
 let physics = null;
 let skins = [];
 const gustPosition = new THREE.Vector3();
@@ -24,8 +24,7 @@ function state(buffers) {
     points: new Float64Array(chains.length * nodes * 3),
     previous: new Float64Array(chains.length * nodes * 3),
     corners: new Float64Array(chains.length * corners * 3),
-    positions: skins.map((skin) => new Float32Array(skin.geometry.attributes.position.array.length)),
-    normals: skins.map((skin) => new Float32Array(skin.geometry.attributes.normal.array.length)),
+    nodes: skins.map((skin) => new Float32Array(skin.nodeData.length)),
   };
   let p = 0;
   let c = 0;
@@ -38,15 +37,15 @@ function state(buffers) {
     chain.corners.forEach((ring) => ring.forEach((corner) => { corner.toArray(out.corners, c); c += 3; }));
   });
   skins.forEach((skin, index) => {
-    out.positions[index].set(skin.geometry.attributes.position.array);
-    out.normals[index].set(skin.geometry.attributes.normal.array);
+    skin.frameNodes(chains[index].points);
+    out.nodes[index].set(skin.nodeData);
   });
   const impacts = [];
   physics.takeImpacts((i, j, speed) => impacts.push(i, j, speed));
   return { ...out, impacts };
 }
 
-const transfers = ({ points, previous, corners, positions, normals }) => [points.buffer, previous.buffer, corners.buffer, ...positions.map((array) => array.buffer), ...normals.map((array) => array.buffer)];
+const transfers = ({ points, previous, corners, nodes }) => [points.buffer, previous.buffer, corners.buffer, ...nodes.map((array) => array.buffer)];
 
 self.onmessage = ({ data }) => {
   if (data.type === 'init') {
@@ -62,7 +61,6 @@ self.onmessage = ({ data }) => {
       frame: { side: reference, back: vector(frame.back), body, ground: frame.ground },
       scale,
     });
-    skins.forEach((skin, index) => skin.update(physics.chains[index].points));
     const out = state(null);
     self.postMessage({ type: 'ready', settle: physics.settle, ...out }, transfers(out));
     return;
@@ -73,7 +71,6 @@ self.onmessage = ({ data }) => {
       physics.gust(gustPosition.set(g[i], g[i + 1], g[i + 2]), gustVelocity.set(g[i + 3], g[i + 4], g[i + 5]));
     }
     physics.update(data.seconds);
-    skins.forEach((skin, index) => skin.update(physics.chains[index].points));
     const out = state(data.buffers);
     self.postMessage({ type: 'state', ...out }, transfers(out));
   }

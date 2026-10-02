@@ -192,7 +192,7 @@ export function prepareTailSource(geometry) {
 // Bends are curvature-aware: on the inside of a bend, offsets are compressed smoothly so they
 // never reach past the bend's centre (where they would fold through each other and pinch);
 // the fur bunches up instead. Everything per-vertex is precomputed; a frame is interpolation.
-const BEND_REACH = 0.85;
+export const BEND_REACH = 0.85;
 // The mesh follows a smoothed copy of the chain (Taubin: a shrink step then an inflate step, so
 // the curve loses its solver jitter but keeps its length and shape).
 const SMOOTH_PASSES = 3;
@@ -259,6 +259,18 @@ export function createTailSkin(source, { nodes, length, stalk, girth, reference,
     markings[index] = valueNoise(x, y, z) * 0.7 + valueNoise(x * 2.3, y * 2.3, z * 2.3) * 0.3;
   }
   geometry.setAttribute('marking', new THREE.BufferAttribute(markings, 1));
+  // Each vertex's offset from the chain and its normal, in the chain's frame, for the shader.
+  const restOffset = new Float32Array(source.count * 2);
+  const restNormal = new Float32Array(source.count * 3);
+  for (let index = 0; index < source.count; index += 1) {
+    restOffset[index * 2] = vertexX[index];
+    restOffset[index * 2 + 1] = vertexY[index];
+    restNormal[index * 3] = source.normalT[index];
+    restNormal[index * 3 + 1] = source.normalX[index];
+    restNormal[index * 3 + 2] = source.normalY[index];
+  }
+  geometry.setAttribute('restOffset', new THREE.BufferAttribute(restOffset, 2));
+  geometry.setAttribute('restNormal', new THREE.BufferAttribute(restNormal, 3));
   geometry.setIndex(source.index);
 
   const tangents = Array.from({ length: nodes }, () => new THREE.Vector3());
@@ -281,7 +293,10 @@ export function createTailSkin(source, { nodes, length, stalk, girth, reference,
     }
   };
 
-  const update = (chainPoints) => {
+  // The chain's frames for the shader to pose the mesh by (TAIL_SKIN_VERTEX), 4 vec4s a node:
+  // (point, curvature), (tangent, bend x), (side, bend y), (up, bend z).
+  const nodeData = new Float32Array(nodes * 16);
+  const frameNodes = (chainPoints) => {
     for (let node = 0; node < nodes; node += 1) smoothed[node].copy(chainPoints[node]);
     for (let pass = 0; pass < SMOOTH_PASSES; pass += 1) {
       smoothPass(smoothed, buffer, SMOOTH_SHRINK);
@@ -311,6 +326,24 @@ export function createTailSkin(source, { nodes, length, stalk, girth, reference,
     for (let node = 0; node < nodes; node += 1) {
       curvatures[node] = (rawCurvatures[Math.max(node - 1, 0)] + 2 * rawCurvatures[node] + rawCurvatures[Math.min(node + 1, segments)]) / 4;
     }
+    for (let node = 0; node < nodes; node += 1) {
+      const o = node * 16;
+      smoothed[node].toArray(nodeData, o);
+      nodeData[o + 3] = curvatures[node];
+      tangents[node].toArray(nodeData, o + 4);
+      sides[node].toArray(nodeData, o + 8);
+      ups[node].toArray(nodeData, o + 12);
+      nodeData[o + 7] = bends[node].x;
+      nodeData[o + 11] = bends[node].y;
+      nodeData[o + 15] = bends[node].z;
+    }
+  };
+
+  // The mesh posed here, on the CPU, as the shader does it: once, so its geometry holds a real
+  // pose (the shader poses it every frame).
+  const update = (chainPoints) => {
+    frameNodes(chainPoints);
+    const points = smoothed;
 
     const position = positions.array;
     const normal = normals.array;
@@ -424,5 +457,5 @@ export function createTailSkin(source, { nodes, length, stalk, girth, reference,
 
   // `params`: what made it (bar the source and the reference), to make the same one elsewhere
   // (kitsuneCompute.worker.js).
-  return { geometry, radii, rings, shell, markings, update, params: { nodes, length, stalk, girth, markingSeed } };
+  return { geometry, radii, rings, shell, markings, update, frameNodes, nodeData, params: { nodes, length, stalk, girth, markingSeed } };
 }
