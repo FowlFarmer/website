@@ -30,7 +30,9 @@ if (import.meta.env.DEV) {
 
 import { Analytics } from "@vercel/analytics/react"
 // framer-motion's lightweight components (m, imported as motion) with just the animation features
-// the faders use, instead of the full motion components.
+// the faders use (opacity, transforms, exit), instead of the full motion components. Strict, so a
+// full `motion` component (which would bring every feature back) throws rather than slipping in.
+// Layout animations or drag aren't in domAnimation: they need domMax here first.
 import { LazyMotion, domAnimation } from 'framer-motion';
 import { usePersistentAnalytics } from './persistentAnalytics.js';
 
@@ -151,7 +153,7 @@ function SiteChrome() {
 
 export default function App() {
   return (
-    <LazyMotion features={domAnimation}>
+    <LazyMotion features={domAnimation} strict>
     <Router>
       <div className="app-container" id="popup-root">
         <SiteChrome />
