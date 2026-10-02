@@ -62,6 +62,9 @@ export function MirrorCanvas() {
   return <canvas ref={setNode} className="scene-mirror-canvas" />;
 }
 
+let coverShownAt = -Infinity;
+const NAV_FADE_MS = 350; // App.css .nav-fade-cover's transition
+
 // The scene's frame (`source`, just drawn) into every copy, placed where the scene's canvas is;
 // `loaded`: the scene has loaded, so its canvas has faded in (App.css), and the copies do too.
 export function drawSceneMirrors(source, loaded) {
@@ -71,9 +74,16 @@ export function drawSceneMirrors(source, loaded) {
     canvases.forEach((_, canvas) => { if (canvas.width) canvas.width = 0; });
     return;
   }
+  // The cover shows only while the fade under the menu bar is on (App.css --nav-fade), and for its
+  // fade out after: otherwise it's see-through, so it isn't copied into (copying the scene's
+  // canvas at all costs a snapshot of the whole of it).
+  const now = performance.now();
+  if (document.documentElement.dataset.navFade !== undefined && document.body.dataset.lore !== 'open') coverShownAt = now;
+  const coverShown = now - coverShownAt < NAV_FADE_MS + 100;
   const rect = source.getBoundingClientRect();
   const rowHeight = rect.height / source.height;
   canvases.forEach((cover, canvas) => {
+    if (cover && !coverShown) return;
     // The rows of the scene's canvas on screen from the top down to the cover's foot (whole rows,
     // so the copy's pixels land on the scene's).
     let first = 0;
