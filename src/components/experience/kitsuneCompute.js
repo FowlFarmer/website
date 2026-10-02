@@ -19,7 +19,7 @@ export function createTailCompute({ source, tails, skins, frame, scale }) {
       update(seconds);
       skins.forEach((skin, index) => skin.frameNodes(physics.chains[index].points));
     };
-    skins.forEach((skin, index) => skin.update(physics.chains[index].points));
+    skins.forEach((skin, index) => skin.frameNodes(physics.chains[index].points));
     return Object.assign(physics, { ready: Promise.resolve(), dispose() {} });
   };
   let worker = null;
@@ -82,8 +82,6 @@ export function createTailCompute({ source, tails, skins, frame, scale }) {
     waiting = false;
     if (data.type === 'ready') {
       apply(data);
-      // The meshes' own geometry posed once, as they rest (the shader poses them from here on).
-      skins.forEach((skin, index) => skin.update(chains[index].points));
       latest = null;
       resolveReady();
     }

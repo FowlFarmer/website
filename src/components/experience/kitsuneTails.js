@@ -187,8 +187,9 @@ export function prepareTailSource(geometry) {
   return { length, count, along, offsetX, offsetY, normalT, normalX, normalY, index: geometry.getIndex(), profile, outline };
 }
 
-// One tail's skin: the sculpt fitted to a chain of `nodes` points. `update(points)` re-poses
-// the mesh along the chain with a parallel-transported frame and Catmull-Rom between points.
+// One tail's skin: the sculpt fitted to a chain of `nodes` points. `frameNodes(points)` works out
+// the chain's frames (parallel-transported), which the tails' shader poses the mesh by, with
+// Catmull-Rom between points (kitsuneHologram.js).
 // Bends are curvature-aware: on the inside of a bend, offsets are compressed smoothly so they
 // never reach past the bend's centre (where they would fold through each other and pinch);
 // the fur bunches up instead. Everything per-vertex is precomputed; a frame is interpolation.
@@ -243,10 +244,9 @@ export function createTailSkin(source, { nodes, length, stalk, girth, reference,
   });
 
   const geometry = new THREE.BufferGeometry();
-  const positions = new THREE.BufferAttribute(new Float32Array(source.count * 3), 3).setUsage(THREE.DynamicDrawUsage);
-  const normals = new THREE.BufferAttribute(new Float32Array(source.count * 3), 3).setUsage(THREE.DynamicDrawUsage);
-  geometry.setAttribute('position', positions);
-  geometry.setAttribute('normal', normals);
+  // Posed by the tails' shader from nodeData (kitsuneHologram.js); the position attribute is only
+  // there for the vertex count.
+  geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(source.count * 3), 3));
   // How far down the tail each vertex is (0 root → 1 tip), for the hologram's gradients.
   geometry.setAttribute('along', new THREE.BufferAttribute(vertexU, 1));
   // Coat markings: a smooth two-octave noise over the sculpt's rest shape, so patches of fur
@@ -293,7 +293,7 @@ export function createTailSkin(source, { nodes, length, stalk, girth, reference,
     }
   };
 
-  // The chain's frames for the shader to pose the mesh by (TAIL_SKIN_VERTEX), 4 vec4s a node:
+  // The chain's frames for the shader to pose the mesh by (kitsuneHologram.js), 4 vec4s a node:
   // (point, curvature), (tangent, bend x), (side, bend y), (up, bend z).
   const nodeData = new Float32Array(nodes * 16);
   const frameNodes = (chainPoints) => {
@@ -339,81 +339,6 @@ export function createTailSkin(source, { nodes, length, stalk, girth, reference,
     }
   };
 
-  // The mesh posed here, on the CPU, as the shader does it: once, so its geometry holds a real
-  // pose (the shader poses it every frame).
-  const update = (chainPoints) => {
-    frameNodes(chainPoints);
-    const points = smoothed;
-
-    const position = positions.array;
-    const normal = normals.array;
-    for (let index = 0; index < source.count; index += 1) {
-      const f = Math.min(vertexU[index] * segments, segments - 1e-4);
-      const node = Math.floor(f);
-      const t = f - node;
-      const p0 = points[Math.max(node - 1, 0)];
-      const p1 = points[node];
-      const p2 = points[node + 1];
-      const p3 = points[Math.min(node + 2, segments)];
-      // Catmull-Rom between chain points keeps the tail smooth between them.
-      const t2 = t * t;
-      const t3 = t2 * t;
-      const a = -0.5 * t3 + t2 - 0.5 * t;
-      const b = 1.5 * t3 - 2.5 * t2 + 1;
-      const c = -1.5 * t3 + 2 * t2 + 0.5 * t;
-      const d = 0.5 * t3 - 0.5 * t2;
-      const s0 = sides[node];
-      const s1 = sides[node + 1];
-      const u0 = ups[node];
-      const u1 = ups[node + 1];
-      const g0 = tangents[node];
-      const g1 = tangents[node + 1];
-      // Interpolated frame, renormalised so the tail doesn't thin between chain points.
-      let sx = s0.x + (s1.x - s0.x) * t;
-      let sy = s0.y + (s1.y - s0.y) * t;
-      let sz = s0.z + (s1.z - s0.z) * t;
-      const sLength = Math.hypot(sx, sy, sz) || 1;
-      sx /= sLength; sy /= sLength; sz /= sLength;
-      let ux = u0.x + (u1.x - u0.x) * t;
-      let uy = u0.y + (u1.y - u0.y) * t;
-      let uz = u0.z + (u1.z - u0.z) * t;
-      const uLength = Math.hypot(ux, uy, uz) || 1;
-      ux /= uLength; uy /= uLength; uz /= uLength;
-      let wx = sx * vertexX[index] + ux * vertexY[index];
-      let wy = sy * vertexX[index] + uy * vertexY[index];
-      let wz = sz * vertexX[index] + uz * vertexY[index];
-      // Inside a bend, ease the offset toward the bend's centre so it can't cross it.
-      const curvature = curvatures[node] + (curvatures[node + 1] - curvatures[node]) * t;
-      if (curvature > 1e-6) {
-        const k0 = bends[node];
-        const k1 = bends[node + 1];
-        const kx = k0.x + (k1.x - k0.x) * t;
-        const ky = k0.y + (k1.y - k0.y) * t;
-        const kz = k0.z + (k1.z - k0.z) * t;
-        const inward = wx * kx + wy * ky + wz * kz;
-        if (inward > 0) {
-          const limit = BEND_REACH / curvature;
-          const eased = limit * Math.tanh(inward / limit);
-          const change = eased - inward;
-          wx += kx * change; wy += ky * change; wz += kz * change;
-        }
-      }
-      const o = index * 3;
-      position[o] = a * p0.x + b * p1.x + c * p2.x + d * p3.x + wx;
-      position[o + 1] = a * p0.y + b * p1.y + c * p2.y + d * p3.y + wy;
-      position[o + 2] = a * p0.z + b * p1.z + c * p2.z + d * p3.z + wz;
-      const nt = source.normalT[index];
-      const nx = source.normalX[index];
-      const ny = source.normalY[index];
-      normal[o] = (g0.x + (g1.x - g0.x) * t) * nt + sx * nx + ux * ny;
-      normal[o + 1] = (g0.y + (g1.y - g0.y) * t) * nt + sy * nx + uy * ny;
-      normal[o + 2] = (g0.z + (g1.z - g0.z) * t) * nt + sz * nx + uz * ny;
-    }
-    positions.needsUpdate = true;
-    normals.needsUpdate = true;
-    geometry.computeBoundingSphere();
-  };
-
   // The collision shell under the same stalk mapping: each ring's place on the chain and its
   // corner offsets. `shell(points, out)` poses it on a chain (linear between points, with a
   // parallel-transported frame) into out[ring][side] and returns the ring centres.
@@ -457,5 +382,5 @@ export function createTailSkin(source, { nodes, length, stalk, girth, reference,
 
   // `params`: what made it (bar the source and the reference), to make the same one elsewhere
   // (kitsuneCompute.worker.js).
-  return { geometry, radii, rings, shell, markings, update, frameNodes, nodeData, params: { nodes, length, stalk, girth, markingSeed } };
+  return { geometry, radii, rings, shell, markings, frameNodes, nodeData, params: { nodes, length, stalk, girth, markingSeed } };
 }

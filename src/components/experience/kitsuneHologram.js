@@ -24,9 +24,8 @@ const LAYER_GAIN = 0.2;
 // dark glass that dims the scene behind, with a faint sheen on their edges. Hovering brightens the
 // glow and deepens the dark glass, so black fur gets blacker.
 // The tails, posed here from their chain's frames (kitsuneTails.js frameNodes: 4 vec4s a node,
-// (point, curvature), (tangent, bend x), (side, bend y), (up, bend z)), the same way the CPU poses
-// them (createTailSkin's update): Catmull-Rom between chain points, the frame between them, and
-// offsets eased in toward a bend's centre so they can't cross it.
+// (point, curvature), (tangent, bend x), (side, bend y), (up, bend z)): Catmull-Rom between chain
+// points, the frame between them, and offsets eased in toward a bend's centre so they can't cross it.
 const MARKED_VERTEX = /* glsl */ `
   attribute float along;
   attribute float marking;
