@@ -1348,6 +1348,22 @@ export default function CherryBlossomScene({ onLowPerformance }) {
     let kitsuneWanted = false;
     let preloadTimer;
     let modelsTimer = 0;
+    // His textures onto the GPU one a frame before he's first drawn, instead of all in that frame
+    // (with the page's other work going on, a freeze of a few hundred ms as he loaded).
+    const uploadGradually = (root) => new Promise((resolve) => {
+      const textures = new Set();
+      root?.traverse((object) => [].concat(object.material ?? []).forEach((material) => {
+        Object.values(material).forEach((value) => { if (value?.isTexture) textures.add(value); });
+        Object.values(material.uniforms ?? {}).forEach(({ value }) => { if (value?.isTexture) textures.add(value); });
+      }));
+      const queue = [...textures];
+      const next = () => {
+        if (disposed || !queue.length) return resolve();
+        renderer.initTexture(queue.shift());
+        return window.requestAnimationFrame(next);
+      };
+      next();
+    });
     const loadKitsune = () => {
       kitsuneLoading = true;
       markLoad('kitsune: requested');
@@ -1373,8 +1389,9 @@ export default function CherryBlossomScene({ onLowPerformance }) {
           kitsuneGlow = hologram.createGlowLayer(renderer, scene, kitsune.camera);
           kitsuneGlow.setSize(frame.width, frame.height, tuning.glowScale);
           markLoad('kitsune: built');
-          return renderer.compileAsync(kitsune.root, kitsune.camera, scene);
+          return Promise.all([renderer.compileAsync(kitsune.root, kitsune.camera, scene), kitsuneGlow.compile(kitsune.camera)]);
         }))
+        .then(() => uploadGradually(kitsune?.root))
         .then(() => {
           if (disposed || !kitsune) return;
           kitsune.update(0, performance.now());

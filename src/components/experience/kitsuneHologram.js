@@ -238,7 +238,8 @@ export function createGlowLayer(renderer, scene, camera) {
   const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType }));
   composer.renderToScreen = false;
   composer.addPass(scenePass);
-  composer.addPass(new UnrealBloomPass(new THREE.Vector2(1, 1), 0.55, 0.5, 0.9));
+  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.55, 0.5, 0.9);
+  composer.addPass(bloom);
   const output = new FullScreenQuad(new THREE.ShaderMaterial({
     uniforms: { tDiffuse: { value: null }, tBehind: { value: null }, view: { value: view }, opacity: { value: 1 } },
     vertexShader: QUAD_VERTEX,
@@ -292,6 +293,24 @@ export function createGlowLayer(renderer, scene, camera) {
     },
     // Fully transparent, so nothing shows; the caller restores its viewport afterwards.
     warm: () => render(0, 0, 1, 1, 0),
+    // The glow's own shaders compiled ahead the way the scene's are (off the page's thread where
+    // the browser can), so its first draw (warm) doesn't compile them there and then: the bloom's
+    // and the backdrop's for its buffers, the output's for the screen.
+    compile: (camera) => {
+      const quad = new THREE.PlaneGeometry(2, 2);
+      const sceneOf = (materials) => {
+        const holder = new THREE.Scene();
+        materials.forEach((material) => holder.add(new THREE.Mesh(quad, material)));
+        return holder;
+      };
+      const target = renderer.getRenderTarget();
+      renderer.setRenderTarget(composer.readBuffer);
+      const buffers = renderer.compileAsync(sceneOf([backdrop.material, bloom.materialHighPassFilter, ...bloom.separableBlurMaterials, bloom.compositeMaterial, bloom.blendMaterial]), camera);
+      renderer.setRenderTarget(null);
+      const screenPass = renderer.compileAsync(sceneOf([output.material]), camera);
+      renderer.setRenderTarget(target);
+      return Promise.all([buffers, screenPass]).finally(() => quad.dispose());
+    },
     glowTexture: () => {
       withBackdrop = false;
       composer.render();
