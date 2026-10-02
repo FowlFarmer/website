@@ -45,6 +45,13 @@ const BEND_LIMIT = 0.92;
 const d1 = new THREE.Vector3();
 const d2 = new THREE.Vector3();
 const r = new THREE.Vector3();
+// Into `closestST` (s, t), not a new array: it's called thousands of times a step.
+const closestST = [0, 0];
+const closestResult = (s, t) => {
+  closestST[0] = s;
+  closestST[1] = t;
+  return closestST;
+};
 function closestParameters(p1, q1, p2, q2) {
   d1.subVectors(q1, p1);
   d2.subVectors(q2, p2);
@@ -55,9 +62,9 @@ function closestParameters(p1, q1, p2, q2) {
   const c = d1.dot(r);
   const b = d1.dot(d2);
   // Degenerate (zero-length) segments collapse to their start point instead of dividing by zero.
-  if (a < 1e-12 && e < 1e-12) return [0, 0];
-  if (a < 1e-12) return [0, Math.min(Math.max(f / e, 0), 1)];
-  if (e < 1e-12) return [Math.min(Math.max(-c / a, 0), 1), 0];
+  if (a < 1e-12 && e < 1e-12) return closestResult(0, 0);
+  if (a < 1e-12) return closestResult(0, Math.min(Math.max(f / e, 0), 1));
+  if (e < 1e-12) return closestResult(Math.min(Math.max(-c / a, 0), 1), 0);
   const denominator = a * e - b * b;
   let s = denominator > 1e-9 ? Math.min(Math.max((b * f - c * e) / denominator, 0), 1) : 0;
   let t = (b * s + f) / e;
@@ -68,16 +75,17 @@ function closestParameters(p1, q1, p2, q2) {
     t = 1;
     s = Math.min(Math.max((b - c) / a, 0), 1);
   }
-  return [s, t];
+  return closestResult(s, t);
 }
 const PINNED = 2;
 // The first shell rings sit on the stalks right at the tailbone, where the roots are pinned
 // side by side; from here on tails must keep clear of each other.
 const FIRST_COLLIDING_RING = 3;
 
+const fromPoint = new THREE.Vector3();
 const closestOnSegment = (point, from, to, target) => {
   const segment = target.subVectors(to, from);
-  const t = Math.min(Math.max(new THREE.Vector3().subVectors(point, from).dot(segment) / segment.lengthSq(), 0), 1);
+  const t = Math.min(Math.max(fromPoint.subVectors(point, from).dot(segment) / segment.lengthSq(), 0), 1);
   return target.copy(from).addScaledVector(segment, t);
 };
 
@@ -127,7 +135,6 @@ export function createTailPhysics({ tails, frame, scale = 1 }) {
   const gusts = [];
   const scratch = new THREE.Vector3();
   const closest = new THREE.Vector3();
-  const normal = new THREE.Vector3();
   const edgeA = new THREE.Vector3();
   const edgeB = new THREE.Vector3();
   const push = new THREE.Vector3();
@@ -147,17 +154,47 @@ export function createTailPhysics({ tails, frame, scale = 1 }) {
     const f = Math.min(chain.skin.rings[ring].u * segments, segments - 1e-4);
     const node = Math.floor(f);
     const t = f - node;
-    [[node, 1 - t], [node + 1, t]].forEach(([index, weight]) => {
-      if (index < PINNED || weight <= 0) return;
-      const point = chain.points[index];
-      const previous = chain.previous[index];
-      point.addScaledVector(delta, weight);
-      previous.addScaledVector(delta, weight);
-      if (!settling) previous.lerp(point, CONTACT_FRICTION * weight);
-    });
+    nudgeNode(chain, node, delta, 1 - t);
+    nudgeNode(chain, node + 1, delta, t);
+  };
+  const nudgeNode = (chain, index, delta, weight) => {
+    if (index < PINNED || weight <= 0) return;
+    const point = chain.points[index];
+    const previous = chain.previous[index];
+    point.addScaledVector(delta, weight);
+    previous.addScaledVector(delta, weight);
+    if (!settling) previous.lerp(point, CONTACT_FRICTION * weight);
+    moved(chain, index);
+  };
+
+  // Each shell segment's face normals (OUTLINE_SIDES sides, then the axis for its end caps), worked
+  // out the first time a pass tests a point against it: the shells hold still through a pass
+  // (contacts move the chains, not the shells, until they're posed again).
+  chains.forEach((chain) => {
+    chain.faces = Array.from({ length: OUTLINE_RINGS - 1 }, () => Array.from({ length: OUTLINE_SIDES + 1 }, () => new THREE.Vector3()));
+    chain.facesPosed = new Int32Array(OUTLINE_RINGS - 1).fill(-1);
+  });
+  let poses = 0;
+  const faceNormals = (chain, ring) => {
+    const faces = chain.faces[ring];
+    if (chain.facesPosed[ring] === poses) return faces;
+    chain.facesPosed[ring] = poses;
+    const a = chain.corners[ring];
+    const b = chain.corners[ring + 1];
+    const centre = chain.bounds[ring].centre;
+    for (let side = 0; side < OUTLINE_SIDES; side += 1) {
+      const next = (side + 1) % OUTLINE_SIDES;
+      edgeA.subVectors(a[next], a[side]);
+      edgeB.subVectors(b[side], a[side]);
+      const face = faces[side].crossVectors(edgeA, edgeB).normalize();
+      if (face.dot(scratch.subVectors(a[side], centre)) < 0) face.negate();
+    }
+    faces[OUTLINE_SIDES].subVectors(chain.centres[ring + 1], chain.centres[ring]).normalize();
+    return faces;
   };
 
   const poseShells = () => {
+    poses += 1;
     chains.forEach((chain) => {
       chain.skin.shell(chain.points, chain.corners, chain.centres);
       chain.mids.forEach((ring, index) => ring.forEach((mid, side) => {
@@ -177,24 +214,19 @@ export function createTailPhysics({ tails, frame, scale = 1 }) {
   // return the shallowest way out (depth and outward normal) via bestNormal.
   const penetration = (point, chain, ring) => {
     const a = chain.corners[ring];
-    const b = chain.corners[ring + 1];
-    const centre = chain.bounds[ring].centre;
+    const faces = faceNormals(chain, ring);
     let depth = Infinity;
     for (let side = 0; side < OUTLINE_SIDES; side += 1) {
-      const next = (side + 1) % OUTLINE_SIDES;
-      edgeA.subVectors(a[next], a[side]);
-      edgeB.subVectors(b[side], a[side]);
-      normal.crossVectors(edgeA, edgeB).normalize();
-      if (normal.dot(scratch.subVectors(a[side], centre)) < 0) normal.negate();
-      const distance = -normal.dot(scratch.subVectors(point, a[side]));
+      const face = faces[side];
+      const distance = -face.dot(scratch.subVectors(point, a[side]));
       if (distance < 0) return 0;
       if (distance < depth) {
         depth = distance;
-        bestNormal.copy(normal);
+        bestNormal.copy(face);
       }
     }
     // End caps.
-    normal.subVectors(chain.centres[ring + 1], chain.centres[ring]).normalize();
+    const normal = faces[OUTLINE_SIDES];
     let distance = normal.dot(scratch.subVectors(chain.centres[ring + 1], point));
     if (distance < 0) return 0;
     if (distance < depth) { depth = distance; bestNormal.copy(normal); }
@@ -210,6 +242,7 @@ export function createTailPhysics({ tails, frame, scale = 1 }) {
     chain.points[node].addScaledVector(delta, weight);
     chain.previous[node].addScaledVector(delta, weight);
     if (!settling) chain.previous[node].lerp(chain.points[node], CONTACT_FRICTION * Math.min(Math.abs(weight) * 10, 1));
+    moved(chain, node);
   };
   // How hard tails meet, for the chimes (kitsuneChimes.js): per pair of tails, the fastest they've
   // closed on each other at a contact (units per second) since takeImpacts last read it. Tails
@@ -235,8 +268,32 @@ export function createTailPhysics({ tails, frame, scale = 1 }) {
 
   const pointA = new THREE.Vector3();
   const pointB = new THREE.Vector3();
+  // Broad phase for the cores: each core segment's bounding sphere (its midpoint; half its length
+  // plus its thicker end's core), kept current as contacts move its nodes (moved). Two segments
+  // whose spheres don't meet can't be closer than their cores reach, so they're skipped: the same
+  // contacts, found without the exact test for every pair. (The slack covers rounding.)
+  const BROAD_SLACK = 1e-6;
+  chains.forEach((chain) => {
+    chain.segmentCentres = chain.rest.map(() => new THREE.Vector3());
+    chain.segmentRadii = new Float64Array(chain.rest.length);
+  });
+  const boundSegment = (chain, m) => {
+    if (!chain.core[m] && !chain.core[m + 1]) return;
+    const a = chain.points[m];
+    const b = chain.points[m + 1];
+    chain.segmentCentres[m].lerpVectors(a, b, 0.5);
+    chain.segmentRadii[m] = a.distanceTo(b) * 0.5 + Math.max(chain.core[m], chain.core[m + 1]) + BROAD_SLACK;
+  };
+  let tracking = false;
+  const moved = (chain, node) => {
+    if (!tracking) return;
+    if (node > 0) boundSegment(chain, node - 1);
+    if (node < chain.rest.length) boundSegment(chain, node);
+  };
   const collideCores = () => {
     let deepest = 0;
+    chains.forEach((chain) => { for (let m = 0; m < chain.rest.length; m += 1) boundSegment(chain, m); });
+    tracking = true;
     for (let i = 0; i < chains.length; i += 1) {
       for (let j = i + 1; j < chains.length; j += 1) {
         const a = chains[i];
@@ -245,7 +302,11 @@ export function createTailPhysics({ tails, frame, scale = 1 }) {
           if (!a.core[m] && !a.core[m + 1]) continue;
           for (let n = 0; n < b.points.length - 1; n += 1) {
             if (!b.core[n] && !b.core[n + 1]) continue;
-            const [s, t] = closestParameters(a.points[m], a.points[m + 1], b.points[n], b.points[n + 1]);
+            const meet = a.segmentRadii[m] + b.segmentRadii[n];
+            if (a.segmentCentres[m].distanceToSquared(b.segmentCentres[n]) > meet * meet) continue;
+            const st = closestParameters(a.points[m], a.points[m + 1], b.points[n], b.points[n + 1]);
+            const s = st[0];
+            const t = st[1];
             pointA.lerpVectors(a.points[m], a.points[m + 1], s);
             pointB.lerpVectors(b.points[n], b.points[n + 1], t);
             const reach = a.core[m] + (a.core[m + 1] - a.core[m]) * s + b.core[n] + (b.core[n + 1] - b.core[n]) * t;
@@ -269,12 +330,31 @@ export function createTailPhysics({ tails, frame, scale = 1 }) {
         }
       }
     }
+    tracking = false;
     return deepest;
   };
 
+  // One test point of tail i (`a`) against segment ringB of tail j (`b`), pushed out if inside:
+  // its correction shared over A's rings ring0 and ring1 (weights w0, w1; w1 0 for a corner).
+  let tailsDeepest = 0;
+  const resolveTails = (point, i, j, a, b, ringB, ring0, w0, ring1, w1) => {
+    const depth = penetration(point, b, ringB);
+    if (!depth) return;
+    tailsDeepest = Math.max(tailsDeepest, depth);
+    if (!settling) {
+      velocityAt(a, ringNodes(a, ring0), velocityA);
+      velocityAt(b, (ringNodes(b, ringB) + ringNodes(b, ringB + 1)) / 2, velocityB);
+      noteImpact(i, j, velocityB.sub(velocityA).dot(bestNormal));
+    }
+    // Share the correction: A's side moves out, B's segment moves the other way.
+    nudge(a, ring0, push.copy(bestNormal).multiplyScalar(depth * 0.5 * w0));
+    if (w1) nudge(a, ring1, push.copy(bestNormal).multiplyScalar(depth * 0.5 * w1));
+    nudge(b, ringB, push.copy(bestNormal).multiplyScalar(-depth * 0.25));
+    nudge(b, ringB + 1, push.copy(bestNormal).multiplyScalar(-depth * 0.25));
+  };
   const collideTails = () => {
     poseShells();
-    let deepest = 0;
+    tailsDeepest = 0;
     for (let i = 0; i < chains.length; i += 1) {
       for (let j = 0; j < chains.length; j += 1) {
         if (i === j) continue;
@@ -286,29 +366,15 @@ export function createTailPhysics({ tails, frame, scale = 1 }) {
             const bound = b.bounds[ringB];
             // Broad phase: skip segments whose bounding spheres can't reach this ring.
             if (a.centres[ringA].distanceTo(bound.centre) > bound.radius * 2.2) continue;
-            const resolve = (point, onRings) => {
-              const depth = penetration(point, b, ringB);
-              if (!depth) return;
-              deepest = Math.max(deepest, depth);
-              if (!settling) {
-                velocityAt(a, ringNodes(a, onRings[0][0]), velocityA);
-                velocityAt(b, (ringNodes(b, ringB) + ringNodes(b, ringB + 1)) / 2, velocityB);
-                noteImpact(i, j, velocityB.sub(velocityA).dot(bestNormal));
-              }
-              // Share the correction: A's side moves out, B's segment moves the other way.
-              onRings.forEach(([ring, weight]) => nudge(a, ring, push.copy(bestNormal).multiplyScalar(depth * 0.5 * weight)));
-              nudge(b, ringB, push.copy(bestNormal).multiplyScalar(-depth * 0.25));
-              nudge(b, ringB + 1, push.copy(bestNormal).multiplyScalar(-depth * 0.25));
-            };
-            for (const corner of cornersA) resolve(corner, [[ringA, 1]]);
+            for (const corner of cornersA) resolveTails(corner, i, j, a, b, ringB, ringA, 1, 0, 0);
             if (ringA < OUTLINE_RINGS - 1) {
-              for (const mid of a.mids[ringA]) resolve(mid, [[ringA, 0.5], [ringA + 1, 0.5]]);
+              for (const mid of a.mids[ringA]) resolveTails(mid, i, j, a, b, ringB, ringA, 0.5, ringA + 1, 0.5);
             }
           }
         }
       }
     }
-    return deepest;
+    return tailsDeepest;
   };
 
   const pushOffBody = (chain) => {
