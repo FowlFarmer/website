@@ -5,7 +5,7 @@
 // `interval` (a number, or one per item), pauses while hovered or off screen, fades between items
 // and eases its height to fit each one.
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m as motion } from "framer-motion";
 
 export default function ProjectFader({
   items = [],

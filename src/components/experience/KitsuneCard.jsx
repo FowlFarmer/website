@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m as motion } from 'framer-motion';
 import { CyclingImage, LogoBadge } from '../cards/workExperience.jsx';
 import QuestTag from './QuestIcons.jsx';
 import { REGION_ICONS } from './RegionIcons.jsx';

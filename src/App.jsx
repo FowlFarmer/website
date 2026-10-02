@@ -29,6 +29,9 @@ if (import.meta.env.DEV) {
 }
 
 import { Analytics } from "@vercel/analytics/react"
+// framer-motion's lightweight components (m, imported as motion) with just the animation features
+// the faders use, instead of the full motion components.
+import { LazyMotion, domAnimation } from 'framer-motion';
 import { usePersistentAnalytics } from './persistentAnalytics.js';
 
 // Route changes fade the page out, swap it while it's invisible (back at the top), then fade the
@@ -148,6 +151,7 @@ function SiteChrome() {
 
 export default function App() {
   return (
+    <LazyMotion features={domAnimation}>
     <Router>
       <div className="app-container" id="popup-root">
         <SiteChrome />
@@ -156,5 +160,6 @@ export default function App() {
       </div>
         <Analytics />
     </Router>
+    </LazyMotion>
   );
 }
