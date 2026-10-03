@@ -58,8 +58,8 @@ const ITEMS_FADE_IN_MS = 420;
 let latestFlight = 0;
 // How far a bar tile's claim can vary, as a fraction of the tile size.
 const TILE_IRREGULARITY = 0.45;
-// Flight time (not eased distance) at which a piece becomes a petal, and starts to take its landing shape.
-const PETAL_BY = 0.1;
+// Flight time (not eased distance) from which a piece takes its landing shape. It becomes a petal
+// the moment it lifts off (flying off this fast, a gradual change left it in its old shape too long).
 const LANDING_FROM = 0.93;
 
 const smoothstep = (edge0, edge1, value) => {
@@ -323,8 +323,8 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
         piece.y += WIND_X * wobble;
       }
       piece.rotation = flight.fromRotation + flight.spin * progress;
-      // Become a petal right away and stay one until it has all but landed, then take its tile's shape.
-      const intoPetal = smoothstep(0, PETAL_BY, progress);
+      // A petal the moment it lifts off, until it has all but landed, then its tile's (or glyph's) shape.
+      const intoPetal = progress > 0 ? 1 : 0;
       const intoTarget = smoothstep(LANDING_FROM, 1, progress);
       const size = piece.size * scale;
       PIECE_DIRECTIONS.forEach(({ theta }, angle) => {
