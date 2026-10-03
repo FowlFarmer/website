@@ -1119,10 +1119,24 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
     // background where the browser can).
     let modelsReady = false;
     const environmentLoaded = loadEnvironment();
+    // A compile in the background that hasn't finished within COMPILE_MS (a stalled readiness check,
+    // a throttled background tab) doesn't hold the load up: it carries on, and the warm-up frames
+    // compile whatever's left, still behind the loading screen.
+    const COMPILE_MS = 5000;
+    const compiled = (promise, what) => new Promise((resolve) => {
+      const late = window.setTimeout(() => {
+        console.warn(`${what}: compiling took over ${COMPILE_MS}ms; finishing in the warm-up.`);
+        resolve();
+      }, COMPILE_MS);
+      promise.catch(() => {}).then(() => {
+        window.clearTimeout(late);
+        resolve();
+      });
+    });
     const compileModels = () => {
       const compileCamera = camera.clone();
       compileCamera.layers.set(1);
-      return renderer.compileAsync(modelGroup, compileCamera, scene).catch(() => {});
+      return compiled(renderer.compileAsync(modelGroup, compileCamera, scene), 'Store shaders');
     };
     // The store and the rider, with the store's lights.
     const setupModels = ([storeAsset, riderAsset]) => {
@@ -1354,8 +1368,8 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
           kitsune.ready.then(() => setStage('kitsune shaders'));
           // After the lighting: it changes which shaders his materials compile to.
           return Promise.resolve(environmentLoaded).then(() => Promise.all([
-            renderer.compileAsync(kitsune.root, kitsune.camera, scene).then(() => setStage('glow shaders')),
-            kitsuneGlow.compile(kitsune.camera), kitsune.ready,
+            compiled(renderer.compileAsync(kitsune.root, kitsune.camera, scene), 'Kitsune shaders').then(() => setStage('glow shaders')),
+            compiled(kitsuneGlow.compile(kitsune.camera), 'Glow shaders'), kitsune.ready,
           ]));
         }))
         .then(() => {

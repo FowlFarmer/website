@@ -9,6 +9,8 @@ import { createTailPhysics } from './kitsunePhysics.js';
 // update() asks for the next step and takes whatever the worker last answered, so the tails drawn
 // are a frame behind their physics. `ready` resolves once the worker has settled them.
 // Where module workers aren't available, the physics runs here as before.
+const READY_MS = 4000;
+
 export function createTailCompute({ source, tails, skins, frame, scale }) {
   // The physics on this thread, the tails' frames worked out here too: without the worker, or if
   // it fails.
@@ -86,13 +88,17 @@ export function createTailCompute({ source, tails, skins, frame, scale }) {
       resolveReady();
     }
   };
-  worker.onerror = (error) => {
-    console.error('Kitsune physics worker failed; running it on the page.', error);
-    worker.terminate();
+  // A worker that fails, or hasn't settled the tails within READY_MS: the physics runs here instead.
+  const runHere = (why, detail) => {
     if (fallback) return;
+    console.warn(`Kitsune physics worker ${why}; running it on the page.`, detail ?? '');
+    worker.terminate();
     fallback = local();
     resolveReady();
   };
+  worker.onerror = (error) => runHere('failed', error);
+  const stalled = window.setTimeout(() => { if (!settle) runHere(`took over ${READY_MS}ms to start`); }, READY_MS);
+  ready.then(() => window.clearTimeout(stalled));
 
   const vector = (v) => [v.x, v.y, v.z];
   worker.postMessage({
@@ -140,6 +146,9 @@ export function createTailCompute({ source, tails, skins, frame, scale }) {
       gusts.push(position.x, position.y, position.z, velocity.x, velocity.y, velocity.z);
       return undefined;
     },
-    dispose() { worker.terminate(); },
+    dispose() {
+      window.clearTimeout(stalled);
+      worker.terminate();
+    },
   };
 }
