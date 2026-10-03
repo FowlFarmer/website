@@ -1920,15 +1920,20 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
 }
 
-/* A smaller ? beside the ×. */
+/* The way into the kitsune lab beside the ×: the domain icon, lighting up on hover as the × does. */
 .popup-question {
   right: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.05rem;
   text-decoration: none;
 }
+.popup-question img {
+  width: 22px;
+  height: 22px;
+  transition: filter 0.2s ease;
+}
+.popup-question:hover img { filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.9)); }
 
 /* A row of photos, each one's width in proportion to its shape (flex-grow set per photo), so the
    row's photos share a height, uncropped. */

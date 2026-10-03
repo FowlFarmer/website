@@ -37,7 +37,7 @@ export default function KitsuneLore() {
   if (!open) return null;
   return (
     <Popup onClose={closeLore} className="kitsune-lore" label="Kitsune lore">
-      <Link className="popup-close popup-question" to="/lab/kitsune" onClick={closeLore} aria-label="Kitsune scene lab">?</Link>
+      <Link className="popup-close popup-question" to="/lab/kitsune" onClick={closeLore} aria-label="Kitsune scene lab"><img src="/site/domain-icon.png" alt="" /></Link>
       <div className="inspo-title">
         <p className="inspo-title-light">Inspo</p>
       </div>
