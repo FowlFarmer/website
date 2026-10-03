@@ -20,9 +20,15 @@ const FLIGHT_SECONDS_RANGE = 0.35;
 // take EROSION_JITTER of the spread, so specks leave from random places, not in a sweep.
 const EROSION_SECONDS = 1.1;
 const EROSION_JITTER = 0.35;
-// The gust, a direction on screen: up and to the right (and back down, the other way).
-const WIND_X = 0.82;
-const WIND_Y = -0.57;
+// The gust: 150° (0° pointing right, counting anticlockwise) going up, so up and to the left; 330°
+// coming back down. As a direction on screen (y down).
+const WIND_ANGLE = (150 * Math.PI) / 180;
+const WIND_X = Math.cos(WIND_ANGLE);
+const WIND_Y = -Math.sin(WIND_ANGLE);
+// Pieces whose place is against the wind fly straight on downwind for longer, up to WIND_RUN of the
+// name's width, then hook round to it; their flight lasts up to TURN_SLOWER times longer.
+const WIND_RUN = 0.45;
+const TURN_SLOWER = 0.6;
 // How long the gust takes to get a piece up to speed, as a share of its flight.
 const KICK = 0.07;
 // A piece's progress along its path, by flight time: up to speed within KICK, then slowing, the
@@ -211,11 +217,20 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
     const weight = new Map();
     const area = (piece) => piece.cell.reduce((sum, radius) => sum + radius * radius, 0);
     [...pieces].sort((a, b) => area(a) - area(b)).forEach((piece, rank) => weight.set(piece, rank / Math.max(pieces.length - 1, 1)));
-    const span = wrapper.getBoundingClientRect().width || window.innerWidth;
+    const bounds = wrapper.getBoundingClientRect();
+    const span = bounds.width || window.innerWidth;
+    const scale = unitScale();
+    const wind = up ? 1 : -1;
     for (const piece of pieces) {
       const lift = 30 + Math.random() * 40;
       const heavy = weight.get(piece);
       const light = 1 - heavy;
+      // How far its place is from straight downwind: 0 downwind, 1 dead against it.
+      const to = up ? piece.bar : bannerPose(piece, bounds, scale);
+      const awayX = to.x - piece.x;
+      const awayY = to.y - piece.y;
+      const turn = (1 - (wind * (awayX * WIND_X + awayY * WIND_Y)) / (Math.hypot(awayX, awayY) || 1)) / 2;
+      const slower = 1 + TURN_SLOWER * turn;
       piece.flight = {
         fromX: piece.x,
         fromY: piece.y,
@@ -225,10 +240,13 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
         lift,
         heavy,
         delay: EROSION_SECONDS * ((1 - EROSION_JITTER) * (up ? heavy : light) + EROSION_JITTER * Math.random()),
-        duration: FLIGHT_SECONDS + Math.random() * FLIGHT_SECONDS_RANGE,
-        // The gust: the same for every piece, so they all leave the same way at the same speed (one
-        // wind), then curve off to their own places. And its flutter across the wind.
-        gust: span * 0.1,
+        duration: (FLIGHT_SECONDS + Math.random() * FLIGHT_SECONDS_RANGE) * slower,
+        // The gust: every piece leaves the same way at the same speed (one wind; its push scaled with
+        // its flight time), then curves off to its own place, the ones against the wind running
+        // straight on for longer first (turn). And its flutter across the wind.
+        gust: span * 0.1 * slower,
+        turn,
+        run: span * WIND_RUN * turn,
         flutter: span * 0.012 * (0.4 + light),
         flutterRate: 1.5 + Math.random() * 2,
         flutterPhase: Math.random() * Math.PI * 2,
@@ -253,13 +271,17 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
       const home = bannerPose(piece, bounds, scale);
       const toX = up ? piece.bar.x : home.x;
       const toY = up ? piece.bar.y : home.y;
-      // Up: lifted off downwind, then gliding into the bar from below. Down: kicked off the bar
-      // the other way, then settling onto the glyph from above. Fluttering across the wind on the way.
+      // Up: lifted off downwind, then into the bar from below. Down: off the bar the other way, then
+      // onto the glyph from above. The second control point slides from just short of its place
+      // (downwind of it already) to far out downwind (against it), so those run straight on, then
+      // hook round. Fluttering across the wind on the way.
       const wind = up ? 1 : -1;
       const p1X = flight.fromX + wind * WIND_X * flight.gust;
       const p1Y = flight.fromY + wind * WIND_Y * flight.gust;
-      const p2X = toX * 0.7 + flight.fromX * 0.3 + wind * WIND_X * flight.gust * 0.4;
-      const p2Y = up ? toY + flight.lift : toY - flight.lift;
+      const nearX = toX;
+      const nearY = up ? toY + flight.lift : toY - flight.lift;
+      const p2X = nearX + (flight.fromX + wind * WIND_X * flight.run - nearX) * flight.turn;
+      const p2Y = nearY + (flight.fromY + wind * WIND_Y * flight.run - nearY) * flight.turn;
       piece.x = cubic(flight.fromX, p1X, p2X, toX, t);
       piece.y = cubic(flight.fromY, p1Y, p2Y, toY, t);
       if (progress > 0 && progress < 1) {
