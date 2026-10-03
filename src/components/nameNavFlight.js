@@ -20,6 +20,9 @@ const FLIGHT_SECONDS_RANGE = 0.35;
 // take EROSION_JITTER of the spread, so specks leave from random places, not in a sweep.
 const EROSION_SECONDS = 1.1;
 const EROSION_JITTER = 0.35;
+// Going up, the wind gets at the top of the name a little before the bottom: lift-offs start up to
+// EROSION_TOP_LEAD seconds later from the top of the name to the bottom.
+const EROSION_TOP_LEAD = 0.3;
 // The gust: 150° (0° pointing right, counting anticlockwise) going up, so up and to the left; 330°
 // coming back down. As a direction on screen (y down).
 const WIND_ANGLE = (150 * Math.PI) / 180;
@@ -51,6 +54,8 @@ const held = (time, hold) => {
   return (hold + (1 - hold) * (x - x ** 3 + x ** 4 / 2)) / holdTotal(hold);
 };
 const ITEMS_FADE_OUT_MS = 200;
+// Forming the bar, its items start fading in once this share of the pieces have landed.
+const ITEMS_AT_LANDED = 0.65;
 // The bar's items fading in (App.css .navbar-styles[data-formed] > *).
 const ITEMS_FADE_IN_MS = 420;
 // The flight that owns the bar's formation now: one cleaning up late (landing after its page left)
@@ -67,12 +72,15 @@ const smoothstep = (edge0, edge1, value) => {
   return t * t * (3 - 2 * t);
 };
 
-// Pair pieces and bar cells column by column, so petals on the left land on the left.
-function pairInColumns(items, rows, x, y) {
-  const sorted = [...items].sort((a, b) => x(a) - x(b));
+// Pair pieces and bar cells row by row: the name split into bands by height, one a bar row, so its
+// top pieces fly to the bar's top and its bottom ones to its bottom (and back); left to left in each.
+function pairInRows(items, rows, x, y) {
+  const sorted = [...items].sort((a, b) => y(a) - y(b));
   const paired = [];
-  for (let start = 0; start < sorted.length; start += rows) {
-    paired.push(...sorted.slice(start, start + rows).sort((a, b) => y(a) - y(b)));
+  for (let row = 0; row < rows; row += 1) {
+    const start = Math.floor((row * sorted.length) / rows);
+    const end = Math.floor(((row + 1) * sorted.length) / rows);
+    paired.push(...sorted.slice(start, end).sort((a, b) => x(a) - x(b)));
   }
   return paired;
 }
@@ -178,8 +186,8 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
     });
     const scale = unitScale();
     const bounds = wrapper.getBoundingClientRect();
-    const orderedPieces = pairInColumns(pieces, barRows, (piece) => bounds.left + piece.homeX * scale, (piece) => piece.homeY);
-    const orderedCells = pairInColumns(seeds, barRows, (seed) => seed.homeX, (seed) => seed.homeY);
+    const orderedPieces = pairInRows(pieces, barRows, (piece) => bounds.left + piece.homeX * scale, (piece) => piece.homeY);
+    const orderedCells = pairInRows(seeds, barRows, (seed) => seed.homeX, (seed) => seed.homeY);
     orderedPieces.forEach((piece, index) => {
       const cell = orderedCells[index];
       piece.bar = { x: cell.homeX, y: cell.homeY, radii: cell.cell };
@@ -220,10 +228,14 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
     }
   };
 
+  let itemsEarly = false;
   const launch = (direction) => {
     startedAt = performance.now();
     phase = direction === 'up' ? 'forming' : 'dissolving';
     const up = direction === 'up';
+    // Turned back mid-flight, the items shown early go again.
+    if (!up && itemsEarly) setNavFormation({ items: false });
+    itemsEarly = false;
     // Each piece's weight: its share of the ranking by area, 0 the lightest to 1 the heaviest. Up,
     // the lightest leave first; down, the heaviest land first.
     const weight = new Map();
@@ -231,6 +243,10 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
     [...pieces].sort((a, b) => area(a) - area(b)).forEach((piece, rank) => weight.set(piece, rank / Math.max(pieces.length - 1, 1)));
     const bounds = wrapper.getBoundingClientRect();
     const span = bounds.width || window.innerWidth;
+    // Each piece's height in the name, 0 its top to 1 its bottom.
+    const topY = Math.min(...pieces.map((piece) => piece.homeY));
+    const bottomY = Math.max(...pieces.map((piece) => piece.homeY));
+    const depth = (piece) => (piece.homeY - topY) / ((bottomY - topY) || 1);
     const scale = unitScale();
     const wind = up ? 1 : -1;
     for (const piece of pieces) {
@@ -252,7 +268,8 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
         spin: (Math.random() - 0.5) * (5 + 6 * light),
         lift,
         heavy,
-        delay: EROSION_SECONDS * ((1 - EROSION_JITTER) * (up ? heavy : light) + EROSION_JITTER * Math.random()),
+        delay: EROSION_SECONDS * ((1 - EROSION_JITTER) * (up ? heavy : light) + EROSION_JITTER * Math.random())
+          + (up ? EROSION_TOP_LEAD * depth(piece) : 0),
         duration,
         hold,
         // Leaving at the gust's speed: the quintic's speed at its start is 5 × this ÷ the flight's
@@ -276,10 +293,12 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
     const bounds = wrapper.getBoundingClientRect();
     const up = phase === 'forming';
     let flying = false;
+    let landed = 0;
     for (const piece of pieces) {
       const { flight } = piece;
       const progress = Math.min(Math.max((elapsed - flight.delay) / flight.duration, 0), 1);
       if (progress < 1) flying = true;
+      else landed += 1;
       const time = Math.min(Math.max(elapsed - flight.delay, 0), flight.duration);
       // The banner scrolls under a descending petal, so its landing spot is re-read every frame.
       const home = bannerPose(piece, bounds, scale);
@@ -322,6 +341,12 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
       piece.radii.set(radii);
     }
     draw();
+    // The bar's items fade in over the last of the landing (the bar lifts above these petals while
+    // formed, its own background still clear: App.css).
+    if (up && !itemsEarly && landed >= ITEMS_AT_LANDED * pieces.length) {
+      itemsEarly = true;
+      setNavFormation({ items: true });
+    }
     if (flying) {
       animationFrame = window.requestAnimationFrame(step);
       return;

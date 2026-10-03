@@ -781,6 +781,10 @@ yeet
   pointer-events: none;
 }
 
+/* While the petals form the bar, the bar sits above them (its background clear until they've
+   landed), so its items can fade in over the last of the landing (nameNavFlight.js). */
+.navbar:has(> .navbar-styles[data-formed]) { z-index: 61; }
+
 /* The petals hand over to the real bar in one frame, so the bar itself must not fade. */
 .navbar-styles[data-formed] {
   transition: box-shadow 0.3s ease-in-out;
