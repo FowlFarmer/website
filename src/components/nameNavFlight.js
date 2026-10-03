@@ -25,15 +25,18 @@ const EROSION_JITTER = 0.35;
 const WIND_ANGLE = (150 * Math.PI) / 180;
 const WIND_X = Math.cos(WIND_ANGLE);
 const WIND_Y = -Math.sin(WIND_ANGLE);
-// Pieces whose place is against the wind fly straight on downwind for longer, up to WIND_RUN of the
-// name's width, then hook round to it; their flight lasts up to TURN_SLOWER times longer.
-const WIND_RUN = 0.45;
-const TURN_SLOWER = 0.6;
-// How long the gust takes to get a piece up to speed, as a share of its flight.
-const KICK = 0.07;
-// A piece's progress along its path, by flight time: up to speed within KICK, then slowing, the
-// lighter (0) to the heavier (1) the sooner it sheds its speed.
-const blown = (progress, heavy) => smoothstep(0, KICK, progress) * (1 - (1 - progress) ** (4.5 - 2 * heavy));
+// A flight in two parts. The cruise: straight downwind at the gust's speed (GUST_SPEED, the name's
+// widths a second, the same for every piece), up to speed within KICK_SECONDS, for CRUISE_SECONDS
+// scaled by how far against the wind its place is (up to 1 + CRUISE_TURN times as long, so those
+// run on before hooking round) and by its weight (light specks lose their way sooner). Then the
+// glide: a curve from there to its place, leaving at the cruise's speed and direction and slowing
+// to rest as it lands.
+const GUST_SPEED = 1.1;
+const KICK_SECONDS = 0.07;
+const CRUISE_SECONDS = 0.3;
+const CRUISE_TURN = 1.6;
+// Easing for the glide, by its time: starts at speed 1 (matching the cruise), ends at 0.
+const glide = (s) => s + s * s - s * s * s;
 const ITEMS_FADE_OUT_MS = 200;
 // The bar's items fading in (App.css .navbar-styles[data-formed] > *).
 const ITEMS_FADE_IN_MS = 420;
@@ -230,7 +233,8 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
       const awayX = to.x - piece.x;
       const awayY = to.y - piece.y;
       const turn = (1 - (wind * (awayX * WIND_X + awayY * WIND_Y)) / (Math.hypot(awayX, awayY) || 1)) / 2;
-      const slower = 1 + TURN_SLOWER * turn;
+      const cruise = CRUISE_SECONDS * (1 + CRUISE_TURN * turn) * (0.7 + 0.5 * heavy);
+      const glideFor = FLIGHT_SECONDS * (0.75 + 0.3 * turn) + Math.random() * FLIGHT_SECONDS_RANGE;
       piece.flight = {
         fromX: piece.x,
         fromY: piece.y,
@@ -240,13 +244,11 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
         lift,
         heavy,
         delay: EROSION_SECONDS * ((1 - EROSION_JITTER) * (up ? heavy : light) + EROSION_JITTER * Math.random()),
-        duration: (FLIGHT_SECONDS + Math.random() * FLIGHT_SECONDS_RANGE) * slower,
-        // The gust: every piece leaves the same way at the same speed (one wind; its push scaled with
-        // its flight time), then curves off to its own place, the ones against the wind running
-        // straight on for longer first (turn). And its flutter across the wind.
-        gust: span * 0.1 * slower,
+        duration: cruise + glideFor,
+        cruise,
+        glideFor,
+        speed: span * GUST_SPEED,
         turn,
-        run: span * WIND_RUN * turn,
         flutter: span * 0.012 * (0.4 + light),
         flutterRate: 1.5 + Math.random() * 2,
         flutterPhase: Math.random() * Math.PI * 2,
@@ -266,31 +268,43 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
       const { flight } = piece;
       const progress = Math.min(Math.max((elapsed - flight.delay) / flight.duration, 0), 1);
       if (progress < 1) flying = true;
-      const t = blown(progress, flight.heavy);
+      const time = Math.min(Math.max(elapsed - flight.delay, 0), flight.duration);
       // The banner scrolls under a descending petal, so its landing spot is re-read every frame.
       const home = bannerPose(piece, bounds, scale);
       const toX = up ? piece.bar.x : home.x;
       const toY = up ? piece.bar.y : home.y;
-      // Up: lifted off downwind, then into the bar from below. Down: off the bar the other way, then
-      // onto the glyph from above. The second control point slides from just short of its place
-      // (downwind of it already) to far out downwind (against it), so those run straight on, then
-      // hook round. Fluttering across the wind on the way.
+      // The cruise, straight downwind (up: up and left; down: down and right), then the glide into
+      // its place: into the bar from below, onto the glyph from above; the farther it had to turn,
+      // the wider its swing. Fluttering across the wind on the way.
       const wind = up ? 1 : -1;
-      const p1X = flight.fromX + wind * WIND_X * flight.gust;
-      const p1Y = flight.fromY + wind * WIND_Y * flight.gust;
-      const nearX = toX;
-      const nearY = up ? toY + flight.lift : toY - flight.lift;
-      const p2X = nearX + (flight.fromX + wind * WIND_X * flight.run - nearX) * flight.turn;
-      const p2Y = nearY + (flight.fromY + wind * WIND_Y * flight.run - nearY) * flight.turn;
-      piece.x = cubic(flight.fromX, p1X, p2X, toX, t);
-      piece.y = cubic(flight.fromY, p1Y, p2Y, toY, t);
+      const dirX = wind * WIND_X;
+      const dirY = wind * WIND_Y;
+      const kick = KICK_SECONDS;
+      const cruised = (moved) => (moved < kick ? (moved * moved) / (2 * kick) : moved - kick / 2) * flight.speed;
+      const cruiseEnd = cruised(flight.cruise);
+      const startX = flight.fromX + dirX * cruiseEnd;
+      const startY = flight.fromY + dirY * cruiseEnd;
+      if (time <= flight.cruise) {
+        piece.x = flight.fromX + dirX * cruised(time);
+        piece.y = flight.fromY + dirY * cruised(time);
+      } else {
+        const s = glide((time - flight.cruise) / flight.glideFor);
+        // Leaving the cruise at its speed: the first control point a third of a glide's worth on.
+        const reach = (flight.speed * flight.glideFor) / 3;
+        const q1X = startX + dirX * reach;
+        const q1Y = startY + dirY * reach;
+        const q2X = toX;
+        const q2Y = (up ? toY + flight.lift : toY - flight.lift) * (1 - flight.turn) + startY * flight.turn;
+        piece.x = cubic(startX, q1X, q2X, toX, s);
+        piece.y = cubic(startY, q1Y, q2Y, toY, s);
+      }
       if (progress > 0 && progress < 1) {
         // Growing in from nothing (sin²), so it doesn't bend the shared departure.
         const wobble = flight.flutter * Math.sin(Math.PI * 2 * flight.flutterRate * progress + flight.flutterPhase) * Math.sin(Math.PI * progress) ** 2;
         piece.x += -WIND_Y * wobble;
         piece.y += WIND_X * wobble;
       }
-      piece.rotation = flight.fromRotation + flight.spin * t;
+      piece.rotation = flight.fromRotation + flight.spin * progress;
       // Become a petal right away and stay one until it has all but landed, then take its tile's shape.
       const intoPetal = smoothstep(0, PETAL_BY, progress);
       const intoTarget = smoothstep(LANDING_FROM, 1, progress);
