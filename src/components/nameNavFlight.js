@@ -35,7 +35,7 @@ const WIND_Y = -Math.sin(WIND_ANGLE);
 // points lie in a line downwind, the farthest WIND_RUN_BASE + WIND_RUN_TURN × turn of the name's
 // width out: it hugs that line, the farther the more its place is against the wind, then the last
 // two swing it round into its place.
-const GUST_SPEED = 1.1;
+const GUST_SPEED = 2.2;
 const HOLD_BASE = 0.15;
 const HOLD_TURN = 0.4;
 const TURN_SLOWER = 1.0;
