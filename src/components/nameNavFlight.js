@@ -28,16 +28,15 @@ const EROSION_TOP_LEAD = 0.3;
 const WIND_ANGLE = (150 * Math.PI) / 180;
 const WIND_X = Math.cos(WIND_ANGLE);
 const WIND_Y = -Math.sin(WIND_ANGLE);
-// One continuous flight: a single curve, travelled at the gust's speed (GUST_SPEED, the name's
-// widths a second, the same for every piece, leaving the same way) held nearly flat for a share of
-// the flight (`hold`: longer the farther against the wind its place is, and for heavier pieces),
-// then easing smoothly to rest as it lands. The curve is a quintic Bézier whose first four control
+// One continuous flight: a single curve, left at the gust's speed (GUST_SPEED, the name's widths a
+// second, the same for every piece, leaving the same way), which drag then bleeds off exponentially
+// (rate `drag`: higher for lighter specks, lower the farther against the wind its place is, so those
+// carry their speed farther along the wind before turning). The curve is a quintic Bézier whose first four control
 // points lie in a line downwind, the farthest WIND_RUN_BASE + WIND_RUN_TURN × turn of the name's
 // width out: it hugs that line, the farther the more its place is against the wind, then the last
 // two swing it round into its place.
-const GUST_SPEED = 2.2;
-const HOLD_BASE = 0.15;
-const HOLD_TURN = 0.4;
+const GUST_SPEED = 6;
+const DRAG = 5;
 const TURN_SLOWER = 1.0;
 const WIND_RUN_BASE = 0.12;
 const WIND_RUN_TURN = 0.9;
@@ -45,14 +44,10 @@ const quintic = (p0, p1, p2, p3, p4, p5, t) => {
   const u = 1 - t;
   return u ** 5 * p0 + 5 * u ** 4 * t * p1 + 10 * u ** 3 * t * t * p2 + 10 * u * u * t ** 3 * p3 + 5 * u * t ** 4 * p4 + t ** 5 * p5;
 };
-// Distance along the curve by flight time (0 to 1), for a flight holding its speed until `hold` and
-// easing to 0 by the end: speed 1 - smoothstep(hold, 1, time), integrated and scaled to end at 1.
-const holdTotal = (hold) => hold + 0.5 * (1 - hold);
-const held = (time, hold) => {
-  if (time <= hold) return time / holdTotal(hold);
-  const x = (time - hold) / (1 - hold);
-  return (hold + (1 - hold) * (x - x ** 3 + x ** 4 / 2)) / holdTotal(hold);
-};
+// Distance along the curve by flight time (0 to 1), for speed decaying as e^(-drag × time), scaled
+// to end at 1; and its speed at the start, relative to the flight's average.
+const dragged = (time, drag) => (1 - Math.exp(-drag * time)) / (1 - Math.exp(-drag));
+const dragStart = (drag) => drag / (1 - Math.exp(-drag));
 const ITEMS_FADE_OUT_MS = 200;
 // Forming the bar, its items start fading in once this share of the pieces have landed.
 const ITEMS_AT_LANDED = 0.65;
@@ -258,7 +253,7 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
       const awayX = to.x - piece.x;
       const awayY = to.y - piece.y;
       const turn = (1 - (wind * (awayX * WIND_X + awayY * WIND_Y)) / (Math.hypot(awayX, awayY) || 1)) / 2;
-      const hold = HOLD_BASE + HOLD_TURN * turn * (0.6 + 0.4 * heavy);
+      const drag = DRAG * (0.8 + 0.6 * light) * (1 - 0.4 * turn);
       const duration = (FLIGHT_SECONDS + Math.random() * FLIGHT_SECONDS_RANGE) * (1 + TURN_SLOWER * turn);
       piece.flight = {
         fromX: piece.x,
@@ -271,10 +266,10 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
         delay: EROSION_SECONDS * ((1 - EROSION_JITTER) * (up ? heavy : light) + EROSION_JITTER * Math.random())
           + (up ? EROSION_TOP_LEAD * depth(piece) : 0),
         duration,
-        hold,
+        drag,
         // Leaving at the gust's speed: the quintic's speed at its start is 5 × this ÷ the flight's
-        // length in time, scaled by the easing's start (1 / holdTotal).
-        lead: (span * GUST_SPEED * duration * holdTotal(hold)) / 5,
+        // length in time, times the easing's start speed (dragStart).
+        lead: (span * GUST_SPEED * duration) / (5 * dragStart(drag)),
         // How far out along the wind the straight run's last control point sits.
         run: span * (WIND_RUN_BASE + WIND_RUN_TURN * turn),
         turn,
@@ -308,7 +303,7 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
       // then onto the glyph from above. The farther it has to turn, the farther out its swing.
       // Fluttering across the wind on the way.
       const wind = up ? 1 : -1;
-      const t = held(time / flight.duration, flight.hold);
+      const t = dragged(time / flight.duration, flight.drag);
       // Along the wind: the first three control points after the start, the last `run` out.
       const along = (distance) => [flight.fromX + wind * WIND_X * distance, flight.fromY + wind * WIND_Y * distance];
       const run = Math.max(flight.run, 3 * flight.lead);
