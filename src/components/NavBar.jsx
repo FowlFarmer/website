@@ -62,7 +62,7 @@ export default function Navbar() {
               position: "absolute",
               width: "max-content",
               left: "50px",
-              fontWeight: "100",
+              fontWeight: "300",
               fontStyle: "italic",
               fontSize: "0.8rem",
             }}>return to home</p>

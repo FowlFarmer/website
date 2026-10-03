@@ -22,25 +22,25 @@ export default function Contact() {
       <div style={{height: "60px"}} />
       <div style={{width: "90%", position: "relative", top: 0, left: 0, right: 0, bottom: 0, display: "flex", gap: "40px", flexWrap: "wrap", justifyContent: "center", alignItems: "center"}}>
         <div style={{flex: "1 1 400px", maxWidth: "500px", color: "white", display: "flex", flexDirection: "column"}}>
-          <h2 style={{fontWeight: "100"}}>Contact Me</h2>
+          <h2 style={{fontWeight: "300"}}>Contact Me</h2>
 
           <a className="contact-hover-parent" href="https://github.com/FowlFarmer" target="_blank" rel="noopener noreferrer" style={{textDecoration: "none", color: "inherit"}}>
             <div style={{display: "flex", height: "50px", width: "50px", padding: "10px", textAlign: "left", alignItems: "center", marginTop: "22px"}}>
               <img loading="lazy" decoding="async" className="contact-logo-child" src="/contact/gh_logo.png" alt="github" style={{maxHeight: "100%", filter: "invert(100%)"}} />
-              <p className="contact-hover-child" style={{marginLeft: "40px", fontSize: "1.1rem", fontWeight: "100"}}>FowlFarmer</p>
+              <p className="contact-hover-child" style={{marginLeft: "40px", fontSize: "1.1rem", fontWeight: "300"}}>FowlFarmer</p>
             </div>
           </a>
 
           <a className="contact-hover-parent" href={`mailto:${email}?subject=${subject}&body=${body}`} style={{textDecoration: "none", color: "inherit"}}>
             <div style={{display: "flex", width: "50px", padding: "10px", textAlign: "left", alignItems: "center"}}>
               <img loading="lazy" decoding="async" className="contact-logo-child" src="/contact/gmail_logo.png" alt="gmail" style={{maxHeight: "100%", filter: "invert(100%)"}} />
-              <p className="contact-hover-child" style={{marginLeft: "40px", fontSize: "1.1rem", fontWeight: "100"}}>mail to: theodorez888@gmail.com</p>
+              <p className="contact-hover-child" style={{marginLeft: "40px", fontSize: "1.1rem", fontWeight: "300"}}>mail to: theodorez888@gmail.com</p>
             </div>
           </a>
 
           <div className="contact-hover-parent" style={{display: "flex", height: "50px", width: "50px", padding: "10px", textAlign: "left", alignItems: "center"}}>
             <img loading="lazy" decoding="async" className="contact-logo-child" src="/contact/discord_logo.png" alt="discord" style={{maxHeight: "100%"}} />
-            <p className="contact-hover-child" style={{marginLeft: "40px", fontSize: "1.1rem", fontWeight: "100"}}>zhong.li</p>
+            <p className="contact-hover-child" style={{marginLeft: "40px", fontSize: "1.1rem", fontWeight: "300"}}>zhong.li</p>
           </div>
 
           <div

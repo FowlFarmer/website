@@ -18,6 +18,15 @@
   --button-text-colour: #ffffff;
 }
 
+/* The site's cursor, everywhere (links and buttons included: one cursor, not a hand on them), its
+   tip the hotspot; 2x for sharp screens. The loading screen keeps its own (index.html), which its
+   contents inherit. */
+html {
+  cursor: url('/site/cursor.png') 0 0, auto;
+  cursor: image-set(url('/site/cursor.png') 1x, url('/site/cursor@2x.png') 2x) 0 0, auto;
+}
+body, body *:not(#boot-loader) { cursor: inherit !important; }
+
 body {
   margin: 0;
   font-family: 'Inter Variable', sans-serif;
@@ -889,7 +898,7 @@ cursor: pointer;
 transition: all 0.2s ease-in-out, opacity 0.5s ease-in-out;
 color: white;
 font-family: 'Inter Variable', sans-serif;
-font-weight: 100;
+font-weight: 300;
 text-align: left;
 text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
 }
@@ -908,7 +917,7 @@ cursor: pointer;
 transition: all 0.2s ease-in-out, opacity 0.5s ease-in-out;
 color: white;
 font-family: 'Inter Variable', sans-serif;
-font-weight: 100;
+font-weight: 300;
 text-align: left;
 /* text-shadow: 2px 2px 5px rgba(0,0,0,0); default shadow */
 }
@@ -1593,7 +1602,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   pointer-events: none;
 }
 .scene-performance-notice-title {
-  font-weight: 100;
+  font-weight: 300;
   font-style: italic;
   letter-spacing: 0.02em;
   color: #bd6780;
