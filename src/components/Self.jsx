@@ -57,7 +57,7 @@ export default function Self() {
             <div className="glass-effect" style={{ width: "90%", marginTop: "40px", display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "center", alignItems: "center" }}>
                 <div style={{height: "20px", width: "100%"}} />
                 <div className='current-status' style={{height: "40px", marginLeft: "30px", marginRight: "30px", width: "100%", borderColor: "#55da95ff", borderWidth: "2px", borderStyle: "solid", opacity: 0.8, borderRadius: "8px"}}>
-                    <p style={{color: "white", margin: "0 20px 0 0", lineHeight: "36px"}}>Current Status</p>
+                    <p style={{color: "white", margin: "0 20px 0 0", lineHeight: "36px", fontWeight: 300}}>Current Status</p>
                 </div>
                 <img loading="lazy" decoding="async" src="/macbook/sus.png" alt="" style={{position: "absolute", scale: 0.9, height: "60px", top: "24px", left: "25px"}} />
                 <div style={{height: "10px", width: "100%"}} />

@@ -898,7 +898,7 @@ cursor: pointer;
 transition: all 0.2s ease-in-out, opacity 0.5s ease-in-out;
 color: white;
 font-family: 'Inter Variable', sans-serif;
-font-weight: 300;
+font-weight: 100;
 text-align: left;
 text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
 }
@@ -917,7 +917,7 @@ cursor: pointer;
 transition: all 0.2s ease-in-out, opacity 0.5s ease-in-out;
 color: white;
 font-family: 'Inter Variable', sans-serif;
-font-weight: 300;
+font-weight: 100;
 text-align: left;
 /* text-shadow: 2px 2px 5px rgba(0,0,0,0); default shadow */
 }
