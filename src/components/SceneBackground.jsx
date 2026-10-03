@@ -18,12 +18,36 @@ const STORAGE_KEY = 'scene-low-performance';
 // A first load gives the 3D scene a chance, then settles for 3D off rather than keep the loading
 // screen up: SPEED_CHECK_MS into its downloads, it measures how fast they're coming, and waits only
 // if the rest would be in within FINISH_WITHIN_MS more; and whatever happens, it's 3D off at
-// LOAD_CAP_MS from the page starting to load. The downloads carry on behind (the 3D switch shows
+// LOAD_CAP_MS from the page starting to load (visible time only). The downloads carry on behind (the 3D switch shows
 // their percentage meanwhile), so switching 3D on later only builds. Switching 3D on by hand waits
 // however long it takes.
 const SPEED_CHECK_MS = 2000;
 const FINISH_WITHIN_MS = 6000;
 const LOAD_CAP_MS = 10000;
+// A timeout that only counts time the page is visible: a background tab gets no frames, so the 3D
+// scene can't finish warming up there, and a load left in a background tab shouldn't be cut short
+// for it. Returns the cancel.
+function visibleTimeout(callback, ms) {
+  let left = ms;
+  let started = 0;
+  let timer = 0;
+  const run = () => {
+    started = performance.now();
+    timer = window.setTimeout(callback, Math.max(0, left));
+  };
+  const handleVisibility = () => {
+    window.clearTimeout(timer);
+    if (document.hidden) left -= performance.now() - started;
+    else run();
+  };
+  if (!document.hidden) run();
+  document.addEventListener('visibilitychange', handleVisibility);
+  return () => {
+    window.clearTimeout(timer);
+    document.removeEventListener('visibilitychange', handleVisibility);
+  };
+}
+
 // Devices too weak for the 3D scene to run well start with 3D off (and nothing downloaded): very
 // little memory or very few cores. The frame-rate watch catches the rest once it runs.
 const lowEndDevice = () => (navigator.deviceMemory !== undefined && navigator.deviceMemory <= 2)
@@ -194,8 +218,9 @@ export default function SceneBackground() {
       switchAutomatically('device');
       return undefined;
     }
-    const cap = window.setTimeout(() => settleRef.current(), Math.max(0, LOAD_CAP_MS - performance.now()));
-    return () => window.clearTimeout(cap);
+    // From the page starting to load, counting only while it's visible (a page opened in a
+    // background tab starts counting when it's first seen).
+    return visibleTimeout(() => settleRef.current(), document.hidden ? LOAD_CAP_MS : LOAD_CAP_MS - performance.now());
     // The first load only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
