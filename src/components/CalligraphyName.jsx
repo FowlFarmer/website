@@ -426,7 +426,9 @@ export default function CalligraphyName() {
       navCanvas = document.createElement('canvas');
       navCanvas.className = 'name-nav-petals';
       navCanvas.setAttribute('aria-hidden', 'true');
-      document.body.appendChild(navCanvas);
+      // In the app's own layer stack (it's isolated), beside the menu bar, which rises above the
+      // petals while they form it so its items can fade in over the landing (App.css).
+      (document.getElementById('popup-root') ?? document.body).appendChild(navCanvas);
     }
     navFlight = !navCanvas ? null : createNavFlight({
       glyphs: calligraphyGlyphs,
