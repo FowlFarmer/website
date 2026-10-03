@@ -1519,7 +1519,8 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   opacity: 0;
   pointer-events: none;
 }
-.scene-performance-control button {
+.scene-performance-control button,
+.scene-performance-control .scene-download-percent {
   position: relative;
   margin: 0;
   padding: 5px 8px;
@@ -1543,6 +1544,11 @@ a:focus-visible, button:focus-visible, summary:focus-visible {
   padding: 0;
 }
 /* "3D off": a slight red, so it's clear the scene is switched off. */
+/* The 3D scene downloading behind 3D off: its percentage in place of the switch, not a control. */
+.scene-performance-control .scene-download-percent {
+  cursor: default;
+  font-variant-numeric: tabular-nums;
+}
 .scene-performance-control button[aria-label="3D background"][aria-checked="false"] {
   border-color: rgba(255, 120, 130, 0.45);
   background: rgba(150, 30, 45, 0.35);

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { kitsuneTails } from '../../data/experience.js';
 import { applyColorTuning, hologramMaterial } from './kitsuneHologram.js';
 import { REFERENCE_LENGTH, createTailPhysics } from './kitsunePhysics.js';
+import { KITSUNE_URLS } from './kitsuneFiles.js';
 import { createTailCompute } from './kitsuneCompute.js';
 import { buildCliff } from './kitsuneCliff.js';
 import {
@@ -13,13 +14,6 @@ import {
 // from the mouse, and collide with each other, the figure and the ledge. The tails are holograms;
 // the rock carries its baked lighting. It brings no renderer, backdrop or petals of its own, so it
 // can sit in any scene: the standalone lab or the homepage's Lawson scene.
-const MODEL_URL = `/models/kitsune/${new URLSearchParams(window.location.search).get('model') || 'keria'}.glb`;
-const TAIL_URL = '/models/kitsune/tail.glb';
-const CLIFF_URL = '/models/kitsune/cliff.glb';
-// Small cherry blossom props for the ledge (assets/cherry-blossoms): open flowers, sprigs, buds and
-// fallen petals, in metres.
-const BLOSSOM_URLS = ['open-blossom', 'three-blossom-sprig', 'opening-buds', 'fallen-petals']
-  .map((name) => `/models/kitsune/blossoms/${name}.glb`);
 // How many of each prop to scatter on the ledge, and how much to scale them: the models are true to
 // size, so they're drawn larger to read at the camera's distance.
 const BLOSSOM_SCATTER = [
@@ -116,35 +110,9 @@ const SWAY_YAW_RIGHT = THREE.MathUtils.degToRad(17.5);
 const SWAY_PITCH = THREE.MathUtils.degToRad(1.2);
 const SWAY_EASE = 3;
 
-// `onProgress(fraction, file)`: how much of it has downloaded, 0 to 1, by bytes as far as they're
-// known, and which file just came in a bit more ('kitsune', 'tail', 'cliff', 'blossoms').
-export function loadKitsuneAssets(loader, onProgress = () => {}) {
-  const urls = [MODEL_URL, TAIL_URL, CLIFF_URL, ...BLOSSOM_URLS];
-  const loaded = new Map();
-  const totals = new Map();
-  const fileName = (url) => (url === MODEL_URL ? 'kitsune' : url === TAIL_URL ? 'tail' : url === CLIFF_URL ? 'cliff' : 'blossoms');
-  const report = (url) => {
-    let done = 0;
-    let total = 0;
-    urls.forEach((url) => {
-      total += totals.get(url) ?? 0;
-      done += loaded.get(url) ?? 0;
-    });
-    // Files whose size isn't known yet count as not started.
-    onProgress(total ? (done / total) * (totals.size / urls.length) : 0, fileName(url));
-  };
-  return Promise.all(urls.map((url) => loader.loadAsync(url, (event) => {
-    if (!event.lengthComputable) return;
-    totals.set(url, event.total);
-    loaded.set(url, event.loaded);
-    report(url);
-  }).then((asset) => {
-    if (totals.has(url)) loaded.set(url, totals.get(url));
-    return asset;
-  }))).then((assets) => {
-    onProgress(1, 'kitsune');
-    return assets;
-  });
+// Its files, from three.js's file cache when sceneFiles.js has downloaded them ahead.
+export function loadKitsuneAssets(loader) {
+  return Promise.all(KITSUNE_URLS.map((url) => loader.loadAsync(url)));
 }
 
 // A seeded random source, so the blossoms land in the same places every visit.

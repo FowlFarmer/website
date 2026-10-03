@@ -10,9 +10,9 @@
 // the system, so it can't lag however busy the page is, and its petals orbit the percentage on
 // CSS animations, which run off the page's thread.
 const SAFETY_MS = 45000; // never stuck: let go whatever's left after this
-// The 3D scene's share of the percentage, against the first render's 0.5 and the quests code's 0.3:
-// most of a load is the scene.
-export const SCENE_PROGRESS_WEIGHT = 10;
+// The 3D scene's setup's share of the percentage (building, compiling, warming up), against its
+// downloads' 6.5 (sceneFiles.js), the first render's 0.5 and the quests code's 0.3.
+export const SCENE_PROGRESS_WEIGHT = 3.4;
 const FADE_MS = 460; // index.html #boot-loader's transition
 
 const loader = typeof document !== 'undefined' ? document.getElementById('boot-loader') : null;

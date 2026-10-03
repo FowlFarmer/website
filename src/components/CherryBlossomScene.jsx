@@ -17,6 +17,8 @@ import {
 import { closeInspo, openInspo } from './lawsonStage.js';
 import { drawSceneMirrors } from './sceneMirror.jsx';
 import { SCENE_PROGRESS_WEIGHT, releaseLoader, reportProgress, setStage } from '../bootLoader.js';
+import { downloadSceneFiles, sceneFile, sceneFileUrls } from './sceneFiles.js';
+import { KITSUNE_URLS } from './experience/kitsuneFiles.js';
 import { onPageScroll, pageScrollY } from './pageScroll.js';
 import {
   SHOW_FRAME_METER, auditOff, createFrameProfiler, markFrame, markLoad, onTuningChange, setTargetFps, tuning,
@@ -533,18 +535,16 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
     // The loading screen (bootLoader.js) waits until everything is built, compiled, on the GPU and
     // drawn once (ready, below): what's left to do then would freeze the page later instead. Its
     // percentage: each part weighted by about how long it takes on a fresh load (the downloads by
-    // size, ~1 MB a unit; the setup steps by their measured time on the same scale).
+    // size, ~1 MB a unit, counted by sceneFiles.js; the setup steps here, by their measured time on
+    // the same scale).
     const ready = () => {
       readyRef.current?.();
       releaseLoader('scene');
       setSceneReady(true);
     };
-    const DOWNLOADS = {
-      backdrop: mobileLayout ? 0.09 : 0.28, store: 1.24, rider: 0.52, lighting: 0.37, kitsune: 4.0,
-    };
     const SETUP = { 'store setup': 0.4, 'kitsune setup': 2.4, 'warm-up': 0.6 };
     // Reported to the loading screen as one part, its share reserved from the start (SceneBackground.jsx).
-    const weights = { ...DOWNLOADS, ...SETUP };
+    const weights = SETUP;
     const fractions = Object.fromEntries(Object.keys(weights).map((part) => [part, 0]));
     const totalWeight = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
     const progress = (part, fraction) => {
@@ -552,11 +552,21 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
       const done = Object.entries(fractions).reduce((sum, [name, value]) => sum + value * weights[name], 0);
       reportProgress('scene', done / totalWeight, SCENE_PROGRESS_WEIGHT);
     };
-    // The stage under the percentage: the latest thing to happen (downloads name their file).
-    const FILE_STAGES = { backdrop: 'backdrop photo', store: 'store model', rider: 'rider', lighting: 'lighting' };
-    const downloading = (part) => (event) => {
-      setStage(FILE_STAGES[part]);
-      if (event?.lengthComputable) progress(part, event.loaded / event.total);
+    // The files, downloaded by sceneFiles.js (already going if the page started them: SceneBackground.jsx),
+    // each handed to three.js's file cache once in, for its loaders to take from there.
+    const riderTextures = (SHOW_FRAME_METER && tuning.riderTextures) || '512';
+    downloadSceneFiles(sceneFileUrls({ mobile: mobileLayout, rider: riderTextures }));
+    const fromDownloads = async (url) => {
+      const data = await sceneFile(url);
+      if (!/\.(jpe?g|png|webp)$/.test(url)) {
+        THREE.Cache.add(`file:${url}`, data);
+        return;
+      }
+      if (THREE.Cache.get(`image:${url}`)) return;
+      const image = new Image();
+      image.src = URL.createObjectURL(new Blob([data]));
+      await image.decode();
+      THREE.Cache.add(`image:${url}`, image);
     };
 
     const random = seededRandom();
@@ -1055,8 +1065,7 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
     let environmentTarget;
     const loadEnvironment = () => new Promise((resolve) => {
       const pmrem = new THREE.PMREMGenerator(renderer);
-      new HDRLoader().load('/models/lawson/dawn-environment.hdr', (hdr) => {
-        progress('lighting', 1);
+      fromDownloads('/models/lawson/dawn-environment.hdr').then(() => new HDRLoader().load('/models/lawson/dawn-environment.hdr', (hdr) => {
         if (!disposed) {
           environmentTarget = pmrem.fromEquirectangular(hdr);
           scene.environment = environmentTarget.texture;
@@ -1065,7 +1074,7 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
         hdr.dispose();
         pmrem.dispose();
         resolve();
-      }, downloading('lighting'), () => { pmrem.dispose(); resolve(); });
+      }, undefined, () => { pmrem.dispose(); resolve(); })).catch(() => { pmrem.dispose(); resolve(); });
     });
     const disposeAsset = (asset) => asset.scene.traverse((object) => {
       object.geometry?.dispose();
@@ -1080,11 +1089,8 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
     // The rider with 512px textures everywhere: he's drawn under ~300px tall even on a big screen,
     // and the 2048px ones took ~64 MB of GPU memory (the 2048 and 1024px versions stay, to compare
     // in the frame meter's render settings).
-    const loadModelAssets = () => Promise.all([
-      loader.loadAsync('/models/lawson/lawson-mobile.glb', downloading('store')).then((asset) => { progress('store', 1); return asset; }),
-      loader.loadAsync(`/models/cherry-blossom/bicycle-rider-${(SHOW_FRAME_METER && tuning.riderTextures) || '512'}.glb`, downloading('rider'))
-        .then((asset) => { progress('rider', 1); return asset; }),
-    ]);
+    const loadModelAssets = () => Promise.all(['/models/lawson/lawson-mobile.glb', `/models/cherry-blossom/bicycle-rider-${riderTextures}.glb`]
+      .map((url) => fromDownloads(url).then(() => loader.loadAsync(url))));
     const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
     // The scene's saved framing: the default, then any pose saved from the editor.
     const applySavedPose = () => {
@@ -1178,8 +1184,7 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
     // The kitsune downloads alongside (it's set up as it arrives: loadKitsune, below).
     Promise.resolve().then(() => { if (!disposed) loadKitsune(); });
     Promise.all([
-      textureLoader.loadAsync(mobileLayout ? '/images/scene/fuji-mobile.jpg' : '/images/scene/fuji_hd.jpg')
-        .then((texture) => { progress('backdrop', 1); return texture; }),
+      ((url) => fromDownloads(url).then(() => textureLoader.loadAsync(url)))(mobileLayout ? '/images/scene/fuji-mobile.jpg' : '/images/scene/fuji_hd.jpg'),
       loadModelAssets(),
       environmentLoaded,
     ])
@@ -1312,10 +1317,7 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
     const loadKitsune = () => {
       markLoad('kitsune: requested');
       Promise.all([import('./experience/kitsuneRig.js'), import('./experience/kitsuneHologram.js')])
-        .then(([rig, hologram]) => rig.loadKitsuneAssets(loader, (fraction, file) => {
-          setStage(file);
-          progress('kitsune', fraction);
-        }).then((assets) => {
+        .then(([rig, hologram]) => Promise.all(KITSUNE_URLS.map(fromDownloads)).then(() => rig.loadKitsuneAssets(loader)).then((assets) => {
           if (disposed) return undefined;
           markLoad('kitsune: downloaded');
           setStage('kitsune build');

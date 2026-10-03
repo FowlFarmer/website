@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { STILLS_BASE, kitsuneStillsLayout } from './kitsuneStills.js';
 import { MOBILE_SCENE_QUERY, cycleGlow, experienceStage, openLore, phoneKitsuneTap, setHovered, tapKitsune } from './experienceStage.js';
 
 // The kitsune when the live scene is off (3D off): stills baked from the real scene
@@ -9,7 +10,7 @@ import { MOBILE_SCENE_QUERY, cycleGlow, experienceStage, openLore, phoneKitsuneT
 // role card's cycle lights its tail too; a click on him opens the lore. On phones they sit in the
 // live band across the bottom of the screen instead, centred and brought in as the phone camera
 // is (layout.phone), and a tap on him moves the role card on (Quests.jsx; the lore has its own button).
-const BASE = '/kitsune-stills';
+const BASE = STILLS_BASE;
 const TAILS = 6;
 // Clicks through the page count; ones on anything that handles its own click don't (as live).
 const OWN_CLICKS = 'a, button, input, textarea, select, label, video, iframe, dialog, [role="button"], [role="dialog"], [contenteditable], .media-frame, .navbar, .scene-performance-control, .popup-backdrop';
@@ -43,7 +44,7 @@ export default function StaticKitsune({ shown, mirror = false }) {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${BASE}/layout.json`).then((response) => response.json()).then((data) => { if (!cancelled) setLayout(data); });
+    kitsuneStillsLayout().then((data) => { if (!cancelled) setLayout(data); });
     return () => { cancelled = true; };
   }, []);
 

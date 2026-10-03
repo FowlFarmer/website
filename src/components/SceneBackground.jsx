@@ -10,11 +10,24 @@ import { onPageScroll, pageScrollY } from './pageScroll.js';
 import { MirrorCanvas, useMirrorHosts } from './sceneMirror.jsx';
 import { onSoundChange, setSoundOn, soundOn } from './soundSetting.js';
 import { SCENE_PROGRESS_WEIGHT, holdLoader, releaseLoader, setStage, showLoader } from '../bootLoader.js';
+import { downloadProgress, downloadSceneFiles, onDownloadProgress, sceneFileUrls } from './sceneFiles.js';
+import { MOBILE_SCENE_QUERY } from './experience/experienceStage.js';
+import { preloadKitsuneStills } from './experience/kitsuneStills.js';
+import { SHOW_FRAME_METER, tuning } from './frameStats.js';
 const STORAGE_KEY = 'scene-low-performance';
-// On a first load, how long (ms from the page starting to load) the 3D scene gets to be ready before
-// the site settles for 3D off rather than keep the loading screen up. Switching 3D on by hand
-// waits however long it takes.
-const SLOW_LOAD_MS = 6000;
+// A first load gives the 3D scene a chance, then settles for 3D off rather than keep the loading
+// screen up: SPEED_CHECK_MS into its downloads, it measures how fast they're coming, and waits only
+// if the rest would be in within FINISH_WITHIN_MS more; and whatever happens, it's 3D off at
+// LOAD_CAP_MS from the page starting to load. The downloads carry on behind (the 3D switch shows
+// their percentage meanwhile), so switching 3D on later only builds. Switching 3D on by hand waits
+// however long it takes.
+const SPEED_CHECK_MS = 2000;
+const FINISH_WITHIN_MS = 6000;
+const LOAD_CAP_MS = 10000;
+// Devices too weak for the 3D scene to run well start with 3D off (and nothing downloaded): very
+// little memory or very few cores. The frame-rate watch catches the rest once it runs.
+const lowEndDevice = () => (navigator.deviceMemory !== undefined && navigator.deviceMemory <= 2)
+  || (navigator.hardwareConcurrency !== undefined && navigator.hardwareConcurrency <= 2);
 
 // A speaker, with sound waves when on, crossed out when off.
 function SoundIcon({ on }) {
@@ -42,12 +55,20 @@ const PERFORMANCE_NOTICES = {
     hint: 'showing a still one instead',
   },
   slow: {
-    title: 'the live scene was slow to load',
-    hint: 'showing a still one; turn 3D on any time',
+    title: '3D scene was slow to download',
+    hint: 'still downloading it in the background',
+  },
+  ready: {
+    title: 'the live scene is ready',
+    hint: 'turn 3D on any time',
+  },
+  device: {
+    title: 'showing a still scene',
+    hint: 'the live one may run slowly here; turn 3D on any time',
   },
 };
 
-function PerformanceToggle({ staticMode, onToggle, soundOn, onSoundToggle, notice, noticeVisible, placement, visible }) {
+function PerformanceToggle({ staticMode, onToggle, soundOn, onSoundToggle, notice, noticeVisible, placement, visible, downloadPercent }) {
   return (
     <div
       className={`scene-performance-control scene-performance-control--${placement}${visible ? '' : ' is-hidden'}`}
@@ -75,16 +96,19 @@ function PerformanceToggle({ staticMode, onToggle, soundOn, onSoundToggle, notic
       >
         <SoundIcon on={soundOn} />
       </button>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={!staticMode}
-        aria-label="3D background"
-        tabIndex={visible ? 0 : -1}
-        onClick={onToggle}
-      >
-        {staticMode ? '3D off' : '3D on'}
-      </button>
+      {downloadPercent !== null
+        // The 3D scene still downloading behind: its percentage, not a switch, until it's in.
+        ? <span className="scene-download-percent" role="progressbar" aria-label="3D scene downloading" aria-valuenow={downloadPercent} aria-valuemin={0} aria-valuemax={100}>{downloadPercent}%</span>
+        : <button
+          type="button"
+          role="switch"
+          aria-checked={!staticMode}
+          aria-label="3D background"
+          tabIndex={visible ? 0 : -1}
+          onClick={onToggle}
+        >
+          {staticMode ? '3D off' : '3D on'}
+        </button>}
     </div>
   );
 }
@@ -103,10 +127,15 @@ export default function SceneBackground() {
   // (CherryBlossomScene.jsx); with 3D off, the still photo once it's in.
   useState(() => holdLoader('scene', staticMode ? 0.2 : SCENE_PROGRESS_WEIGHT));
   const snapshotRef = useRef(null);
+  // 3D off from the start: the 2D kitsune's stills come in behind the loading screen too, so the
+  // quests page never waits on them. (Settling for 3D off later, the loading screen goes as soon
+  // as the still backdrop is in; the stills follow.)
+  const offFromStart = useRef(staticMode);
   useEffect(() => {
     if (!staticMode) return undefined;
     const image = snapshotRef.current;
-    const release = () => releaseLoader('scene');
+    const stills = offFromStart.current ? preloadKitsuneStills({ mobile: window.matchMedia(MOBILE_SCENE_QUERY).matches }) : null;
+    const release = () => (stills ? stills.then(() => releaseLoader('scene')) : releaseLoader('scene'));
     if (!image || image.complete) {
       release();
       return undefined;
@@ -146,24 +175,89 @@ export default function SceneBackground() {
   const [noticeVisible, setNoticeVisible] = useState(false);
   const manualOverride = useRef(initialChoice === 'false');
   const switchAutomatically = useCallback((reason = 'performance') => {
-    if (reason === 'performance' && manualOverride.current) return;
+    if ((reason === 'performance' || reason === 'device') && manualOverride.current) return;
     setStaticMode(true);
     setNotice(PERFORMANCE_NOTICES[reason] ?? PERFORMANCE_NOTICES.performance);
   }, []);
-  // A first load that runs past SLOW_LOAD_MS settles for 3D off (not remembered: the next visit tries
-  // again). What's downloaded by then stays (three.js's file cache), so switching 3D on finishes
-  // the rest rather than starting over.
+  // The first load's verdict (SPEED_CHECK_MS, FINISH_WITHIN_MS, LOAD_CAP_MS above). Settling for 3D
+  // off isn't remembered: the next visit tries again.
   const sceneReady = useRef(false);
   const handleSceneReady = useCallback(() => { sceneReady.current = true; }, []);
+  const [downloadPercent, setDownloadPercent] = useState(null);
+  // The page-start cap, and the low-end check, from the first render.
+  // Before the downloads have started (the still not even in yet), settling is just 3D off.
+  const settleRef = useRef(() => { if (!sceneReady.current) switchAutomatically('slow'); });
   useEffect(() => {
     if (staticMode) return undefined;
-    const timer = window.setTimeout(() => {
-      if (!sceneReady.current) switchAutomatically('slow');
-    }, Math.max(0, SLOW_LOAD_MS - performance.now()));
-    return () => window.clearTimeout(timer);
+    if (lowEndDevice() && !manualOverride.current) {
+      offFromStart.current = true;
+      switchAutomatically('device');
+      return undefined;
+    }
+    const cap = window.setTimeout(() => settleRef.current(), Math.max(0, LOAD_CAP_MS - performance.now()));
+    return () => window.clearTimeout(cap);
     // The first load only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // The 3D scene's files (sceneFiles.js) and code start the moment the still is in: it comes first,
+  // so 3D off is there to settle for (sharing the line with a dozen 3D files, the still was what kept
+  // a slow first load's loading screen up). The speed check counts from here.
+  useEffect(() => {
+    if (!stillIn || staticMode || downloadProgress().elapsed) return undefined;
+    downloadSceneFiles(sceneFileUrls({
+      mobile: window.matchMedia(MOBILE_SCENE_QUERY).matches,
+      rider: (SHOW_FRAME_METER && tuning.riderTextures) || '512',
+    }));
+    import('./CherryBlossomScene.jsx');
+    // The 2D kitsune's stills once the 3D files are in, so switching 3D off later finds them there.
+    const stopWatching = onDownloadProgress(({ done }) => {
+      if (!done) return;
+      stopWatching();
+      preloadKitsuneStills({ mobile: window.matchMedia(MOBILE_SCENE_QUERY).matches });
+    });
+    let settled = false;
+    const settle = () => {
+      if (settled || sceneReady.current) return;
+      settled = true;
+      switchAutomatically('slow');
+      // 3D off is what shows now: its 2D kitsune comes in at once, beside the rest of the 3D files.
+      preloadKitsuneStills({ mobile: window.matchMedia(MOBILE_SCENE_QUERY).matches });
+      // Downloading on behind: the 3D switch shows how far, then comes back once it's all in.
+      if (downloadProgress().done) {
+        setNotice(PERFORMANCE_NOTICES.ready);
+        return;
+      }
+      const stop = onDownloadProgress(({ loaded, total, done }) => {
+        if (done) {
+          stop();
+          setDownloadPercent(null);
+          setNotice(PERFORMANCE_NOTICES.ready);
+          return;
+        }
+        const percent = Math.floor((loaded / total) * 100);
+        setDownloadPercent((shown) => (shown === percent ? shown : percent));
+      });
+      const { loaded, total } = downloadProgress();
+      setDownloadPercent(Math.floor((loaded / total) * 100));
+    };
+    settleRef.current = settle;
+    // The speed over the window's second half: in its first, the line is also carrying the 3D
+    // scene's code, which would make the files look slower than they'll come.
+    let halfway = 0;
+    const mark = window.setTimeout(() => { halfway = downloadProgress().loaded; }, SPEED_CHECK_MS / 2);
+    const check = window.setTimeout(() => {
+      const { loaded, total, done } = downloadProgress();
+      if (done || sceneReady.current) return;
+      const speed = (loaded - halfway) / (SPEED_CHECK_MS / 2); // bytes per ms
+      if (!speed || (total - loaded) / speed > FINISH_WITHIN_MS) settle();
+    }, SPEED_CHECK_MS);
+    return () => {
+      window.clearTimeout(mark);
+      window.clearTimeout(check);
+    };
+    // Once, when the still is first in.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stillIn]);
   useEffect(() => {
     if (navPinned) return undefined;
     const update = () => setScrolledPastNav(pageScrollY() >= 80);
@@ -230,6 +324,7 @@ export default function SceneBackground() {
       onSoundToggle={toggleSound}
       notice={notice}
       noticeVisible={noticeVisible}
+      downloadPercent={downloadPercent}
     />
     <PerformanceToggle
       placement="docked"
@@ -240,6 +335,7 @@ export default function SceneBackground() {
       onSoundToggle={toggleSound}
       notice={notice}
       noticeVisible={noticeVisible}
+      downloadPercent={downloadPercent}
     />
   </>;
 }
