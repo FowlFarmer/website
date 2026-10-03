@@ -61,6 +61,9 @@ const TILE_IRREGULARITY = 0.45;
 // Flight time (not eased distance) from which a piece takes its landing shape. It becomes a petal
 // the moment it lifts off (flying off this fast, a gradual change left it in its old shape too long).
 const LANDING_FROM = 0.93;
+// Its petal starts at the area of the piece it was (a glyph's fragment or a bar tile) and grows to
+// full size by this share of its flight.
+const PETAL_GROW = 0.25;
 
 const smoothstep = (edge0, edge1, value) => {
   const t = Math.min(Math.max((value - edge0) / (edge1 - edge0), 0), 1);
@@ -267,6 +270,9 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
           + (up ? EROSION_TOP_LEAD * depth(piece) : 0),
         duration,
         drag,
+        // The petal's starting size against its full one: the same area as the piece it leaves as.
+        startScale: Math.sqrt(piece.radii.reduce((sum, radius) => sum + radius * radius, 0)
+          / (PIECE_DIRECTIONS.reduce((sum, { theta }) => sum + (petalRadius(theta - piece.rotation) * piece.size * scale) ** 2, 0) || 1)),
         // Leaving at the gust's speed: the quintic's speed at its start is 5 × this ÷ the flight's
         // length in time, times the easing's start speed (dragStart).
         lead: (span * GUST_SPEED * duration) / (5 * dragStart(drag)),
@@ -325,11 +331,12 @@ export function createNavFlight({ glyphs, wrapper, canvas, unitScale, setGlyphMo
       piece.rotation = flight.fromRotation + flight.spin * progress;
       // A petal the moment it lifts off, until it has all but landed, then its tile's (or glyph's) shape.
       const intoPetal = progress > 0 ? 1 : 0;
+      const grow = flight.startScale + (1 - flight.startScale) * smoothstep(0, PETAL_GROW, progress);
       const intoTarget = smoothstep(LANDING_FROM, 1, progress);
       const size = piece.size * scale;
       PIECE_DIRECTIONS.forEach(({ theta }, angle) => {
         const target = up ? piece.bar.radii[angle] : piece.cell[angle] * scale;
-        const petal = petalRadius(theta - piece.rotation) * size;
+        const petal = petalRadius(theta - piece.rotation) * size * grow;
         const midway = flight.fromRadii[angle] * (1 - intoPetal) + petal * intoPetal;
         radii[angle] = midway * (1 - intoTarget) + target * intoTarget;
       });
