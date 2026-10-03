@@ -109,6 +109,15 @@ const BACKDROP_COVER_BOB_STEPS = [-1, 0, 1];
 const DESKTOP_PIXEL_RATIO_CAP = 1.5;
 // How early (ms) a frame can come and still count against the frame cap.
 const FRAME_SLACK_MS = 2;
+// Every device starts at 60 frames a second, phones included, and drops to 30 if it can't keep up
+// (a steady 30 reads smoother than a ragged 45): judged over the first FRAME_JUDGE_FRAMES frames
+// after FRAME_JUDGE_SETTLE_MS past the warm-up, late meaning over 1.5 frames apart, dropping if more
+// than FRAME_LATE_SHARE of them are. Remembered on the device (FRAME_CAP_KEY), so a phone that
+// can't keep up starts at 30 next time instead of stuttering through the judging again.
+const FRAME_JUDGE_SETTLE_MS = 2000;
+const FRAME_JUDGE_FRAMES = 180;
+const FRAME_LATE_SHARE = 0.2;
+const FRAME_CAP_KEY = 'scene-frame-cap';
 // How long after the page last scrolled it counts as still scrolling (the preview's render settings).
 const SCROLL_SETTLE_MS = 150;
 // The quests page's kitsune draws on its own layer, with its own camera and lights.
@@ -1710,9 +1719,26 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
     let scrollFrame = 0;
     const stopScrollWatch = onPageScroll(() => { lastPageScrollAt = performance.now(); });
     // At most 60 frames a second (a 120 Hz display would otherwise draw the scene twice as often),
-    // and 30 on phones and low-memory devices (or the preview's frame cap).
-    const cappedTo30 = window.matchMedia('(pointer: coarse)').matches || (navigator.deviceMemory && navigator.deviceMemory <= 4);
-    const capFor = () => tuning.frameCap ?? (cappedTo30 ? 30 : 60);
+    // or 30 where this device has been found not to keep up (FRAME_JUDGE_*), or the preview's cap.
+    let deviceCap = 60;
+    try { if (localStorage.getItem(FRAME_CAP_KEY) === '30') deviceCap = 30; } catch { /* Storage unavailable: 60. */ }
+    const capFor = () => tuning.frameCap ?? deviceCap;
+    let judgeFrom = 0;
+    let judgedFrames = 0;
+    let lateFrames = 0;
+    // Called with each drawn frame's gap from the last: drops this device to 30 if it can't keep 60.
+    const judgeFrame = (now, gap) => {
+      if (deviceCap !== 60 || tuning.frameCap != null || warmFrame < 4 || gap > 250) return;
+      judgeFrom ||= now + FRAME_JUDGE_SETTLE_MS;
+      if (now < judgeFrom || judgedFrames >= FRAME_JUDGE_FRAMES) return;
+      judgedFrames += 1;
+      if (gap > 1.5 * (1000 / 60)) lateFrames += 1;
+      if (judgedFrames < FRAME_JUDGE_FRAMES || lateFrames <= FRAME_LATE_SHARE * FRAME_JUDGE_FRAMES) return;
+      deviceCap = 30;
+      frameInterval = 1000 / 30;
+      setTargetFps(30);
+      try { localStorage.setItem(FRAME_CAP_KEY, '30'); } catch { /* As above. */ }
+    };
     let frameInterval = capFor() ? 1000 / capFor() : 0;
     setTargetFps(capFor() || null);
     // The preview's render settings, live (antialiasing waits for a reload).
@@ -1742,6 +1768,7 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
         scrollFrame += 1;
         if (tuning.scrolling === 'paused' || scrollFrame % 2) return;
       }
+      judgeFrame(now, now - lastRenderedAt);
       lastRenderedAt = now;
       const frameStart = performance.now();
       profiler.begin('update');

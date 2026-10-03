@@ -111,6 +111,17 @@ On the home page the kitsune loads in the background, and that froze the page fo
 - **Lite components:** the faders now use framer's lightweight `m` components, imported as `motion`, under `LazyMotion` with only the animation features they use (`domAnimation`).
 - **Strict mode:** `strict` makes a full `motion` component throw, rather than quietly bringing everything back. Layout animations or drag would need `domMax` added first.
 
+### 8. 60 fps on phones that can keep it
+
+**File:** `src/components/CherryBlossomScene.jsx` (`judgeFrame`)
+
+Every touch screen, and every device reporting 4 GB of memory or less, was capped at 30 fps: far too broad, since recent phones handle 60 easily. Now every device starts at 60 and judges itself after the warm-up. If more than 20% of 180 frames arrive late (more than 1.5 frames apart), it drops to a steady 30 and remembers that on the device (`scene-frame-cap`), so the next visit starts at 30.
+
+- **Emulated phone:** 60 fps at normal speed, and still 60 with the CPU slowed 6×. With the physics on its own thread, the scene's main-thread work is small.
+- **Fallback:** slowed 20×, it dropped to 30 and saved it.
+
+The real limit on a phone is its GPU, which a Mac can't emulate, so a real device is the remaining check.
+
 ---
 
 ## Measured and not done
