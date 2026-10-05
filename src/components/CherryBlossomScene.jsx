@@ -9,21 +9,18 @@ import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 import { createScenePerformanceMonitor } from './scenePerformance.mjs';
 import { sceneViewport } from './sceneViewport.mjs';
 import {
-  MOBILE_SCENE_QUERY, PHONE_HIGHLIGHT_BOOST, PHONE_KITSUNE_SCALE, PHONE_KITSUNE_SHARE,
-  closeLore, cycleGlow, experienceStage, openLore, phoneKitsuneTap, setHovered as setKitsuneHovered, setKitsuneShown, tapKitsune,
+  MOBILE_SCENE_QUERY, closeLore, cycleGlow, experienceStage, openLore, phoneKitsuneTap, setHovered as setKitsuneHovered, setKitsuneShown, tapKitsune,
 } from './experience/experienceStage.js';
 import { closeInspo, openInspo } from './lawsonStage.js';
 import { drawSceneMirrors } from './sceneMirror.jsx';
 import { SCENE_PROGRESS_WEIGHT, releaseLoader, reportProgress, setStage } from '../bootLoader.js';
 import { downloadSceneFiles, sceneFile, sceneFileUrls } from './sceneFiles.js';
-import { KITSUNE_URLS } from './experience/kitsuneFiles.js';
 import { onPageScroll, pageScrollY } from './pageScroll.js';
 import {
   SHOW_FRAME_METER, auditOff, createFrameProfiler, markFrame, markLoad, onTuningChange, setTargetFps, tuning,
 } from './frameStats.js';
-import { createChimes } from './experience/kitsuneChimes.js';
 import {
-  EMPTY_POSE, AXES, DEFAULT_FOG_DENSITY, DEFAULT_BACKDROP_FOG_DENSITY, DEFAULT_SCENE_POSE, OBJECT_LABELS, TAB_LABELS, POSE_STORAGE_KEY, PARALLAX_CAMERA_SWAY, PARALLAX_FOCUS_SWAY, MOBILE_YAW_PERIOD, MOBILE_PHOTO_HEIGHT, MOBILE_PITCH_SPEED, MOBILE_PITCH_SETTLE_MS, BACKDROP_COVER_OVERSCAN, BACKDROP_COVER_MAX_SCALE, BACKDROP_COVER_POINTER_STEPS, BACKDROP_COVER_BOB_STEPS, DESKTOP_PIXEL_RATIO_CAP, FRAME_SLACK_MS, FRAME_JUDGE_SETTLE_MS, FRAME_JUDGE_FRAMES, FRAME_LATE_SHARE, FRAME_CAP_KEY, SCROLL_SETTLE_MS, KITSUNE_LAYER, FADE_MS, PHONE_KITSUNE_ASPECT, LAYOUT_SETTLE_MS,
+  EMPTY_POSE, DEFAULT_FOG_DENSITY, DEFAULT_BACKDROP_FOG_DENSITY, DEFAULT_SCENE_POSE, OBJECT_LABELS, TAB_LABELS, POSE_STORAGE_KEY, PARALLAX_CAMERA_SWAY, PARALLAX_FOCUS_SWAY, MOBILE_YAW_PERIOD, MOBILE_PHOTO_HEIGHT, MOBILE_PITCH_SPEED, MOBILE_PITCH_SETTLE_MS, DESKTOP_PIXEL_RATIO_CAP, FRAME_SLACK_MS, FRAME_JUDGE_SETTLE_MS, FRAME_JUDGE_FRAMES, FRAME_LATE_SHARE, FRAME_CAP_KEY, SCROLL_SETTLE_MS, FADE_MS, LAYOUT_SETTLE_MS,
 } from './scene/sceneConfig.js';
 import { createFadeLayer } from './scene/fadeLayer.js';
 import { createPetalField, seededRandom } from './scene/petalField.js';
