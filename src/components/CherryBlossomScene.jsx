@@ -30,6 +30,8 @@ import { createPetalField, seededRandom } from './scene/petalField.js';
 import { prepareMaterials, scaleAndGround } from './scene/modelPrep.js';
 import { createBackdropCover } from './scene/backdropCover.js';
 import { createSceneEditor } from './scene/sceneEditor.js';
+import { loadKitsuneStage } from './scene/kitsuneLoad.js';
+import { kitsuneViewOf } from './scene/kitsuneView.js';
 import SceneVectorInput from './scene/SceneVectorInput.jsx';
 
 const SCENE_EDITOR_ENABLED =
@@ -536,76 +538,25 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
     let kitsuneReady = false;
     // Set if the kitsune couldn't load: the loading screen stops waiting for it.
     let kitsuneFailed = false;
-    // His textures onto the GPU one a frame before he's first drawn, instead of all in that frame
-    // (with the page's other work going on, a freeze of a few hundred ms as he loaded).
-    const uploadGradually = (root) => new Promise((resolve) => {
-      const textures = new Set();
-      root?.traverse((object) => [].concat(object.material ?? []).forEach((material) => {
-        Object.values(material).forEach((value) => { if (value?.isTexture) textures.add(value); });
-        Object.values(material.uniforms ?? {}).forEach(({ value }) => { if (value?.isTexture) textures.add(value); });
-      }));
-      const queue = [...textures];
-      const next = () => {
-        if (disposed || !queue.length) return resolve();
-        renderer.initTexture(queue.shift());
-        return window.requestAnimationFrame(next);
-      };
-      next();
+    // Loading him (scene/kitsuneLoad.js): built, compiled, his textures up, his glow warmed.
+    const loadKitsune = () => loadKitsuneStage({
+      renderer, scene, loader, fromDownloads, compiled, environmentLoaded,
+      mobile: mobileLayout,
+      frame: () => kitsuneFrame(),
+      restoreViewport: () => renderer.setViewport(0, 0, viewportWidth, viewportHeight),
+      disposed: () => disposed,
+      progress,
+      onHover: (index) => {
+        document.body.style.cursor = index >= 0 ? 'pointer' : '';
+        setKitsuneHovered(index);
+      },
+      onBuilt: (built) => {
+        ({ kitsune, glow: kitsuneGlow, chimes } = built);
+        if (import.meta.env.DEV && window.__cherryScene) Object.assign(window.__cherryScene, { kitsune, chimes });
+      },
+      onReady: () => { kitsuneReady = true; },
+      onFailed: () => { kitsuneFailed = true; },
     });
-    const loadKitsune = () => {
-      markLoad('kitsune: requested');
-      Promise.all([import('./experience/kitsuneRig.js'), import('./experience/kitsuneHologram.js')])
-        .then(([rig, hologram]) => Promise.all(KITSUNE_URLS.map(fromDownloads)).then(() => rig.loadKitsuneAssets(loader)).then((assets) => {
-          if (disposed) return undefined;
-          markLoad('kitsune: downloaded');
-          setStage('kitsune build');
-          kitsune = rig.createKitsune(assets, {
-            layer: KITSUNE_LAYER,
-            highlightBoost: mobileLayout ? PHONE_HIGHLIGHT_BOOST : 1,
-            onHover: (index) => {
-              document.body.style.cursor = index >= 0 ? 'pointer' : '';
-              setKitsuneHovered(index);
-            },
-          });
-          scene.add(kitsune.root);
-          chimes = createChimes();
-          if (import.meta.env.DEV && window.__cherryScene) window.__cherryScene.chimes = chimes;
-          if (import.meta.env.DEV && window.__cherryScene) window.__cherryScene.kitsune = kitsune;
-          const frame = kitsuneFrame();
-          if (mobileLayout) kitsune.setPhoneView(frame.width / frame.height);
-          else kitsune.setAspect(frame.width / frame.height);
-          kitsuneGlow = hologram.createGlowLayer(renderer, scene, kitsune.camera);
-          kitsuneGlow.setSize(frame.width, frame.height, tuning.glowScale);
-          markLoad('kitsune: built');
-          progress('kitsune setup', 0.4);
-          // The tails settle on their thread while his shaders compile.
-          setStage('tail physics');
-          kitsune.ready.then(() => setStage('kitsune shaders'));
-          // After the lighting: it changes which shaders his materials compile to.
-          return Promise.resolve(environmentLoaded).then(() => Promise.all([
-            compiled(renderer.compileAsync(kitsune.root, kitsune.camera, scene), 'Kitsune shaders').then(() => setStage('glow shaders')),
-            compiled(kitsuneGlow.compile(kitsune.camera), 'Glow shaders'), kitsune.ready,
-          ]));
-        }))
-        .then(() => {
-          setStage('textures');
-          return uploadGradually(kitsune?.root);
-        })
-        .then(() => {
-          if (disposed || !kitsune) return;
-          setStage('glow');
-          kitsune.update(0, performance.now());
-          kitsuneGlow.warm();
-          renderer.setViewport(0, 0, viewportWidth, viewportHeight);
-          markLoad('kitsune: compiled');
-          progress('kitsune setup', 1);
-          kitsuneReady = true;
-        })
-        .catch((error) => {
-          console.error('Unable to load the kitsune.', error);
-          kitsuneFailed = true;
-        });
-    };
     // The fades, 0 to 1: the store and rider, and the kitsune. One fades out before the other fades
     // in. They start where the page wants them, once the scene is up.
     let modelsAlpha = 1;
@@ -658,26 +609,10 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
     // Where the kitsune's view sits on screen, in CSS pixels from the bottom left: scaled down
     // about the bottom-right corner.
     const kitsuneShown = () => kitsune && kitsuneAlpha > 0;
-    // On phones he's a fixed band across the bottom of the visible screen instead (above any part
-    // of the canvas under Safari's toolbar), and doesn't shrink.
-    const kitsuneView = (width, height) => {
-      if (mobileLayout) {
-        const inset = Math.max(0, viewportHeight - safeViewportHeight);
-        // A phone on its side: the right half of the screen, full height, with the page on the left.
-        if (width > safeViewportHeight) {
-          const half = Math.round(width / 2);
-          return { x: half, y: inset, width: width - half, height: safeViewportHeight };
-        }
-        // The band (no wider than PHONE_KITSUNE_ASPECT), shrunk to PHONE_KITSUNE_SCALE in the
-        // bottom-right corner.
-        const bandHeight = safeViewportHeight * PHONE_KITSUNE_SHARE;
-        const bandWidth = Math.min(width, bandHeight * PHONE_KITSUNE_ASPECT);
-        const shownWidth = Math.round(bandWidth * PHONE_KITSUNE_SCALE);
-        return { x: width - shownWidth, y: inset, width: shownWidth, height: Math.round(bandHeight * PHONE_KITSUNE_SCALE) };
-      }
-      const { scale } = experienceStage;
-      return { x: (1 - scale) * width, y: 0, width: width * scale, height: height * scale };
-    };
+    // Where his view sits (scene/kitsuneView.js).
+    const kitsuneView = (width, height) => kitsuneViewOf({
+      width, height, mobile: mobileLayout, viewportHeight, safeViewportHeight, scale: experienceStage.scale,
+    });
     // The kitsune's view at full size, which his camera and glow are sized to.
     const kitsuneFrame = () => {
       const { width, height } = kitsuneView(viewportWidth, viewportHeight);
