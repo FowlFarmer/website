@@ -5,6 +5,7 @@
 import os, json, re, time, urllib.parse
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler
+from pathlib import Path
 
 from pymongo import MongoClient, ASCENDING
 
@@ -63,34 +64,60 @@ def _referrer_host(ref, own_host):
     return host[4:] if host.startswith("www.") else host
 
 _VISITORS = {"$size": {"$setDifference": ["$v", [None]]}}
+LISTS = (("pages", "path"), ("referrers", "referrer_host"), ("utm_sources", "utm.source"),
+         ("countries", "country"), ("cities", "city"), ("devices", "device"),
+         ("browsers", "browser"), ("os", "os"))
+TOP_N = 10
 
-def _top(field, n=10):
+# History from before the tracker existed, pulled from Vercel per day by
+# scripts/analytics/import-vercel-analytics.py (see docs/analytics.md). An imported day
+# replaces Mongo for that date, so a day is never counted twice.
+_IMPORT = Path(__file__).with_name("_vercel-import.json")
+IMPORTED = json.loads(_IMPORT.read_text())["days"] if _IMPORT.exists() else {}
+
+def _top(field):
     return [
         {"$match": {field: {"$type": "string"}}},
         {"$group": {"_id": f"${field}", "views": {"$sum": 1}, "v": {"$addToSet": "$visitor"}}},
         {"$project": {"_id": 0, "key": "$_id", "views": 1, "visitors": _VISITORS}},
-        {"$sort": {"visitors": -1, "views": -1}},
-        {"$limit": n},
     ]
 
 def _summary(days):
-    # Aggregates only: no visitor ids or user agents leave the database.
+    # Aggregates only: no visitor ids or user agents leave the database. Ranges are whole UTC
+    # days, today included, so they line up with the imported days.
     col = _collection()
     if col is None:
         return None
-    match = {"ts": {"$gte": datetime.now(timezone.utc) - timedelta(days=days)}} if days else {}
-    facets = {name: _top(field) for name, field in (
-        ("pages", "path"), ("referrers", "referrer_host"), ("utm_sources", "utm.source"),
-        ("countries", "country"), ("cities", "city"), ("devices", "device"),
-        ("browsers", "browser"), ("os", "os"))}
+    today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    first_day = (today - timedelta(days=days - 1)).strftime("%Y-%m-%d") if days else ""
+    imported = {day: data for day, data in IMPORTED.items() if day >= first_day}
+
+    match = {"$expr": {"$not": {"$in": [{"$dateToString": {"format": "%Y-%m-%d", "date": "$ts"}}, list(IMPORTED)]}}}
+    if days:
+        match["ts"] = {"$gte": today - timedelta(days=days - 1)}
+    facets = {name: _top(field) for name, field in LISTS}
     facets["totals"] = [{"$group": {"_id": None, "views": {"$sum": 1}, "v": {"$addToSet": "$visitor"}}},
                         {"$project": {"_id": 0, "views": 1, "visitors": _VISITORS}}]
     facets["daily"] = [{"$group": {"_id": {"$dateToString": {"format": "%Y-%m-%d", "date": "$ts"}},
                                    "views": {"$sum": 1}, "v": {"$addToSet": "$visitor"}}},
-                       {"$project": {"_id": 0, "day": "$_id", "views": 1, "visitors": _VISITORS}},
-                       {"$sort": {"day": 1}}]
+                       {"$project": {"_id": 0, "day": "$_id", "views": 1, "visitors": _VISITORS}}]
     out = next(col.aggregate([{"$match": match}, {"$facet": facets}]))
-    out["totals"] = out["totals"][0] if out["totals"] else {"views": 0, "visitors": 0}
+
+    totals = out["totals"][0] if out["totals"] else {"views": 0, "visitors": 0}
+    out["totals"] = {
+        "views": totals["views"] + sum(d["views"] for d in imported.values()),
+        "visitors": totals["visitors"] + sum(d["visitors"] for d in imported.values()),
+    }
+    out["daily"] = sorted(out["daily"] + [{"day": day, "views": d["views"], "visitors": d["visitors"]}
+                                          for day, d in imported.items()], key=lambda row: row["day"])
+    for name, _ in LISTS:
+        rows = {row["key"]: row for row in out[name]}
+        for data in imported.values():
+            for key, counts in data.get(name, {}).items():
+                row = rows.setdefault(key, {"key": key, "views": 0, "visitors": 0})
+                row["views"] += counts["views"]
+                row["visitors"] += counts["visitors"]
+        out[name] = sorted(rows.values(), key=lambda row: (-row["visitors"], -row["views"]))[:TOP_N]
     return out
 
 class handler(BaseHTTPRequestHandler):

@@ -1,0 +1,1767 @@
+{
+ "source": "Vercel Web Analytics (production), merged per day by scripts/analytics/import-vercel-analytics.py",
+ "days": {
+  "2026-09-04": {
+   "views": 9,
+   "visitors": 4,
+   "pages": {
+    "/self": {
+     "views": 6,
+     "visitors": 4
+    },
+    "/gallery": {
+     "views": 1,
+     "visitors": 1
+    },
+    "/contact": {
+     "views": 1,
+     "visitors": 1
+    },
+    "/avalon": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 3,
+     "visitors": 2
+    },
+    "linkedin.com": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 9,
+     "visitors": 4
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 2,
+     "visitors": 2
+    },
+    "mobile": {
+     "views": 7,
+     "visitors": 2
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 8,
+     "visitors": 3
+    },
+    "Edge": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "os": {
+    "Android": {
+     "views": 7,
+     "visitors": 2
+    },
+    "Windows": {
+     "views": 2,
+     "visitors": 2
+    }
+   }
+  },
+  "2026-09-05": {
+   "views": 3,
+   "visitors": 3,
+   "pages": {
+    "/self": {
+     "views": 3,
+     "visitors": 3
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 3,
+     "visitors": 3
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 3,
+     "visitors": 3
+    }
+   },
+   "devices": {
+    "mobile": {
+     "views": 3,
+     "visitors": 3
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 3,
+     "visitors": 3
+    }
+   },
+   "os": {
+    "Android": {
+     "views": 3,
+     "visitors": 3
+    }
+   }
+  },
+  "2026-09-06": {
+   "views": 2,
+   "visitors": 2,
+   "pages": {
+    "/self": {
+     "views": 2,
+     "visitors": 2
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 2,
+     "visitors": 2
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 1,
+     "visitors": 1
+    },
+    "mobile": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 1,
+     "visitors": 1
+    },
+    "Edge": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "os": {
+    "Android": {
+     "views": 1,
+     "visitors": 1
+    },
+    "Windows": {
+     "views": 1,
+     "visitors": 1
+    }
+   }
+  },
+  "2026-09-07": {
+   "views": 13,
+   "visitors": 6,
+   "pages": {
+    "/self": {
+     "views": 13,
+     "visitors": 6
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 2,
+     "visitors": 2
+    },
+    "google.com": {
+     "views": 6,
+     "visitors": 2
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 3,
+     "visitors": 3
+    },
+    "CA": {
+     "views": 10,
+     "visitors": 3
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 2,
+     "visitors": 2
+    },
+    "mobile": {
+     "views": 11,
+     "visitors": 4
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 3,
+     "visitors": 3
+    },
+    "Safari": {
+     "views": 8,
+     "visitors": 1
+    },
+    "Edge": {
+     "views": 1,
+     "visitors": 1
+    },
+    "Instagram App": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "os": {
+    "macOS": {
+     "views": 1,
+     "visitors": 1
+    },
+    "Android": {
+     "views": 2,
+     "visitors": 2
+    },
+    "iOS": {
+     "views": 9,
+     "visitors": 2
+    },
+    "Windows": {
+     "views": 1,
+     "visitors": 1
+    }
+   }
+  },
+  "2026-09-08": {
+   "views": 12,
+   "visitors": 3,
+   "pages": {
+    "/self": {
+     "views": 6,
+     "visitors": 3
+    },
+    "/gallery": {
+     "views": 3,
+     "visitors": 2
+    },
+    "/contact": {
+     "views": 1,
+     "visitors": 1
+    },
+    "/avalon": {
+     "views": 2,
+     "visitors": 2
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 2,
+     "visitors": 1
+    },
+    "linkedin.com": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 6,
+     "visitors": 2
+    },
+    "NL": {
+     "views": 6,
+     "visitors": 1
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 7,
+     "visitors": 2
+    },
+    "mobile": {
+     "views": 5,
+     "visitors": 1
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 5,
+     "visitors": 1
+    },
+    "Edge": {
+     "views": 7,
+     "visitors": 2
+    }
+   },
+   "os": {
+    "Android": {
+     "views": 5,
+     "visitors": 1
+    },
+    "Windows": {
+     "views": 7,
+     "visitors": 2
+    }
+   }
+  },
+  "2026-09-09": {
+   "views": 10,
+   "visitors": 5,
+   "pages": {
+    "/self": {
+     "views": 6,
+     "visitors": 5
+    },
+    "/gallery": {
+     "views": 2,
+     "visitors": 2
+    },
+    "/contact": {
+     "views": 1,
+     "visitors": 1
+    },
+    "/avalon": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 2,
+     "visitors": 1
+    },
+    "linkedin.com": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 7,
+     "visitors": 3
+    },
+    "CA": {
+     "views": 3,
+     "visitors": 2
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 4,
+     "visitors": 3
+    },
+    "mobile": {
+     "views": 6,
+     "visitors": 2
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 7,
+     "visitors": 3
+    },
+    "Safari": {
+     "views": 3,
+     "visitors": 2
+    }
+   },
+   "os": {
+    "macOS": {
+     "views": 2,
+     "visitors": 1
+    },
+    "Android": {
+     "views": 5,
+     "visitors": 1
+    },
+    "iOS": {
+     "views": 1,
+     "visitors": 1
+    },
+    "Windows": {
+     "views": 2,
+     "visitors": 2
+    }
+   }
+  },
+  "2026-09-10": {
+   "views": 18,
+   "visitors": 8,
+   "pages": {
+    "/self": {
+     "views": 10,
+     "visitors": 8
+    },
+    "/gallery": {
+     "views": 4,
+     "visitors": 3
+    },
+    "/contact": {
+     "views": 3,
+     "visitors": 3
+    },
+    "/avalon": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 2,
+     "visitors": 2
+    },
+    "google.com": {
+     "views": 2,
+     "visitors": 2
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 18,
+     "visitors": 8
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 12,
+     "visitors": 5
+    },
+    "mobile": {
+     "views": 6,
+     "visitors": 3
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 16,
+     "visitors": 6
+    },
+    "Safari": {
+     "views": 1,
+     "visitors": 1
+    },
+    "Edge": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "os": {
+    "macOS": {
+     "views": 10,
+     "visitors": 3
+    },
+    "Android": {
+     "views": 5,
+     "visitors": 2
+    },
+    "iOS": {
+     "views": 1,
+     "visitors": 1
+    },
+    "Windows": {
+     "views": 2,
+     "visitors": 2
+    }
+   }
+  },
+  "2026-09-11": {
+   "views": 9,
+   "visitors": 4,
+   "pages": {
+    "/self": {
+     "views": 5,
+     "visitors": 4
+    },
+    "/gallery": {
+     "views": 1,
+     "visitors": 1
+    },
+    "/contact": {
+     "views": 2,
+     "visitors": 1
+    },
+    "/avalon": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 1,
+     "visitors": 1
+    },
+    "linkedin.com": {
+     "views": 3,
+     "visitors": 2
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 2,
+     "visitors": 2
+    },
+    "CA": {
+     "views": 7,
+     "visitors": 2
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 3,
+     "visitors": 2
+    },
+    "mobile": {
+     "views": 6,
+     "visitors": 2
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 4,
+     "visitors": 3
+    },
+    "Safari": {
+     "views": 5,
+     "visitors": 1
+    }
+   },
+   "os": {
+    "macOS": {
+     "views": 2,
+     "visitors": 1
+    },
+    "Android": {
+     "views": 1,
+     "visitors": 1
+    },
+    "iOS": {
+     "views": 5,
+     "visitors": 1
+    },
+    "Windows": {
+     "views": 1,
+     "visitors": 1
+    }
+   }
+  },
+  "2026-09-12": {
+   "views": 6,
+   "visitors": 3,
+   "pages": {
+    "/self": {
+     "views": 3,
+     "visitors": 3
+    },
+    "/gallery": {
+     "views": 1,
+     "visitors": 1
+    },
+    "/contact": {
+     "views": 1,
+     "visitors": 1
+    },
+    "/avalon": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 1,
+     "visitors": 1
+    },
+    "linkedin.com": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 3,
+     "visitors": 1
+    },
+    "CA": {
+     "views": 3,
+     "visitors": 2
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 2,
+     "visitors": 1
+    },
+    "mobile": {
+     "views": 4,
+     "visitors": 2
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 5,
+     "visitors": 2
+    },
+    "Safari": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "os": {
+    "Android": {
+     "views": 3,
+     "visitors": 1
+    },
+    "iOS": {
+     "views": 1,
+     "visitors": 1
+    },
+    "Windows": {
+     "views": 2,
+     "visitors": 1
+    }
+   }
+  },
+  "2026-09-13": {
+   "views": 3,
+   "visitors": 2,
+   "pages": {
+    "/self": {
+     "views": 3,
+     "visitors": 2
+    }
+   },
+   "referrers": {
+    "linkedin.com": {
+     "views": 2,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 1,
+     "visitors": 1
+    },
+    "CA": {
+     "views": 2,
+     "visitors": 1
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 1,
+     "visitors": 1
+    },
+    "mobile": {
+     "views": 2,
+     "visitors": 1
+    }
+   },
+   "browsers": {
+    "Safari": {
+     "views": 2,
+     "visitors": 1
+    },
+    "Edge": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "os": {
+    "iOS": {
+     "views": 2,
+     "visitors": 1
+    },
+    "Windows": {
+     "views": 1,
+     "visitors": 1
+    }
+   }
+  },
+  "2026-09-14": {
+   "views": 6,
+   "visitors": 2,
+   "pages": {
+    "/self": {
+     "views": 2,
+     "visitors": 2
+    },
+    "/gallery": {
+     "views": 2,
+     "visitors": 2
+    },
+    "/contact": {
+     "views": 1,
+     "visitors": 1
+    },
+    "/avalon": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 1,
+     "visitors": 1
+    },
+    "google.com": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 4,
+     "visitors": 1
+    },
+    "CA": {
+     "views": 2,
+     "visitors": 1
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 2,
+     "visitors": 1
+    },
+    "mobile": {
+     "views": 4,
+     "visitors": 1
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 6,
+     "visitors": 2
+    }
+   },
+   "os": {
+    "macOS": {
+     "views": 2,
+     "visitors": 1
+    },
+    "Android": {
+     "views": 4,
+     "visitors": 1
+    }
+   }
+  },
+  "2026-09-15": {
+   "views": 10,
+   "visitors": 4,
+   "pages": {
+    "/self": {
+     "views": 6,
+     "visitors": 4
+    },
+    "/gallery": {
+     "views": 2,
+     "visitors": 2
+    },
+    "/contact": {
+     "views": 1,
+     "visitors": 1
+    },
+    "/avalon": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 1,
+     "visitors": 1
+    },
+    "google.com": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 9,
+     "visitors": 3
+    },
+    "DE": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 5,
+     "visitors": 3
+    },
+    "mobile": {
+     "views": 5,
+     "visitors": 1
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 6,
+     "visitors": 2
+    },
+    "Edge": {
+     "views": 1,
+     "visitors": 1
+    },
+    "Firefox": {
+     "views": 3,
+     "visitors": 1
+    }
+   },
+   "os": {
+    "Android": {
+     "views": 5,
+     "visitors": 1
+    },
+    "Windows": {
+     "views": 2,
+     "visitors": 2
+    },
+    "Linux": {
+     "views": 3,
+     "visitors": 1
+    }
+   }
+  },
+  "2026-09-16": {
+   "views": 4,
+   "visitors": 4,
+   "pages": {
+    "/self": {
+     "views": 3,
+     "visitors": 3
+    },
+    "/contact": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 4,
+     "visitors": 4
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 4,
+     "visitors": 4
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 3,
+     "visitors": 3
+    },
+    "Edge": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "os": {
+    "macOS": {
+     "views": 2,
+     "visitors": 2
+    },
+    "Windows": {
+     "views": 2,
+     "visitors": 2
+    }
+   }
+  },
+  "2026-09-17": {
+   "views": 7,
+   "visitors": 7,
+   "pages": {
+    "/self": {
+     "views": 7,
+     "visitors": 7
+    }
+   },
+   "referrers": {
+    "linkedin.com": {
+     "views": 2,
+     "visitors": 2
+    },
+    "cn.bing.com": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 4,
+     "visitors": 4
+    },
+    "CA": {
+     "views": 2,
+     "visitors": 2
+    },
+    "NL": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 6,
+     "visitors": 6
+    },
+    "mobile": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 2,
+     "visitors": 2
+    },
+    "Safari": {
+     "views": 1,
+     "visitors": 1
+    },
+    "Edge": {
+     "views": 4,
+     "visitors": 4
+    }
+   },
+   "os": {
+    "iOS": {
+     "views": 1,
+     "visitors": 1
+    },
+    "Windows": {
+     "views": 6,
+     "visitors": 6
+    }
+   }
+  },
+  "2026-09-18": {
+   "views": 30,
+   "visitors": 12,
+   "pages": {
+    "/self": {
+     "views": 22,
+     "visitors": 12
+    },
+    "/gallery": {
+     "views": 4,
+     "visitors": 3
+    },
+    "/contact": {
+     "views": 2,
+     "visitors": 1
+    },
+    "/avalon": {
+     "views": 2,
+     "visitors": 2
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 3,
+     "visitors": 1
+    },
+    "linkedin.com": {
+     "views": 3,
+     "visitors": 3
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 25,
+     "visitors": 9
+    },
+    "CA": {
+     "views": 4,
+     "visitors": 2
+    },
+    "GB": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 17,
+     "visitors": 9
+    },
+    "mobile": {
+     "views": 13,
+     "visitors": 3
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 22,
+     "visitors": 8
+    },
+    "Safari": {
+     "views": 7,
+     "visitors": 3
+    },
+    "Edge": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "os": {
+    "macOS": {
+     "views": 10,
+     "visitors": 5
+    },
+    "Android": {
+     "views": 7,
+     "visitors": 1
+    },
+    "iOS": {
+     "views": 6,
+     "visitors": 2
+    },
+    "Windows": {
+     "views": 2,
+     "visitors": 2
+    },
+    "Linux": {
+     "views": 5,
+     "visitors": 2
+    }
+   }
+  },
+  "2026-09-19": {
+   "views": 34,
+   "visitors": 14,
+   "pages": {
+    "/self": {
+     "views": 28,
+     "visitors": 14
+    },
+    "/gallery": {
+     "views": 2,
+     "visitors": 1
+    },
+    "/contact": {
+     "views": 2,
+     "visitors": 1
+    },
+    "/avalon": {
+     "views": 2,
+     "visitors": 1
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 4,
+     "visitors": 2
+    },
+    "google.com": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 29,
+     "visitors": 11
+    },
+    "CA": {
+     "views": 1,
+     "visitors": 1
+    },
+    "PL": {
+     "views": 4,
+     "visitors": 2
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 16,
+     "visitors": 8
+    },
+    "mobile": {
+     "views": 18,
+     "visitors": 6
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 24,
+     "visitors": 7
+    },
+    "Safari": {
+     "views": 5,
+     "visitors": 3
+    },
+    "Edge": {
+     "views": 5,
+     "visitors": 4
+    }
+   },
+   "os": {
+    "macOS": {
+     "views": 11,
+     "visitors": 4
+    },
+    "Android": {
+     "views": 13,
+     "visitors": 3
+    },
+    "iOS": {
+     "views": 5,
+     "visitors": 3
+    },
+    "Windows": {
+     "views": 5,
+     "visitors": 4
+    }
+   }
+  },
+  "2026-09-20": {
+   "views": 38,
+   "visitors": 9,
+   "pages": {
+    "/self": {
+     "views": 29,
+     "visitors": 9
+    },
+    "/gallery": {
+     "views": 3,
+     "visitors": 1
+    },
+    "/contact": {
+     "views": 5,
+     "visitors": 3
+    },
+    "/avalon": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 2,
+     "visitors": 2
+    },
+    "linkedin.com": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 32,
+     "visitors": 7
+    },
+    "CA": {
+     "views": 6,
+     "visitors": 2
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 24,
+     "visitors": 4
+    },
+    "mobile": {
+     "views": 14,
+     "visitors": 5
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 25,
+     "visitors": 5
+    },
+    "Safari": {
+     "views": 11,
+     "visitors": 2
+    },
+    "Edge": {
+     "views": 1,
+     "visitors": 1
+    },
+    "Firefox": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "os": {
+    "macOS": {
+     "views": 22,
+     "visitors": 2
+    },
+    "Android": {
+     "views": 3,
+     "visitors": 3
+    },
+    "iOS": {
+     "views": 11,
+     "visitors": 2
+    },
+    "Windows": {
+     "views": 1,
+     "visitors": 1
+    },
+    "Linux": {
+     "views": 1,
+     "visitors": 1
+    }
+   }
+  },
+  "2026-09-22": {
+   "views": 70,
+   "visitors": 8,
+   "pages": {
+    "/self": {
+     "views": 41,
+     "visitors": 8
+    },
+    "/gallery": {
+     "views": 11,
+     "visitors": 4
+    },
+    "/contact": {
+     "views": 13,
+     "visitors": 4
+    },
+    "/avalon": {
+     "views": 5,
+     "visitors": 3
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 1,
+     "visitors": 1
+    },
+    "linkedin.com": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 68,
+     "visitors": 7
+    },
+    "CA": {
+     "views": 2,
+     "visitors": 1
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 38,
+     "visitors": 3
+    },
+    "mobile": {
+     "views": 32,
+     "visitors": 5
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 41,
+     "visitors": 3
+    },
+    "Safari": {
+     "views": 28,
+     "visitors": 4
+    },
+    "Edge": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "os": {
+    "macOS": {
+     "views": 37,
+     "visitors": 2
+    },
+    "Android": {
+     "views": 4,
+     "visitors": 1
+    },
+    "iOS": {
+     "views": 28,
+     "visitors": 4
+    },
+    "Windows": {
+     "views": 1,
+     "visitors": 1
+    }
+   }
+  },
+  "2026-09-23": {
+   "views": 14,
+   "visitors": 2,
+   "pages": {
+    "/self": {
+     "views": 10,
+     "visitors": 2
+    },
+    "/gallery": {
+     "views": 1,
+     "visitors": 1
+    },
+    "/contact": {
+     "views": 3,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 14,
+     "visitors": 2
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 14,
+     "visitors": 2
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 14,
+     "visitors": 2
+    }
+   },
+   "os": {
+    "macOS": {
+     "views": 10,
+     "visitors": 1
+    },
+    "Linux": {
+     "views": 4,
+     "visitors": 1
+    }
+   }
+  },
+  "2026-09-24": {
+   "views": 9,
+   "visitors": 6,
+   "pages": {
+    "/self": {
+     "views": 7,
+     "visitors": 6
+    },
+    "/gallery": {
+     "views": 2,
+     "visitors": 2
+    }
+   },
+   "referrers": {
+    "linkedin.com": {
+     "views": 3,
+     "visitors": 3
+    },
+    "com.linkedin.android": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 9,
+     "visitors": 6
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 3,
+     "visitors": 2
+    },
+    "mobile": {
+     "views": 6,
+     "visitors": 4
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 3,
+     "visitors": 2
+    },
+    "Safari": {
+     "views": 5,
+     "visitors": 3
+    },
+    "Edge": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "os": {
+    "macOS": {
+     "views": 2,
+     "visitors": 1
+    },
+    "Android": {
+     "views": 1,
+     "visitors": 1
+    },
+    "iOS": {
+     "views": 5,
+     "visitors": 3
+    },
+    "Windows": {
+     "views": 1,
+     "visitors": 1
+    }
+   }
+  },
+  "2026-09-25": {
+   "views": 5,
+   "visitors": 3,
+   "pages": {
+    "/self": {
+     "views": 3,
+     "visitors": 3
+    },
+    "/contact": {
+     "views": 1,
+     "visitors": 1
+    },
+    "/avalon": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 5,
+     "visitors": 3
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 1,
+     "visitors": 1
+    },
+    "mobile": {
+     "views": 4,
+     "visitors": 2
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 4,
+     "visitors": 2
+    },
+    "Safari": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "os": {
+    "Android": {
+     "views": 3,
+     "visitors": 1
+    },
+    "iOS": {
+     "views": 1,
+     "visitors": 1
+    },
+    "Windows": {
+     "views": 1,
+     "visitors": 1
+    }
+   }
+  },
+  "2026-09-26": {
+   "views": 5,
+   "visitors": 3,
+   "pages": {
+    "/self": {
+     "views": 5,
+     "visitors": 3
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 4,
+     "visitors": 2
+    },
+    "CA": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 2,
+     "visitors": 1
+    },
+    "mobile": {
+     "views": 3,
+     "visitors": 2
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 2,
+     "visitors": 1
+    },
+    "Safari": {
+     "views": 2,
+     "visitors": 1
+    },
+    "Firefox": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "os": {
+    "macOS": {
+     "views": 2,
+     "visitors": 1
+    },
+    "Android": {
+     "views": 1,
+     "visitors": 1
+    },
+    "iOS": {
+     "views": 2,
+     "visitors": 1
+    }
+   }
+  },
+  "2026-09-27": {
+   "views": 18,
+   "visitors": 6,
+   "pages": {
+    "/self": {
+     "views": 10,
+     "visitors": 6
+    },
+    "/gallery": {
+     "views": 5,
+     "visitors": 3
+    },
+    "/contact": {
+     "views": 1,
+     "visitors": 1
+    },
+    "/avalon": {
+     "views": 2,
+     "visitors": 1
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 4,
+     "visitors": 2
+    },
+    "linkedin.com": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 14,
+     "visitors": 3
+    },
+    "CA": {
+     "views": 4,
+     "visitors": 3
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 3,
+     "visitors": 2
+    },
+    "mobile": {
+     "views": 15,
+     "visitors": 4
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 13,
+     "visitors": 4
+    },
+    "Safari": {
+     "views": 5,
+     "visitors": 2
+    }
+   },
+   "os": {
+    "Android": {
+     "views": 10,
+     "visitors": 2
+    },
+    "iOS": {
+     "views": 5,
+     "visitors": 2
+    },
+    "Windows": {
+     "views": 3,
+     "visitors": 2
+    }
+   }
+  },
+  "2026-09-28": {
+   "views": 41,
+   "visitors": 8,
+   "pages": {
+    "/self": {
+     "views": 28,
+     "visitors": 8
+    },
+    "/gallery": {
+     "views": 9,
+     "visitors": 5
+    },
+    "/contact": {
+     "views": 3,
+     "visitors": 2
+    },
+    "/avalon": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 1,
+     "visitors": 1
+    },
+    "linkedin.com": {
+     "views": 2,
+     "visitors": 2
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 40,
+     "visitors": 7
+    },
+    "CA": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 35,
+     "visitors": 4
+    },
+    "mobile": {
+     "views": 6,
+     "visitors": 4
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 37,
+     "visitors": 6
+    },
+    "Safari": {
+     "views": 4,
+     "visitors": 2
+    }
+   },
+   "os": {
+    "macOS": {
+     "views": 34,
+     "visitors": 3
+    },
+    "Android": {
+     "views": 2,
+     "visitors": 2
+    },
+    "iOS": {
+     "views": 4,
+     "visitors": 2
+    },
+    "Windows": {
+     "views": 1,
+     "visitors": 1
+    }
+   }
+  },
+  "2026-09-29": {
+   "views": 23,
+   "visitors": 4,
+   "pages": {
+    "/self": {
+     "views": 11,
+     "visitors": 4
+    },
+    "/gallery": {
+     "views": 1,
+     "visitors": 1
+    },
+    "/contact": {
+     "views": 1,
+     "visitors": 1
+    },
+    "/avalon": {
+     "views": 3,
+     "visitors": 1
+    },
+    "/lab/kitsune": {
+     "views": 6,
+     "visitors": 2
+    },
+    "/lab": {
+     "views": 1,
+     "visitors": 1
+    }
+   },
+   "referrers": {
+    "com.google.android.googlequicksearchbox": {
+     "views": 3,
+     "visitors": 1
+    }
+   },
+   "countries": {
+    "US": {
+     "views": 23,
+     "visitors": 4
+    }
+   },
+   "devices": {
+    "desktop": {
+     "views": 13,
+     "visitors": 3
+    },
+    "mobile": {
+     "views": 10,
+     "visitors": 1
+    }
+   },
+   "browsers": {
+    "Chrome": {
+     "views": 23,
+     "visitors": 4
+    }
+   },
+   "os": {
+    "macOS": {
+     "views": 13,
+     "visitors": 3
+    },
+    "Android": {
+     "views": 10,
+     "visitors": 1
+    }
+   }
+  }
+ }
+}
