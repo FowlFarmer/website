@@ -29,6 +29,7 @@ import { createFadeLayer } from './scene/fadeLayer.js';
 import { createPetalField, seededRandom } from './scene/petalField.js';
 import { prepareMaterials, scaleAndGround } from './scene/modelPrep.js';
 import { createBackdropCover } from './scene/backdropCover.js';
+import { createSceneEditor } from './scene/sceneEditor.js';
 import SceneVectorInput from './scene/SceneVectorInput.jsx';
 
 const SCENE_EDITOR_ENABLED =
@@ -246,9 +247,6 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
       store: null,
       rider: null,
     };
-    let editingActive = false;
-    let activeSelection = 'camera';
-    let initialPose = null;
     const backdropFogUniform = { value: DEFAULT_BACKDROP_FOG_DENSITY };
     const backdropFogColorUniform = { value: scene.fog.color };
     let backdropPlane = null;
@@ -261,200 +259,18 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
     const updateBackdropCover = backdropCover.update;
     const frameMobileBackdrop = backdropCover.frameMobile;
 
-    const roundPoseValue = (value) => Number(value.toFixed(3));
-    const readPose = (name = activeSelection) => {
-      if (name === 'camera') {
-        return {
-          position: camera.position.toArray().map(roundPoseValue),
-          rotation: [0, 0, 0],
-          scale: [1, 1, 1],
-          target: orbitControls.target.toArray().map(roundPoseValue),
-          fov: roundPoseValue(camera.fov),
-        };
-      }
-
-      const object = editableObjects[name];
-      if (!object) return EMPTY_POSE;
-      return {
-        position: object.position.toArray().map(roundPoseValue),
-        rotation: [object.rotation.x, object.rotation.y, object.rotation.z]
-          .map(THREE.MathUtils.radToDeg)
-          .map(roundPoseValue),
-        scale: object.scale.toArray().map(roundPoseValue),
-        target: orbitControls.target.toArray().map(roundPoseValue),
-        fov: roundPoseValue(camera.fov),
-      };
-    };
-
-    const readFullPose = () => ({
-      referenceAspect: editingActive ? camera.aspect : referenceAspect,
-      camera: readPose('camera'),
-      focus: readPose('focus'),
-      backdrop: readPose('backdrop'),
-      store: readPose('store'),
-      rider: readPose('rider'),
-      fogDensity: roundPoseValue(scene.fog.density),
-      backdropFogDensity: roundPoseValue(backdropFogUniform.value),
+    // The scene editor (dev and preview): poses read, applied, saved; the transform handles
+    // (scene/sceneEditor.js).
+    const editor = createSceneEditor({
+      scene, camera, orbitControls, transformControls, transformHelper, focusMarker, editableObjects, mount,
+      backdropFogUniform, baseCameraPosition, baseCameraTarget,
+      getReferenceAspect: () => referenceAspect,
+      setReferenceAspect: (value) => { referenceAspect = value; },
+      measureStoreWidth: () => measureStoreWidth(),
+      setPoseReadout, setFogDensity, setBackdropFogDensity,
     });
-
-    const applyObjectPose = (object, pose) => {
-      if (!object || !pose) return;
-      if (pose.position) object.position.fromArray(pose.position);
-      if (pose.rotation) object.rotation.set(...pose.rotation.map(THREE.MathUtils.degToRad));
-      if (pose.scale) object.scale.fromArray(pose.scale);
-      object.updateMatrixWorld(true);
-    };
-
-    const applyFullPose = (pose) => {
-      if (!pose) return;
-      if (Number.isFinite(pose.referenceAspect) && pose.referenceAspect > 0) {
-        referenceAspect = pose.referenceAspect;
-      }
-      if (Number.isFinite(pose.fogDensity)) {
-        scene.fog.density = THREE.MathUtils.clamp(pose.fogDensity, 0, 0.12);
-        setFogDensity(scene.fog.density);
-      }
-      if (Number.isFinite(pose.backdropFogDensity)) {
-        backdropFogUniform.value = THREE.MathUtils.clamp(pose.backdropFogDensity, 0, 0.12);
-        setBackdropFogDensity(backdropFogUniform.value);
-      }
-      if (pose.camera) {
-        if (pose.camera.position) camera.position.fromArray(pose.camera.position);
-        if (pose.camera.target) orbitControls.target.fromArray(pose.camera.target);
-        if (Number.isFinite(pose.camera.fov)) {
-          camera.fov = pose.camera.fov;
-          camera.updateProjectionMatrix();
-        }
-        baseCameraPosition.copy(camera.position);
-        baseCameraTarget.copy(orbitControls.target);
-      }
-      if (pose.focus) {
-        applyObjectPose(editableObjects.focus, pose.focus);
-        orbitControls.target.copy(focusMarker.position);
-        baseCameraTarget.copy(focusMarker.position);
-      } else {
-        focusMarker.position.copy(orbitControls.target);
-      }
-      applyObjectPose(editableObjects.backdrop, pose.backdrop);
-      applyObjectPose(editableObjects.store, pose.store);
-      applyObjectPose(editableObjects.rider, pose.rider);
-      orbitControls.update();
-      setPoseReadout(readPose());
-    };
-
-    const attachSelection = (name) => {
-      activeSelection = name;
-      transformControls.detach();
-      if (editingActive && name !== 'camera' && editableObjects[name]) {
-        if (name === 'focus') transformControls.setMode('translate');
-        transformControls.attach(editableObjects[name]);
-      }
-      transformHelper.visible = editingActive && name !== 'camera' && Boolean(editableObjects[name]);
-      focusMarker.visible = editingActive && name === 'focus';
-      setPoseReadout(readPose(name));
-    };
-
-    const handleOrbitChange = () => {
-      if (editingActive && activeSelection !== 'focus') {
-        focusMarker.position.copy(orbitControls.target);
-        baseCameraTarget.copy(orbitControls.target);
-      }
-      setPoseReadout(readPose());
-    };
-    const handleObjectChange = () => {
-      if (activeSelection === 'focus') {
-        orbitControls.target.copy(focusMarker.position);
-        baseCameraTarget.copy(focusMarker.position);
-        orbitControls.update();
-      }
-      setPoseReadout(readPose());
-    };
-    const handleDraggingChanged = (event) => {
-      orbitControls.enabled = editingActive && !event.value;
-    };
-    orbitControls.addEventListener('change', handleOrbitChange);
-    transformControls.addEventListener('objectChange', handleObjectChange);
-    transformControls.addEventListener('dragging-changed', handleDraggingChanged);
-
-    editorApiRef.current = {
-      setEditing(value) {
-        editingActive = value;
-        if (value) {
-          camera.position.copy(baseCameraPosition);
-          orbitControls.target.copy(baseCameraTarget);
-        } else {
-          baseCameraPosition.copy(camera.position);
-          baseCameraTarget.copy(orbitControls.target);
-          referenceAspect = camera.aspect;
-          measureStoreWidth();
-        }
-        orbitControls.update();
-        if (value) orbitControls.connect(mount);
-        else orbitControls.disconnect();
-        orbitControls.enabled = value;
-        transformControls.enabled = value;
-        mount.dataset.editing = String(value);
-        attachSelection(activeSelection);
-      },
-      select(name) {
-        attachSelection(name);
-      },
-      setTransformMode(mode) {
-        transformControls.setMode(mode);
-      },
-      setFogDensity(value) {
-        if (!Number.isFinite(value)) return;
-        scene.fog.density = THREE.MathUtils.clamp(value, 0, 0.12);
-        setFogDensity(scene.fog.density);
-      },
-      setBackdropFogDensity(value) {
-        if (!Number.isFinite(value)) return;
-        backdropFogUniform.value = THREE.MathUtils.clamp(value, 0, 0.12);
-        setBackdropFogDensity(backdropFogUniform.value);
-      },
-      update(section, index, value) {
-        if (!Number.isFinite(value)) return;
-        if (activeSelection === 'camera') {
-          if (section === 'position') camera.position.setComponent(index, value);
-          if (section === 'target') {
-            orbitControls.target.setComponent(index, value);
-            focusMarker.position.copy(orbitControls.target);
-            baseCameraTarget.copy(orbitControls.target);
-          }
-          if (section === 'fov') {
-            camera.fov = THREE.MathUtils.clamp(value, 15, 100);
-            camera.updateProjectionMatrix();
-          }
-          orbitControls.update();
-        } else {
-          const object = editableObjects[activeSelection];
-          if (!object) return;
-          if (section === 'position' || section === 'scale') object[section].setComponent(index, value);
-          if (section === 'rotation') {
-            const rotation = [object.rotation.x, object.rotation.y, object.rotation.z];
-            rotation[index] = THREE.MathUtils.degToRad(value);
-            object.rotation.set(...rotation);
-          }
-          object.updateMatrixWorld(true);
-          if (activeSelection === 'focus') {
-            orbitControls.target.copy(focusMarker.position);
-            baseCameraTarget.copy(focusMarker.position);
-            orbitControls.update();
-          }
-        }
-        setPoseReadout(readPose());
-      },
-      getPose: readFullPose,
-      save() {
-        const pose = readFullPose();
-        window.localStorage.setItem(POSE_STORAGE_KEY, JSON.stringify(pose));
-        return pose;
-      },
-      reset() {
-        window.localStorage.removeItem(POSE_STORAGE_KEY);
-        applyFullPose(initialPose);
-      },
-    };
+    editorApiRef.current = editor.api;
+    const { applyFullPose } = editor;
 
     if (import.meta.env.DEV) {
       window.__cherryScene = { renderer, scene, camera, modelCamera, editableObjects };
@@ -503,8 +319,7 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
     const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
     // The scene's saved framing: the default, then any pose saved from the editor.
     const applySavedPose = () => {
-      initialPose = DEFAULT_SCENE_POSE;
-      applyFullPose(initialPose);
+      editor.applyInitialPose(DEFAULT_SCENE_POSE);
       const savedPose = window.localStorage.getItem(POSE_STORAGE_KEY);
       if (savedPose && !captureMode) {
         try {
@@ -670,7 +485,7 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
         if (models) setupModels(models);
 
         applySavedPose();
-        attachSelection(activeSelection);
+        editor.reattach();
         measureStoreWidth();
         if (mobileLayout) frameMobileBackdrop();
         if (models) {
@@ -702,7 +517,7 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
     const modelRay = new THREE.Raycaster();
     const modelRayLocal = new THREE.Ray();
     const lawsonHit = (event) => {
-      if (!modelsDrawn || editingActive || !modelBox) return false;
+      if (!modelsDrawn || editor.editing() || !modelBox) return false;
       const x = (event.clientX - modelsDrawn.x) / modelsDrawn.width;
       const y = (window.innerHeight - event.clientY - modelsDrawn.y) / modelsDrawn.height;
       if (x < 0 || x > 1 || y < 0 || y > 1) return false;
@@ -870,7 +685,7 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
     };
     // The pointer over the kitsune's view, -1 to 1 each way, or null when it's off the view.
     const kitsuneAt = (event) => {
-      if (!kitsuneShown() || editingActive) return null;
+      if (!kitsuneShown() || editor.editing()) return null;
       const view = kitsuneView(window.innerWidth, window.innerHeight);
       const x = (event.clientX - view.x) / view.width;
       const y = (window.innerHeight - event.clientY - view.y) / view.height;
@@ -892,7 +707,7 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
       // On phones there's no hover: a tap on the kitsune moves the role card on (Quests.jsx); the
       // lore opens from its own button.
       if (mobileLayout) {
-        if (kitsuneShown() && !editingActive && phoneKitsuneTap(event)) tapKitsune();
+        if (kitsuneShown() && !editor.editing() && phoneKitsuneTap(event)) tapKitsune();
         return;
       }
       const at = kitsuneAt(event);
@@ -916,14 +731,14 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
       targetPointer.y = (event.clientY / window.innerHeight - 0.5) * 2;
       kitsune?.setSway(targetPointer.x, -targetPointer.y);
       if (event.pointerType === 'mouse') kitsunePointer(event);
-      if (!reduceMotion && !editingActive && event.pointerType === 'mouse') {
+      if (!reduceMotion && !editor.editing() && event.pointerType === 'mouse') {
         petalWind.move(targetPointer.x, -targetPointer.y, performance.now() / 1000, camera.aspect);
       }
     };
     let backgroundTap = null;
     const handleTapStart = (event) => {
       backgroundTap = null;
-      if (!mobileLayout || reduceMotion || editingActive || !event.isPrimary || event.pointerType !== 'touch') return;
+      if (!mobileLayout || reduceMotion || editor.editing() || !event.isPrimary || event.pointerType !== 'touch') return;
       if (event.target.closest('a, button, input, textarea, select, video, iframe, dialog, [role="button"], [contenteditable], .media-frame, .glass-effect, .glass-effect-2, .scene-editor-panel, .kitsune-tuner, .navbar')) return;
       backgroundTap = { id: event.pointerId, x: event.clientX, y: event.clientY, at: performance.now(), scroll: pageScrollY() };
     };
@@ -1122,7 +937,7 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
       profiler.begin('update');
 
       // Watched only once warmed up: the warm-up's frames (behind the loading screen) are slow on purpose.
-      if (mount.dataset.sceneLoaded === 'true' && warmFrame >= 4 && !editingActive && !captureMode) {
+      if (mount.dataset.sceneLoaded === 'true' && warmFrame >= 4 && !editor.editing() && !captureMode) {
         if (performanceMonitor.sample(now)) lowPerformanceRef.current?.();
       } else performanceMonitor.reset();
       const elapsed = (performance.now() - startTime) / 1000;
@@ -1138,7 +953,7 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
           petalField.geometry.attributes.aWindMotion.needsUpdate = true;
         }
       }
-      if (editingActive) {
+      if (editor.editing()) {
         orbitControls.update();
         modelGroup.rotation.y = 0;
       } else if (mobileLayout) {
@@ -1189,7 +1004,7 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
       profiler.end('update');
       renderer.setViewport(0, 0, viewportWidth, viewportHeight);
       renderer.autoClear = true;
-      if (editingActive) {
+      if (editor.editing()) {
         camera.layers.enableAll();
         renderer.render(scene, camera);
       } else {
@@ -1310,9 +1125,7 @@ export default function CherryBlossomScene({ onLowPerformance, onReady }) {
       visualViewport?.removeEventListener('scroll', updateModelAnchor);
       document.removeEventListener('visibilitychange', handleVisibility);
       stopScrollCancel();
-      orbitControls.removeEventListener('change', handleOrbitChange);
-      transformControls.removeEventListener('objectChange', handleObjectChange);
-      transformControls.removeEventListener('dragging-changed', handleDraggingChanged);
+      editor.dispose();
       transformControls.detach();
       transformControls.dispose();
       orbitControls.dispose();
